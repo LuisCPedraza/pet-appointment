@@ -58,6 +58,20 @@ PetAppointment busca digitalizar el proceso de reserva y seguimiento de citas pa
 
 El proyecto está en fase inicial: base Flutter creada, documentación técnica organizada y preparación para comenzar la implementación funcional.
 
+## Estado por Módulo
+
+| Módulo | Estado | Observación |
+|---|---|---|
+| Autenticación | Planeado | Pendiente de implementación con Supabase Auth |
+| Gestión de Mascotas | Planeado | CRUD aún no iniciado |
+| Servicios y Catálogo | Planeado | Definición funcional en documentación |
+| Citas y Agenda | Planeado | Flujo descrito, sin desarrollo en código |
+| Estados de Cita | Planeado | Diseño funcional definido |
+| Notificaciones | Planeado | Integración pendiente |
+| Backend Supabase | Planeado | Conexión aún no implementada |
+| Pruebas | En progreso | Base de pruebas Flutter disponible |
+| Documentación | En progreso | Estructura modular creada |
+
 ## Funcionalidades Objetivo
 
 - Registro e inicio de sesión por roles.

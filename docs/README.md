@@ -2,6 +2,25 @@
 
 Esta carpeta contiene la documentación técnica modularizada del proyecto.
 
+## Estado por Módulo
+
+| Módulo | Estado |
+|---|---|
+| 1. Visión General, Contexto y Objetivos | En progreso |
+| 2. Alcance Funcional Inicial | En progreso |
+| 3. Roles del Sistema | En progreso |
+| 4. Diagramas | En progreso |
+| 5. Épicas, Historias de Usuario y Tareas Técnicas | En progreso |
+| 6. Stack Tecnológico Detallado | En progreso |
+| 7. Arquitectura Técnica | En progreso |
+| 8. Automatización con Supabase | En progreso |
+| 9. Puesta en Marcha y Workflow Recomendado | En progreso |
+| 10. Manual de Usuario | En progreso |
+| 11. Plan de Pruebas | En progreso |
+| 12. Riesgos y Mitigaciones | En progreso |
+| 13. Requisitos No Funcionales | En progreso |
+| 14. Roadmap y Futuras Mejoras | En progreso |
+
 ## Índice
 
 - [1. Visión General, Contexto y Objetivos](secciones/01-vision-general-contexto-objetivos.md)
