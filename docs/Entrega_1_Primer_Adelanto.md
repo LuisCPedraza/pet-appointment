@@ -1,53 +1,99 @@
 # Entrega 1 - Primer Adelanto de Proyecto
 
-Fecha: 09 de abril de 2026
+Fecha: 11 de abril de 2026
 Proyecto: PetAppointment
+
+## Estructura de Evidencias
+
+Usa esta estructura para guardar las capturas que pide el profesor:
+
+- docs/evidencias/github/
+- docs/evidencias/jira/
+- docs/evidencias/bosquejo/
+
+Nombres sugeridos de archivos:
+
+- docs/evidencias/github/01-ramas-github.png
+- docs/evidencias/github/02-commits-ramas.png
+- docs/evidencias/jira/01-backlog-historias.png
+- docs/evidencias/jira/02-tablero-kanban.png
+- docs/evidencias/jira/03-historia-con-subtareas.png
+- docs/evidencias/bosquejo/01-login.png
+- docs/evidencias/bosquejo/02-inicio-dashboard.png
+- docs/evidencias/bosquejo/03-reserva-cita.png
+- docs/evidencias/bosquejo/04-historial-agenda.png
 
 ## 1. GitHub del Proyecto y Ramas Solicitadas
 
 Repositorio: https://github.com/LuisCPedraza/pet-appointment.git
 
 Ramas verificadas para la entrega:
+
 - master
 - qa
 - staging
 
 Evidencia sugerida:
+
 - Captura de pantalla de la vista de ramas en GitHub.
 - Captura de los ultimos commits en cada rama principal.
+
+Placeholders:
+
+![Ramas en GitHub](evidencias/github/01-ramas-github.png)
+
+![Commits por rama](evidencias/github/02-commits-ramas.png)
 
 ## 2. Jira con Historias de Usuario
 
 Tablero Jira del equipo:
+
 - https://correounivalle-team-f1bug4uj.atlassian.net/jira/software/projects/KAN/summary?atlOrigin=eyJpIjoiNTdhN2VhOTVjNjJiNDFlOGE0MTdmNzAwZjQ2MmM5YTciLCJwIjoiaiJ9
 
 Estado actual:
+
 - Se dispone de estructura documental de epicas e historias de usuario.
 - Se recomienda sincronizar cada historia documentada con su issue en Jira.
 
 Evidencia sugerida:
+
 - Captura del backlog con epicas y stories visibles.
 - Captura del tablero Kanban en uso.
+
+Placeholders:
+
+![Backlog con historias](evidencias/jira/01-backlog-historias.png)
+
+![Tablero Kanban](evidencias/jira/02-tablero-kanban.png)
 
 ## 3. Subactividades por Historia de Usuario
 
 Referencia interna:
+
 - docs/secciones/05-epicas-historias-y-tareas-tecnicas.md
 
 Estado actual:
+
 - Existen tareas tecnicas definidas por epica e historia (TASK-01 a TASK-22).
 - Se recomienda crear las subtareas equivalentes en Jira bajo cada historia.
 
 Evidencia sugerida:
+
 - Captura de una historia con sus subtareas en Jira.
 - Captura de avance de subtareas en columnas del tablero.
+
+Placeholders:
+
+![Historia con subtareas](evidencias/jira/03-historia-con-subtareas.png)
 
 ## 4. Primer Bosquejo de la App
 
 Estado actual:
-- Pendiente de carga de bosquejos visuales (wireframes/mockups).
+
+- Bosquejos visuales cargados en la carpeta de evidencias.
 
 Recomendacion para cierre de este punto:
+
 - Incluir minimo 4 pantallas iniciales:
   - Login
   - Inicio (dashboard)
@@ -55,18 +101,30 @@ Recomendacion para cierre de este punto:
   - Historial/agenda
 
 Evidencia sugerida:
+
 - Insertar imagenes en esta seccion o anexarlas al documento final de campus.
+
+Placeholders:
+
+![Bosquejo pantalla Login](evidencias/bosquejo/01-login.png)
+
+![Bosquejo pantalla Inicio](evidencias/bosquejo/02-inicio-dashboard.png)
+
+![Bosquejo pantalla Reserva de Cita](evidencias/bosquejo/03-reserva-cita.png)
+
+![Bosquejo pantalla Historial o Agenda](evidencias/bosquejo/04-historial-agenda.png)
 
 ## 5. Documento de Explicacion para Campus
 
 Este archivo cumple como base del documento de entrega y resume los puntos exigidos por el docente.
 
 Checklist final antes de subir al campus:
-- [x] Repositorio GitHub con ramas master, qa y staging.
-- [x] Enlace oficial de Jira incluido.
-- [ ] Historias y subtareas validadas visualmente en Jira con capturas.
-- [ ] Bosquejo visual de la app (minimo 4 pantallas).
-- [x] Documento consolidado de la Entrega 1.
+
+- [X] Repositorio GitHub con ramas master, qa y staging.
+- [X] Enlace oficial de Jira incluido.
+- [X] Historias y subtareas validadas visualmente en Jira con capturas.
+- [X] Bosquejo visual de la app (minimo 4 pantallas).
+- [X] Documento consolidado de la Entrega 1.
 
 ## Enlaces Rapidos
 
