@@ -3,6 +3,35 @@
 Fecha: 11 de abril de 2026
 Proyecto: PetAppointment
 
+## Contexto del Proyecto
+
+PetAppointment es una aplicacion movil orientada a la gestion de citas para servicios veterinarios y de grooming. Nace como respuesta a la necesidad de digitalizar procesos que normalmente se hacen de forma manual (llamadas, mensajes o agendas fisicas), los cuales suelen generar errores de horario, falta de trazabilidad y tiempos de respuesta largos.
+
+En esta primera entrega, el equipo se enfoco en establecer las bases del proyecto para desarrollo ordenado y validable:
+
+- Estructura de repositorio y ramas de trabajo solicitadas por el docente.
+- Planeacion funcional con epicas, historias de usuario y tareas tecnicas.
+- Configuracion del tablero Jira para seguimiento del avance.
+- Bosquejo visual inicial de la aplicacion con pantallas clave.
+
+El objetivo de esta entrega es demostrar preparacion tecnica, organizacion del equipo y direccion funcional clara antes de iniciar la implementacion completa del sistema.
+
+## Integrantes del Proyecto
+
+| Nombre | Codigo | Rol |
+|---|---|---|
+| Nicolas Gonzalez Giraldo | 202369659 | Desarrollador Flutter / Lider Tecnico |
+| Luis Carlos Pedraza Corredor | 202369678 | Desarrollador Flutter / Diseno UI/UX |
+| Luis Carlos Pedraza Corredor | 202369678 | Integracion Supabase / Base de Datos |
+
+## Datos Academicos
+
+- Universidad: Universidad del Valle
+- Facultad: Ingenieria
+- Programa: Tecnologia en Desarrollo de Software
+- Asignatura: Desarrollo de Aplicaciones para Dispositivos Moviles
+- Docente: Quintero Capera Daniel
+
 ## Estructura de Evidencias
 
 Usa esta estructura para guardar las capturas que pide el profesor:
