@@ -41,6 +41,7 @@ Esta carpeta contiene la documentación técnica modularizada del proyecto.
 ## Documento Completo
 
 - [PetAppointment_Documentacion_Tecnica.md](PetAppointment_Documentacion_Tecnica.md)
+- [Entrega_1_Primer_Adelanto.md](Entrega_1_Primer_Adelanto.md)
 
 ## Guía de Estilo
 

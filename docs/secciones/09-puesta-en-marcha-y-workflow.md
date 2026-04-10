@@ -150,12 +150,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-### 9.4 Estrategia de Branching (GitHub Flow Simplificado)
+### 9.4 Estrategia de Branching (Entrega 1)
 
 ```
-main                  ← Producción estable (protegida, requiere PR + review)
+master                ← Rama principal solicitada para la entrega
   ↑
-develop               ← Integración continua (rama base para features)
+qa                    ← Rama de desarrollo/integración
+  ↑
+staging               ← Rama de pruebas previas
   ↑
 feature/US-10-calendario   ← Feature branches por historia de usuario
 feature/US-11-reservar-cita
@@ -164,9 +166,10 @@ fix/BUG-05-slot-collision
 
 **Reglas de protección de ramas:**
 
-- `main`: Requiere PR aprobado por al menos 1 revisor + CI verde.
-- `develop`: Requiere CI verde antes de merge.
-- No se permite push directo a `main` ni `develop`.
+- `master`: Requiere PR aprobado por al menos 1 revisor + CI verde.
+- `qa`: Requiere CI verde antes de merge.
+- `staging`: Se usa para validaciones funcionales antes de promover a `master`.
+- No se permite push directo a `master`.
 
 ### 9.5 Convenciones de Commits (Conventional Commits)
 
@@ -184,6 +187,8 @@ chore(ci): configurar workflow de GitHub Actions para APK
 **Tipos permitidos:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`
 
 ### 9.6 Integración con Jira (Kanban)
+
+Tablero oficial del equipo: [KAN - PetAppointment](https://correounivalle-team-f1bug4uj.atlassian.net/jira/software/projects/KAN/summary?atlOrigin=eyJpIjoiNTdhN2VhOTVjNjJiNDFlOGE0MTdmNzAwZjQ2MmM5YTciLCJwIjoiaiJ9)
 
 | Elemento en Documentación | Equivalente en Jira |
 |---|---|

@@ -72,6 +72,16 @@ El proyecto está en fase inicial: base Flutter creada, documentación técnica 
 | Pruebas | En progreso | Base de pruebas Flutter disponible |
 | Documentación | En progreso | Estructura modular creada |
 
+## Gestión del Proyecto (Jira)
+
+- Tablero Jira del equipo: [KAN - PetAppointment](https://correounivalle-team-f1bug4uj.atlassian.net/jira/software/projects/KAN/summary?atlOrigin=eyJpIjoiNTdhN2VhOTVjNjJiNDFlOGE0MTdmNzAwZjQ2MmM5YTciLCJwIjoiaiJ9)
+
+## Ramas Oficiales (Entrega 1)
+
+- master: base solicitada por el docente para control principal.
+- qa: integración de desarrollo.
+- staging: pruebas previas a entrega.
+
 ## Funcionalidades Objetivo
 
 - Registro e inicio de sesión por roles.
@@ -111,6 +121,7 @@ flutter test
 ## Documentación
 
 - Índice principal: [docs/README.md](docs/README.md)
+- Documento de Entrega 1: [docs/Entrega_1_Primer_Adelanto.md](docs/Entrega_1_Primer_Adelanto.md)
 - Documento técnico completo: [docs/PetAppointment_Documentacion_Tecnica.md](docs/PetAppointment_Documentacion_Tecnica.md)
 - Guía de estilo visual: [docs/STYLE_GUIDE.md](docs/STYLE_GUIDE.md)
 - Secciones de documentación:
