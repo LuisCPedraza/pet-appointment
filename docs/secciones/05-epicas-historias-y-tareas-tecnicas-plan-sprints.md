@@ -16,10 +16,9 @@ Este documento conserva la vista ejecutiva del proyecto, pero además desglosa c
 2. [Épicas del Proyecto](#épicas-del-proyecto)
 3. [Historias de Usuario (HU)](#historias-de-usuario)
 4. [Tareas Técnicas (TASK) por Sprint](#tareas-técnicas-por-sprint)
-5. [Desglose ampliado de HU y tareas](#desglose-ampliado-de-hu-y-tareas)
-6. [Lista sugerida de issues para Jira](#lista-sugerida-de-issues-para-jira)
-7. [Matriz de Asignación de Tareas](#matriz-de-asignación-de-tareas)
-8. [Definición de Terminado](#definición-de-terminado)
+5. [Lista sugerida de issues para Jira](#lista-sugerida-de-issues-para-jira)
+6. [Matriz de Asignación de Tareas](#matriz-de-asignación-de-tareas)
+7. [Definición de Terminado](#definición-de-terminado)
 
 ---
 
@@ -276,79 +275,7 @@ Este documento conserva la vista ejecutiva del proyecto, pero además desglosa c
 
 ---
 
-## 5.4 Desglose ampliado de HU y tareas
-
-### EP-01: Autenticación y Gestión de Usuarios
-
-| HU | Contexto funcional | Desglose de tareas técnicas | Responsable principal | Sprint |
-|---|---|---|---|---|
-| **US-01** | Alta de usuario con validación de acceso inicial. | Diseñar formulario; validar correo y contraseña; conectar Supabase Auth; mostrar confirmación. | Nicolas Gonzalez | Sprint 2 |
-| **US-02** | Inicio de sesión seguro y persistencia de sesión. | Crear pantalla login; guardar sesión JWT; manejar errores; cerrar sesión. | Nicolas Gonzalez | Sprint 2 |
-| **US-03** | Recuperación de contraseña para evitar bloqueo de acceso. | Crear vista de recuperación; enviar correo; validar enlace; reintento de acceso. | Nicolas Gonzalez | Sprint 2 |
-| **US-04** | Perfil editable con datos personales del usuario. | Pantalla perfil; lectura y edición de datos; avatar opcional; confirmación de guardado. | Luis Carlos Pedraza | Sprint 2 |
-| **US-05** | Gestión administrativa de usuarios y roles. | Listado paginado; filtro por rol; cambio de rol; bloqueo o desbloqueo de cuentas. | Luis Carlos Pedraza | Sprint 4 |
-
-### EP-02: Gestión de Mascotas
-
-| HU | Contexto funcional | Desglose de tareas técnicas | Responsable principal | Sprint |
-|---|---|---|---|---|
-| **US-06** | Registro de mascotas para asociarlas a citas. | Formulario CREATE; validaciones; guardar en Supabase; foto opcional. | Luis Carlos Pedraza | Sprint 2 |
-| **US-07** | Listado de mascotas para selección rápida. | Tarjetas/lista; estado vacío; última cita; navegación al detalle. | Luis Carlos Pedraza | Sprint 2 |
-| **US-08** | Edición de datos de mascota ya registrada. | Formulario prellenado; actualización en DB; control de cambios; feedback visual. | Luis Carlos Pedraza | Sprint 2 |
-| **US-09** | Eliminación controlada de mascotas del perfil. | Confirmación; verificar citas activas; eliminación lógica o física; refresco de lista. | Luis Carlos Pedraza | Sprint 2 |
-
-### EP-03: Reserva y Gestión de Citas
-
-| HU | Contexto funcional | Desglose de tareas técnicas | Responsable principal | Sprint |
-|---|---|---|---|---|
-| **US-10** | Calendario de disponibilidad para ver horarios libres. | Integrar widget calendario; consultar slots; leyenda de estados; filtros por servicio. | Nicolas Gonzalez | Sprint 3 |
-| **US-11** | Reserva completa de una cita con validación de colisión. | Flujo en pasos; validar disponibilidad; registrar cita; bloquear slot. | Nicolas Gonzalez | Sprint 3 |
-| **US-12** | Confirmación inmediata después de reservar. | Pantalla de éxito; resumen de cita; navegación al historial; notificación local. | Nicolas Gonzalez | Sprint 3 |
-| **US-13** | Historial de citas pasadas y futuras. | Consulta por usuario; tabs por estado; detalle expandible; paginación. | Nicolas Gonzalez | Sprint 3 |
-| **US-14** | Cancelación de cita con liberación de horario. | Diálogo de cancelación; cambiar estado; liberar slot; registrar auditoría. | Luis Carlos Pedraza | Sprint 3 |
-| **US-15** | Reprogramación de cita sin perder trazabilidad. | Seleccionar nuevo slot; cancelar anterior; crear nueva cita; guardar historial. | Nicolas Gonzalez | Sprint 3 |
-
-### EP-04: Panel del Profesional
-
-| HU | Contexto funcional | Desglose de tareas técnicas | Responsable principal | Sprint |
-|---|---|---|---|---|
-| **US-16** | Agenda diaria y semanal para organización del profesional. | Vista calendario; tarjetas de citas; filtros por día o semana; estados vacíos. | Luis Carlos Pedraza | Sprint 3 |
-| **US-17** | Confirmación de citas pendientes por el profesional. | Botón de aprobar; actualizar estado; notificar al cliente; registrar cambio. | Luis Carlos Pedraza | Sprint 3 |
-| **US-18** | Cambio de estado de atención con historial. | Selector de estados; validar transiciones; escribir historial; sincronizar realtime. | Luis Carlos Pedraza | Sprint 3 |
-| **US-19** | Configuración de disponibilidad y horarios laborales. | Editor semanal; generar slots; validar cruces; guardar configuración. | Luis Carlos Pedraza | Sprint 3 |
-
-### EP-05: Notificaciones y Tiempo Real
-
-| HU | Contexto funcional | Desglose de tareas técnicas | Responsable principal | Sprint |
-|---|---|---|---|---|
-| **US-20** | Aviso cuando cambia el estado de la cita. | Suscripción realtime; mapear cambios; notificación local; marcar como leída. | Nicolas Gonzalez | Sprint 4 |
-| **US-21** | Recordatorio 24 horas antes de la cita. | Tarea programada; consulta de citas próximas; disparar notificación local; fallback. | Nicolas Gonzalez | Sprint 4 |
-| **US-22** | Aviso inmediato al profesional cuando entra una cita nueva. | Listener de eventos; badge en agenda; sonido o vibración; refresco automático. | Nicolas Gonzalez | Sprint 4 |
-
-### EP-06: Panel de Administración
-
-| HU | Contexto funcional | Desglose de tareas técnicas | Responsable principal | Sprint |
-|---|---|---|---|---|
-| **US-23** | CRUD de servicios ofrecidos por la clínica. | Formulario de servicio; lista; activar o desactivar; validaciones de precio y duración. | Luis Carlos Pedraza | Sprint 4 |
-| **US-24** | Reportes básicos de citas para seguimiento del negocio. | Filtros por fecha y estado; agregación; tablas; exportación de reporte. | Luis Carlos Pedraza | Sprint 4 |
-
-### EP-07: Historias Técnicas Transversales
-
-| HT | Contexto funcional | Desglose de tareas técnicas | Responsable principal | Sprint |
-|---|---|---|---|---|
-| **HT-01** | Base del proyecto y estructura de carpetas. | Configurar layout inicial; organizar features; theme; rutas base. | Nicolas Gonzalez | Sprint 1 |
-| **HT-02** | Infraestructura backend y conectividad. | Crear proyecto Supabase; variables de entorno; cliente compartido; conexión inicial. | Luis Carlos Pedraza | Sprint 1 / 2 |
-| **HT-03** | Modelo de datos y migraciones. | Crear tablas; relaciones; seeds; revisar integridad referencial. | Luis Carlos Pedraza | Sprint 1 / 2 |
-| **HT-04** | Seguridad y RLS. | Definir políticas; validar acceso por rol; pruebas de lectura y escritura. | Nicolas Gonzalez | Sprint 1 / 2 |
-| **HT-05** | Prototipo de notificaciones externas. | Diseñar integración; endpoint base; pruebas con proveedor externo. | Nicolas Gonzalez | Sprint 4 |
-| **HT-06** | Automatización de build y release. | GitHub Actions para build; firma APK; publicación de artefacto. | Nicolas Gonzalez | Sprint 4 |
-| **HT-07** | Calidad automatizada y pruebas. | Lint; tests unitarios y widget; reporte de cobertura; bloqueos de merge. | Nicolas Gonzalez | Sprint 4 |
-| **HT-08** | Release APK firmado. | Generar keystore; configurar signing; validar instalable. | Nicolas Gonzalez | Sprint 4 |
-| **HT-09** | Documentación técnica y soporte. | Documentar APIs; actualizar README; evidencias; checklist final. | Luis Carlos Pedraza | Sprint 4 |
-
----
-
-## 5.5 Lista sugerida de issues para Jira
+## 5. Lista sugerida de issues para Jira
 
 La siguiente lista propone cómo crear los issues en Jira para ejecutar el plan sin perder trazabilidad. La recomendación es mantener esta jerarquía:
 
@@ -408,7 +335,7 @@ Cuando un trabajo sea transversal o técnico puro, usar **Technical Story** o **
 
 ---
 
-## 7. Matriz de Asignación de Tareas
+## 6. Matriz de Asignación de Tareas
 
 ### Resumen por Desarrollador
 
@@ -436,7 +363,7 @@ Cuando un trabajo sea transversal o técnico puro, usar **Technical Story** o **
 
 ---
 
-## 8. Definición de Terminado
+## 7. Definición de Terminado
 
 Una tarea se considera **COMPLETADA** cuando:
 
