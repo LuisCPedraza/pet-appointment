@@ -540,30 +540,38 @@ flowchart TD
 
 ### 5.3 Tareas Técnicas e Issues
 
-| ID | Tarea Técnica | Épica | Estimación |
-|---|---|---|---|
-| TASK-01 | Configurar proyecto Flutter con estructura de carpetas por features | EP-07 | 4h |
-| TASK-02 | Configurar proyecto Supabase (Auth, DB, Realtime, Storage) | EP-01 | 3h |
-| TASK-03 | Definir esquema de base de datos y ejecutar migrations | EP-01 | 6h |
-| TASK-04 | Implementar RLS policies para todas las tablas | EP-01 | 6h |
-| TASK-05 | Integrar paquete `supabase_flutter` y configurar cliente global | EP-01 | 2h |
-| TASK-06 | Implementar flujo de autenticación (registro, login, logout) | EP-01 | 8h |
-| TASK-07 | Implementar navegación por rol con Go Router | EP-01 | 4h |
-| TASK-08 | Desarrollar pantallas de gestión de mascotas (CRUD) | EP-02 | 10h |
-| TASK-09 | Integrar `table_calendar` para vista de disponibilidad | EP-03 | 8h |
-| TASK-10 | Implementar lógica de reserva con validación de colisiones | EP-03 | 10h |
-| TASK-11 | Implementar suscripción Realtime para slots y citas | EP-05 | 8h |
-| TASK-12 | Desarrollar panel del profesional con agenda interactiva | EP-04 | 12h |
-| TASK-13 | Implementar cambio de estado de citas con historial | EP-04 | 6h |
-| TASK-14 | Integrar `flutter_local_notifications` para recordatorios | EP-05 | 6h |
-| TASK-15 | Crear Edge Function para recordatorios automáticos (cron) | EP-05 | 8h |
-| TASK-16 | Prototipo de Edge Function para notificación por WhatsApp (Twilio) | EP-05 | 6h |
-| TASK-17 | Desarrollar panel de administración (servicios, horarios, usuarios) | EP-06 | 16h |
-| TASK-18 | Configurar GitHub Actions para build de APK | EP-07 | 4h |
-| TASK-19 | Configurar GitHub Actions para tests y lint | EP-07 | 3h |
-| TASK-20 | Escribir pruebas unitarias y de widget (cobertura mínima 60%) | EP-07 | 12h |
-| TASK-21 | Generar keystore y firmar APK para release | EP-07 | 2h |
-| TASK-22 | Documentar API de Supabase y funciones edge | EP-07 | 4h |
+La jerarquía recomendada en Jira para este proyecto es:
+
+**Épica -> Historia de Usuario (HU) -> Subtareas técnicas (TASK)**.
+
+Cuando una tarea no está ligada directamente a una HU funcional (por ejemplo CI/CD, configuración base o documentación técnica), se crea una **Historia Técnica (HT)** bajo la épica correspondiente.
+
+Este documento conserva una vista resumida de las tareas. Para el desglose completo por sprint, semanas, responsables y subtareas ampliadas, consulta [05-epicas-historias-y-tareas-tecnicas-plan-sprints.md](secciones/05-epicas-historias-y-tareas-tecnicas-plan-sprints.md).
+
+| ID | Tarea Técnica | HU/HT asociada | Épica | Estimación |
+|---|---|---|---|---|
+| TASK-01 | Configurar proyecto Flutter con estructura de carpetas por features | HT-01 (Base del proyecto) | EP-07 | 4h |
+| TASK-02 | Configurar proyecto Supabase (Auth, DB, Realtime, Storage) | HT-02 (Infraestructura backend) | EP-01 | 3h |
+| TASK-03 | Definir esquema de base de datos y ejecutar migrations | HT-03 (Modelo de datos) | EP-01 | 6h |
+| TASK-04 | Implementar RLS policies para todas las tablas | HT-04 (Seguridad de datos) | EP-01 | 6h |
+| TASK-05 | Integrar paquete `supabase_flutter` y configurar cliente global | US-02 | EP-01 | 2h |
+| TASK-06 | Implementar flujo de autenticación (registro, login, logout) | US-01 / US-02 / US-03 | EP-01 | 8h |
+| TASK-07 | Implementar navegación por rol con Go Router | US-05 | EP-01 | 4h |
+| TASK-08 | Desarrollar pantallas de gestión de mascotas (CRUD) | US-06 / US-07 / US-08 / US-09 | EP-02 | 10h |
+| TASK-09 | Integrar `table_calendar` para vista de disponibilidad | US-10 | EP-03 | 8h |
+| TASK-10 | Implementar lógica de reserva con validación de colisiones | US-11 | EP-03 | 10h |
+| TASK-11 | Implementar suscripción Realtime para slots y citas | US-20 / US-22 | EP-05 | 8h |
+| TASK-12 | Desarrollar panel del profesional con agenda interactiva | US-16 | EP-04 | 12h |
+| TASK-13 | Implementar cambio de estado de citas con historial | US-18 | EP-04 | 6h |
+| TASK-14 | Integrar `flutter_local_notifications` para recordatorios | US-21 | EP-05 | 6h |
+| TASK-15 | Crear Edge Function para recordatorios automáticos (cron) | US-21 | EP-05 | 8h |
+| TASK-16 | Prototipo de Edge Function para notificación por WhatsApp (Twilio) | HT-05 (Prototipo de notificación externa) | EP-05 | 6h |
+| TASK-17 | Desarrollar panel de administración (servicios, horarios, usuarios) | US-23 / US-24 | EP-06 | 16h |
+| TASK-18 | Configurar GitHub Actions para build de APK | HT-06 (Automatización de build) | EP-07 | 4h |
+| TASK-19 | Configurar GitHub Actions para tests y lint | HT-07 (Calidad automatizada) | EP-07 | 3h |
+| TASK-20 | Escribir pruebas unitarias y de widget (cobertura mínima 60%) | HT-07 (Calidad automatizada) | EP-07 | 12h |
+| TASK-21 | Generar keystore y firmar APK para release | HT-08 (Release APK) | EP-07 | 2h |
+| TASK-22 | Documentar API de Supabase y funciones edge | HT-09 (Documentación técnica) | EP-07 | 4h |
 
 ---
 
@@ -1635,7 +1643,30 @@ create policy "Admins ven todo"
 
 ## 14. Roadmap y Futuras Mejoras
 
-### Versión 2.0 (Siguiente iteración)
+### 14.1 Plan de Sprints (Equipo de 2 desarrolladores)
+
+Duración sugerida por sprint: **2 semanas**.
+
+Capacidad estimada: **80 horas por sprint** (40h por desarrollador).
+
+Para la versión operativa y detallada del plan, con contexto por HU, desgloses de tareas y distribución por semanas, ver [05-epicas-historias-y-tareas-tecnicas-plan-sprints.md](secciones/05-epicas-historias-y-tareas-tecnicas-plan-sprints.md).
+
+| Sprint | Objetivo | Alcance principal | Responsable Dev 1 | Responsable Dev 2 | Entregables |
+|---|---|---|---|---|---|
+| Sprint 1 (Completado) | Preparación y base del proyecto | Creación de repositorio GitHub, estrategia de ramas, configuración de Jira (épicas/HU/tasks), estructura inicial del proyecto Flutter, documentación técnica inicial y bosquejos UI | Setup técnico (repo, ramas, base Flutter) | Jira + documentación + bosquejos | Repositorio operativo, tablero Jira, documentación base y evidencias de Entrega 1 |
+| Sprint 2 | Módulo de acceso y datos principales | EP-01 y EP-02: autenticación, perfiles básicos y CRUD de mascotas | Auth + navegación por rol | CRUD mascotas + validaciones + persistencia | Login/registro funcional + módulo de mascotas funcional |
+| Sprint 3 | Núcleo de negocio de citas | EP-03 y EP-04: calendario, reserva, agenda profesional y cambio de estados | Reserva/citas cliente + calendario | Panel profesional + flujo de estados | Flujo completo de cita (crear, confirmar, atender/cancelar) |
+| Sprint 4 | Operación, calidad y entrega | EP-05, EP-06 y EP-07: notificaciones, panel admin, CI/CD, pruebas y APK release | Notificaciones + realtime + edge functions | Panel admin + testing + pipeline release | APK de demostración + pipeline CI/CD + cobertura mínima definida |
+
+### 14.2 Asignación sugerida en Jira (para evitar desorden)
+
+1. Cada **épica** agrupa un dominio funcional grande (ejemplo: EP-03 Reserva de Citas).
+2. Cada **HU** representa valor de negocio y debe poder demostrarse al final de un sprint.
+3. Cada **TASK** debe crearse como subtarea de una HU (o de una HT cuando sea trabajo técnico transversal).
+4. No crear TASKs directamente colgando de la épica si existe HU/HT intermedia.
+5. Definición de terminado por HU: criterios de aceptación cumplidos + prueba funcional + evidencia en Jira/GitHub.
+
+### 14.3 Versión 2.0 (Siguiente iteración)
 
 | # | Funcionalidad | Descripción |
 |---|---|---|
@@ -1646,7 +1677,7 @@ create policy "Admins ven todo"
 | F-05 | Notificaciones WhatsApp en producción | Cuenta de negocio verificada con plantillas aprobadas por Meta |
 | F-06 | Portal web administrativo | Dashboard web (Next.js o React) para administración desde escritorio |
 
-### Versión 3.0 (Largo plazo)
+### 14.4 Versión 3.0 (Largo plazo)
 
 | # | Funcionalidad | Descripción |
 |---|---|---|
