@@ -74,12 +74,12 @@ El proyecto está en fase inicial: base Flutter creada, documentación técnica 
 
 ## Gestión del Proyecto (Jira)
 
-- Tablero Jira del equipo: [KAN - PetAppointment](https://correounivalle-team-f1bug4uj.atlassian.net/jira/software/projects/KAN/summary?atlOrigin=eyJpIjoiNTdhN2VhOTVjNjJiNDFlOGE0MTdmNzAwZjQ2MmM5YTciLCJwIjoiaiJ9)
+- Tablero Jira del equipo (Scrum): [PA - PetAppointment](https://correounivalle-team-f1bug4uj.atlassian.net/jira/software/projects/PA/summary?atlOrigin=eyJpIjoiM2Y2ZDkwMzk2NWNiNDNmMjk5OTQwMmZkMzIzYjZjZmMiLCJwIjoiaiJ9)
 
 ## Ramas Oficiales (Entrega 1)
 
-- master: base solicitada por el docente para control principal.
-- qa: integración de desarrollo.
+- main: rama principal del repositorio.
+- develop: integración de desarrollo.
 - staging: pruebas previas a entrega.
 
 ## Funcionalidades Objetivo

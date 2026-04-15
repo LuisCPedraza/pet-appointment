@@ -137,7 +137,7 @@ test(EP-02): agregar pruebas unitarias para PetRepository
 
 | Entregable                                                 | Estado |
 | ---------------------------------------------------------- | ------ |
-| Repositorio GitHub con ramas `master`,`qa`,`staging` | ✅     |
+| Repositorio GitHub con ramas `main`,`develop`,`staging` | ✅     |
 | Tablero Jira con épicas, historias y tareas               | ✅     |
 | Documentación técnica completa (`.md`)                 | ✅     |
 | PDF Entrega 1 con evidencias                               | ✅     |
@@ -1265,7 +1265,7 @@ en_espera
 | TASK ID   | Tarea                      | Descripción técnica                                                                                           | Horas | HU    |
 | --------- | -------------------------- | --------------------------------------------------------------------------------------------------------------- | ----- | ----- |
 | TASK-11P2 | Realtime citas             | Suscripción al canal de `appointments`para cliente y profesional, dispatch de notificaciones locales         | 5h    | US-20 |
-| TASK-18   | GitHub Actions APK         | Workflow `build-apk.yml`,`flutter build apk --release`, upload artifact, triggers en push a `master`      | 4h    | —    |
+| TASK-18   | GitHub Actions APK         | Workflow `build-apk.yml`,`flutter build apk --release`, upload artifact, triggers en push a `main`      | 4h    | —    |
 | TASK-19P2 | GitHub Actions CI completo | `flutter analyze`,`flutter test`, badge de estado en README                                                 | 3h    | —    |
 | TASK-20   | Pruebas unitarias y widget | Tests para `AppointmentRepository`,`AuthService`,`PetRepository`, widget tests para formularios críticos | 5h    | —    |
 | TASK-21   | Keystore y firma APK       | Generar keystore, configurar `key.properties`, firmar APK con `--release`, documentar proceso               | 2h    | —    |
@@ -1390,7 +1390,7 @@ Una historia o tarea se considera **COMPLETADA** únicamente cuando cumple **tod
 
 ### Criterios de integración
 
-* [ ] Mergeado a rama `develop` (nunca directamente a `master`).
+* [ ] Mergeado a rama `develop` (nunca directamente a `main`).
 * [ ] Issue en Jira movido a columna  **Done** .
 * [ ] Commit SHA enlazado en el comentario del issue en Jira.
 * [ ] Evidencia capturada: screenshot o video si es pantalla UI, log de consola si es lógica backend.
@@ -1421,7 +1421,7 @@ Una historia o tarea se considera **COMPLETADA** únicamente cuando cumple **tod
 | Recurso                             | Enlace                                                                                            |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------- |
 | 📄 Documentación técnica completa | [PetAppointment_Documentacion_Tecnica.md](https://claude.ai/PetAppointment_Documentacion_Tecnica.md) |
-| 📋 Tablero Jira                     | https://correounivalle-team-f1bug4uj.atlassian.net/jira/software/projects/KAN                     |
+| 📋 Tablero Jira                     | https://correounivalle-team-f1bug4uj.atlassian.net/jira/software/projects/PA/summary?atlOrigin=eyJpIjoiM2Y2ZDkwMzk2NWNiNDNmMjk5OTQwMmZkMzIzYjZjZmMiLCJwIjoiaiJ9 |
 | 🔗 Repositorio GitHub               | https://github.com/LuisCPedraza/pet-appointment                                                   |
 | 📝 Entrega 1 - evidencias           | [Entrega_1_Primer_Adelanto.md](https://claude.ai/Entrega_1_Primer_Adelanto.md)                       |
 | 🎨 Guía de estilo visual           | [STYLE_GUIDE.md](https://claude.ai/STYLE_GUIDE.md)                                                   |

@@ -153,9 +153,9 @@ jobs:
 ### 9.4 Estrategia de Branching (Entrega 1)
 
 ```
-master                ← Rama principal solicitada para la entrega
+main                  ← Rama principal del repositorio
   ↑
-qa                    ← Rama de desarrollo/integración
+develop               ← Rama de desarrollo/integración
   ↑
 staging               ← Rama de pruebas previas
   ↑
@@ -166,10 +166,10 @@ fix/BUG-05-slot-collision
 
 **Reglas de protección de ramas:**
 
-- `master`: Requiere PR aprobado por al menos 1 revisor + CI verde.
-- `qa`: Requiere CI verde antes de merge.
-- `staging`: Se usa para validaciones funcionales antes de promover a `master`.
-- No se permite push directo a `master`.
+- `main`: Requiere PR aprobado por al menos 1 revisor + CI verde.
+- `develop`: Requiere CI verde antes de merge.
+- `staging`: Se usa para validaciones funcionales antes de promover a `main`.
+- No se permite push directo a `main`.
 
 ### 9.5 Convenciones de Commits (Conventional Commits)
 
@@ -186,9 +186,9 @@ chore(ci): configurar workflow de GitHub Actions para APK
 
 **Tipos permitidos:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`
 
-### 9.6 Integración con Jira (Kanban)
+### 9.6 Integración con Jira (Scrum)
 
-Tablero oficial del equipo: [KAN - PetAppointment](https://correounivalle-team-f1bug4uj.atlassian.net/jira/software/projects/KAN/summary?atlOrigin=eyJpIjoiNTdhN2VhOTVjNjJiNDFlOGE0MTdmNzAwZjQ2MmM5YTciLCJwIjoiaiJ9)
+Tablero oficial del equipo: [PA - PetAppointment](https://correounivalle-team-f1bug4uj.atlassian.net/jira/software/projects/PA/summary?atlOrigin=eyJpIjoiM2Y2ZDkwMzk2NWNiNDNmMjk5OTQwMmZkMzIzYjZjZmMiLCJwIjoiaiJ9)
 
 | Elemento en Documentación | Equivalente en Jira |
 |---|---|
