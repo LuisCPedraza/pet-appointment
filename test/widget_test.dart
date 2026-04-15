@@ -7,19 +7,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:pet_appointment/main.dart';
+import 'package:pet_appointment/app/sprint2_app.dart';
 
 void main() {
-  testWidgets('Muestra secciones principales del bosquejo', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Muestra shell base de Sprint 2', (WidgetTester tester) async {
+    await tester.pumpWidget(const PetAppointmentApp(isSupabaseReady: false));
 
-    expect(find.text('Bienvenido a PetAppointment'), findsOneWidget);
-    expect(find.byIcon(Icons.login_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.pets_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.event_available_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.history_rounded), findsOneWidget);
+    expect(find.text('PetAppointment - Sprint 2'), findsOneWidget);
+    expect(find.text('Base técnica activa'), findsOneWidget);
+    expect(find.byIcon(Icons.warning_amber), findsOneWidget);
   });
 }
