@@ -88,6 +88,7 @@ create or replace function public.current_user_email()
 returns text
 language sql
 stable
+set search_path = public, pg_catalog
 as $$
   select coalesce(auth.jwt() ->> 'email', '')
 $$;
