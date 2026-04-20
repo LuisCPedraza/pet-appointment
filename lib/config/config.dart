@@ -1,0 +1,1 @@
+export 'package:pet_appointment/config/theme.dart';

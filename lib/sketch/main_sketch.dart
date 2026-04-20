@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env');
   await _initializeSupabase();
   runApp(const MyApp());
 }
 
 Future<void> _initializeSupabase() async {
-  const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
-  const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+  final supabaseUrl = dotenv.maybeGet('SUPABASE_URL') ?? '';
+  final supabaseAnonKey = dotenv.maybeGet('SUPABASE_ANON_KEY') ?? '';
 
   if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
     debugPrint(
-      'Supabase no configurado: define SUPABASE_URL y SUPABASE_ANON_KEY para habilitar backend.',
+      'Supabase no configurado: asegúrate de que .env contiene SUPABASE_URL y SUPABASE_ANON_KEY.',
     );
     return;
   }
