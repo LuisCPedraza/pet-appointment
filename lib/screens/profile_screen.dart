@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
-import '../config/theme.dart';
+import 'package:pet_appointment/config/theme.dart';
+import 'package:pet_appointment/screens/login_screen.dart';
+import 'package:pet_appointment/services/auth_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  Future<void> _logout(BuildContext context) async {
+    await AuthService().logout();
+    if (context.mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (_) => false,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +38,21 @@ class ProfileScreen extends StatelessWidget {
             Text(
               'Próximamente',
               style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 40),
+            OutlinedButton.icon(
+              onPressed: () => _logout(context),
+              icon: const Icon(Icons.logout_rounded),
+              label: const Text('Cerrar sesión'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.error,
+                side: BorderSide(color: AppColors.error),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
             ),
           ],
         ),
