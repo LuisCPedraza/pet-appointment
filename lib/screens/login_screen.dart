@@ -40,9 +40,13 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
 
-      // Sesión activa → ir al shell principal sin poder volver al login
+      // Limpiar todo el stack y dejar solo AppShell para que el botón
+      // atrás no regrese a ninguna pantalla anterior sin sesión
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const AppShell()),
+          (_) => false,
+        );
       }
     } on AuthException catch (e) {
       if (mounted) {
