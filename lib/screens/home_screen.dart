@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
-import '../../config/theme.dart';
+import 'package:pet_appointment/config/theme.dart';
+import 'package:pet_appointment/screens/authenticated_home_screen.dart';
+import 'package:pet_appointment/screens/login_screen.dart';
+import 'package:pet_appointment/services/auth_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final authService = AuthService();
+
+    if (authService.hasActiveSession) {
+      return AuthenticatedHomeScreen(name: authService.currentUserName);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pet-Appointment'),
@@ -63,7 +72,7 @@ class _HeroSection extends StatelessWidget {
                   Text(
                     'Cuida la salud, el bienestar y la felicidad\nde tu mascota en un solo lugar.',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.85),
+                          color: Colors.white.withValues(alpha: 0.85),
                         ),
                   ),
                   const SizedBox(height: 20),
@@ -75,7 +84,9 @@ class _HeroSection extends StatelessWidget {
                           horizontal: 24, vertical: 14),
                       shape: const StadiumBorder(),
                     ),
-                    onPressed: () {},
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    ),
                     icon: const Text(
                       'Comenzar',
                       style: TextStyle(fontWeight: FontWeight.w700),
@@ -127,7 +138,7 @@ class _ServicesSection extends StatelessWidget {
                 child: _ServiceCard(
                   icon: Icons.content_cut_outlined,
                   title: 'Cuidado y peluquería',
-                  color: AppColors.secondaryContainer.withOpacity(0.3),
+                  color: AppColors.secondaryContainer.withValues(alpha: 0.3),
                   iconColor: AppColors.secondary,
                 ),
               ),
@@ -136,7 +147,7 @@ class _ServicesSection extends StatelessWidget {
                 child: _ServiceCard(
                   icon: Icons.pets_outlined,
                   title: 'Perfiles de mascotas',
-                  color: AppColors.tertiaryContainer.withOpacity(0.3),
+                  color: AppColors.tertiaryContainer.withValues(alpha: 0.3),
                   iconColor: AppColors.tertiary,
                 ),
               ),
@@ -158,7 +169,6 @@ class _ServiceCard extends StatelessWidget {
     required this.color,
     required this.iconColor,
     this.wide = false,
-    this.horizontal = false,
   });
 
   final IconData icon;
@@ -167,7 +177,7 @@ class _ServiceCard extends StatelessWidget {
   final Color color;
   final Color iconColor;
   final bool wide;
-  final bool horizontal;
+
 
   @override
   Widget build(BuildContext context) {
@@ -204,7 +214,7 @@ class _ServiceCard extends StatelessWidget {
         color: color,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: horizontal
+      child: wide
           ? Row(children: [
               iconWidget,
               const SizedBox(width: 16),
@@ -236,7 +246,7 @@ class _StatsSection extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.06),
+              color: AppColors.primary.withValues(alpha: 0.06),
               blurRadius: 24,
               offset: const Offset(0, 8),
             ),
@@ -304,7 +314,7 @@ class _StatItem extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.12),
+            color: color.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: color, size: 22),
@@ -377,8 +387,10 @@ class _CtaSection extends StatelessWidget {
                     horizontal: 40, vertical: 16),
                 shape: const StadiumBorder(),
               ),
-              onPressed: () {},
-              child: const Text('Unete ahora',
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              ),
+              child: const Text('Únete ahora',
                   style: TextStyle(
                       fontSize: 16, fontWeight: FontWeight.w700)),
             ),

@@ -3,6 +3,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pet_appointment/widgets/widgets.dart';
 import 'package:pet_appointment/config/config.dart';
+import 'package:pet_appointment/screens/register_screen.dart';
+import 'package:pet_appointment/screens/login_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +36,14 @@ class MyApp extends StatelessWidget {
       title: 'PetAppointment',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      // Si no hay sesión activa → pantalla de registro, si hay → shell principal
+      // La app abre siempre en el home; el login se pide al usar funciones protegidas
       home: const AppShell(),
+      routes: {
+        '/home': (_) => const AppShell(),
+        '/login': (_) => const LoginScreen(),
+        '/register': (_) => const RegisterScreen(),
+      },
     );
   }
 }
