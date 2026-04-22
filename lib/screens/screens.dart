@@ -5,3 +5,6 @@ export 'package:pet_appointment/screens/pets_screen.dart';
 export 'package:pet_appointment/screens/profile_screen.dart';
 export 'package:pet_appointment/screens/register_screen.dart';
 export 'package:pet_appointment/screens/login_screen.dart';
+export 'package:pet_appointment/screens/forgot_password_screen.dart';
+export 'package:pet_appointment/screens/otp_verification_screen.dart';
+export 'package:pet_appointment/screens/reset_password_screen.dart';

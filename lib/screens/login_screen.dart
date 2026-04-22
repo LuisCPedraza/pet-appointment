@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pet_appointment/config/theme.dart';
+import 'package:pet_appointment/screens/forgot_password_screen.dart';
 import 'package:pet_appointment/screens/register_screen.dart';
 import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/utils/field_validators.dart';
@@ -140,7 +141,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () {},
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ForgotPasswordScreen(),
+                          ),
+                        ),
                         style: TextButton.styleFrom(
                           padding: EdgeInsets.zero,
                           minimumSize: Size.zero,

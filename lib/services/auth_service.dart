@@ -57,4 +57,32 @@ class AuthService {
   Future<void> logout() async {
     await _client.auth.signOut();
   }
+
+  /// Envía un correo de recuperación con un código OTP de 6 dígitos.
+  /// Por seguridad no revela si el correo existe o no: siempre completa sin lanzar.
+  /// Lanza [AuthException] únicamente en errores de configuración o red.
+  Future<void> sendPasswordResetEmail({required String email}) async {
+    await _client.auth.resetPasswordForEmail(email);
+  }
+
+  /// Verifica el código OTP de 6 dígitos enviado al correo.
+  /// Si el código es válido, Supabase establece una sesión temporal de
+  /// tipo "recovery" que permite llamar a [updatePassword] a continuación.
+  /// Lanza [AuthException] si el código es incorrecto o ha expirado.
+  Future<void> verifyRecoveryOtp({
+    required String email,
+    required String otp,
+  }) async {
+    await _client.auth.verifyOTP(
+      email: email,
+      token: otp,
+      type: OtpType.recovery,
+    );
+  }
+
+  /// Actualiza la contraseña del usuario autenticado con el token de recuperación.
+  /// Debe llamarse cuando la sesión ya fue establecida por el deep link.
+  Future<void> updatePassword({required String newPassword}) async {
+    await _client.auth.updateUser(UserAttributes(password: newPassword));
+  }
 }
