@@ -5,6 +5,8 @@ import 'package:pet_appointment/widgets/widgets.dart';
 import 'package:pet_appointment/config/config.dart';
 import 'package:pet_appointment/screens/register_screen.dart';
 import 'package:pet_appointment/screens/login_screen.dart';
+import 'package:pet_appointment/screens/forgot_password_screen.dart';
+import 'package:pet_appointment/screens/reset_password_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,13 +38,13 @@ class MyApp extends StatelessWidget {
       title: 'PetAppointment',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      // Si no hay sesión activa → pantalla de registro, si hay → shell principal
-      // La app abre siempre en el home; el login se pide al usar funciones protegidas
       home: const AppShell(),
       routes: {
         '/home': (_) => const AppShell(),
         '/login': (_) => const LoginScreen(),
         '/register': (_) => const RegisterScreen(),
+        '/forgot-password': (_) => const ForgotPasswordScreen(),
+        '/reset-password': (_) => const ResetPasswordScreen(),
       },
     );
   }

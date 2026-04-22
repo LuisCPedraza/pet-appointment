@@ -1,62 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:pet_appointment/config/theme.dart';
-import 'package:pet_appointment/screens/forgot_password_screen.dart';
-import 'package:pet_appointment/screens/register_screen.dart';
+import 'package:pet_appointment/screens/login_screen.dart';
 import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/utils/field_validators.dart';
 import 'package:pet_appointment/widgets/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+/// Pantalla para definir una nueva contraseña.
+/// Se muestra cuando el usuario llega desde el enlace del correo de
+/// recuperación (deep link). En ese momento Supabase ya estableció
+/// una sesión temporal con [AuthChangeEvent.passwordRecovery].
+class ResetPasswordScreen extends StatefulWidget {
+  const ResetPasswordScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final _formKey   = GlobalKey<FormState>();
+class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _authService = AuthService();
 
-  final _emailController    = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _login() async {
+  Future<void> _updatePassword() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() => _isLoading = true);
 
     try {
-      await _authService.login(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+      await _authService.updatePassword(
+        newPassword: _passwordController.text,
       );
 
-      // Limpiar todo el stack y dejar solo AppShell para que el botón
-      // atrás no regrese a ninguna pantalla anterior sin sesión
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              '¡Contraseña actualizada! Ya puedes iniciar sesión.',
+            ),
+            backgroundColor: AppColors.secondary,
+          ),
+        );
+        // Limpiar todo el stack y redirigir al login
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const AppShell()),
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
           (_) => false,
         );
       }
     } on AuthException catch (e) {
       if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } catch (_) {
       if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Error inesperado. Intenta de nuevo.'),
@@ -64,8 +78,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -73,25 +85,24 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surface,
-      appBar: _buildAppBar(context),
+      appBar: _buildAppBar(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- Encabezado ---
-            Text(
-              'Bienvenido de vuelta.',
+            const Text(
+              'Nueva contraseña',
               style: TextStyle(
                 fontFamily: 'Plus Jakarta Sans',
                 fontWeight: FontWeight.w800,
-                fontSize: 30,
+                fontSize: 28,
                 color: AppColors.onSurface,
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              'Inicia sesión para continuar cuidando a tus mascotas.',
+            const Text(
+              'Elige una contraseña segura para proteger tu cuenta.',
               style: TextStyle(
                 fontSize: 15,
                 color: AppColors.onSurfaceVariant,
@@ -99,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 32),
 
-            // --- Tarjeta del formulario ---
+            // ── Tarjeta del formulario ───────────────────────────────────
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
@@ -119,55 +130,26 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // --- Correo ---
-                    AppTextField(
-                      label: 'Correo electrónico',
-                      hint: 'hola@sanctuary.com',
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: FieldValidators.email,
-                    ),
-                    const SizedBox(height: 20),
-
-                    // --- Contraseña ---
                     AppPasswordField(
-                      label: 'Contraseña',
+                      label: 'Nueva contraseña',
                       controller: _passwordController,
-                      textInputAction: TextInputAction.done,
                       validator: FieldValidators.password,
                     ),
-                    const SizedBox(height: 12),
-
-                    // --- ¿Olvidaste tu contraseña? ---
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const ForgotPasswordScreen(),
-                          ),
-                        ),
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          '¿Olvidaste tu contraseña?',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                    const SizedBox(height: 20),
+                    AppPasswordField(
+                      label: 'Confirmar contraseña',
+                      controller: _confirmPasswordController,
+                      textInputAction: TextInputAction.done,
+                      validator: FieldValidators.confirmPassword(
+                        _passwordController,
                       ),
                     ),
                     const SizedBox(height: 28),
 
-                    // --- Botón Iniciar sesión ---
+                    // ── Botón guardar ─────────────────────────────────────
                     SizedBox(
                       width: double.infinity,
-                      height: 58,
+                      height: 56,
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
@@ -175,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(18),
                           boxShadow: [
                             BoxShadow(
                               color: AppColors.primary.withValues(alpha: 0.35),
@@ -184,36 +166,33 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ],
                         ),
-                        child: ElevatedButton.icon(
-                          onPressed: _isLoading ? null : _login,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _updatePassword,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.transparent,
                             shadowColor: Colors.transparent,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(18),
                             ),
                           ),
-                          icon: _isLoading
+                          child: _isLoading
                               ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
+                                  width: 22,
+                                  height: 22,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
                                     color: Colors.white,
                                   ),
                                 )
                               : const Text(
-                                  'Iniciar sesión',
+                                  'Guardar nueva contraseña',
                                   style: TextStyle(
                                     fontFamily: 'Plus Jakarta Sans',
                                     fontWeight: FontWeight.w700,
-                                    fontSize: 16,
+                                    fontSize: 15,
                                     color: Colors.white,
                                   ),
                                 ),
-                          label: _isLoading
-                              ? const SizedBox.shrink()
-                              : const Icon(Icons.arrow_forward, color: Colors.white),
                         ),
                       ),
                     ),
@@ -221,76 +200,35 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 32),
-
-            // --- Link para registrarse ---
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '¿Aún no tienes cuenta? ',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.onSurfaceVariant,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                  ),
-                  child: Text(
-                    'Regístrate',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    final canPop = Navigator.of(context).canPop();
+  PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: Colors.white.withValues(alpha: 0.85),
       elevation: 0,
       scrolledUnderElevation: 0,
       automaticallyImplyLeading: false,
-      leading: IconButton(
-        icon: const Icon(Icons.close_rounded),
-        color: AppColors.onSurfaceVariant,
-        onPressed: () {
-          if (canPop) {
-            Navigator.of(context).pop();
-          } else {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const AppShell()),
-            );
-          }
-        },
-      ),
-      title: Row(
+      title: const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.pets, color: AppColors.primary, size: 28),
-          const SizedBox(width: 8),
+          Icon(Icons.pets, color: AppColors.primary, size: 26),
+          SizedBox(width: 8),
           Text(
             'Pet Sanctuary',
             style: TextStyle(
               fontFamily: 'Plus Jakarta Sans',
               fontWeight: FontWeight.w800,
-              fontSize: 18,
+              fontSize: 20,
               color: AppColors.primary,
             ),
           ),
         ],
       ),
+      centerTitle: true,
     );
   }
 }
