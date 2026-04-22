@@ -58,14 +58,14 @@ class AuthService {
     await _client.auth.signOut();
   }
 
-  /// Envía un correo de recuperación con un código OTP de 6 dígitos.
+  /// Envía un correo de recuperación con un código OTP de 8 dígitos.
   /// Por seguridad no revela si el correo existe o no: siempre completa sin lanzar.
   /// Lanza [AuthException] únicamente en errores de configuración o red.
   Future<void> sendPasswordResetEmail({required String email}) async {
     await _client.auth.resetPasswordForEmail(email);
   }
 
-  /// Verifica el código OTP de 6 dígitos enviado al correo.
+  /// Verifica el código OTP de 8 dígitos enviado al correo.
   /// Si el código es válido, Supabase establece una sesión temporal de
   /// tipo "recovery" que permite llamar a [updatePassword] a continuación.
   /// Lanza [AuthException] si el código es incorrecto o ha expirado.

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/screens/login_screen.dart';
@@ -36,19 +38,24 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Future<void> _updatePassword() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
+    FocusScope.of(context).unfocus();
     setState(() => _isLoading = true);
 
     try {
-      await _authService.updatePassword(
-        newPassword: _passwordController.text,
-      );
+      if (!_authService.hasActiveSession) {
+        throw const AuthException(
+          'Tu sesión de recuperación expiró. Verifica el código nuevamente.',
+        );
+      }
+
+      await _authService
+          .updatePassword(newPassword: _passwordController.text)
+          .timeout(const Duration(seconds: 15));
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              '¡Contraseña actualizada! Ya puedes iniciar sesión.',
-            ),
+            content: Text('¡Contraseña actualizada! Ya puedes iniciar sesión.'),
             backgroundColor: AppColors.secondary,
           ),
         );
@@ -58,14 +65,21 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           (_) => false,
         );
       }
-    } on AuthException catch (e) {
+    } on TimeoutException {
       if (mounted) {
-        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
+          const SnackBar(
+            content: Text(
+              'La operación tardó demasiado. Revisa tu conexión e inténtalo de nuevo.',
+            ),
             backgroundColor: AppColors.error,
           ),
+        );
+      }
+    } on AuthException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message), backgroundColor: AppColors.error),
         );
       }
     } catch (_) {
@@ -77,6 +91,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             backgroundColor: AppColors.error,
           ),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -103,10 +121,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             const SizedBox(height: 8),
             const Text(
               'Elige una contraseña segura para proteger tu cuenta.',
-              style: TextStyle(
-                fontSize: 15,
-                color: AppColors.onSurfaceVariant,
-              ),
+              style: TextStyle(fontSize: 15, color: AppColors.onSurfaceVariant),
             ),
             const SizedBox(height: 32),
 

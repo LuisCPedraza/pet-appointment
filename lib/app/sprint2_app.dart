@@ -53,7 +53,7 @@ class Sprint2HomeScreen extends StatelessWidget {
                   child: Text(
                     isSupabaseReady
                         ? 'Supabase configurado correctamente.'
-                        : 'Supabase no configurado. Ejecuta con --dart-define-from-file=.env.local o define SUPABASE_URL/SUPABASE_ANON_KEY.',
+                        : 'Supabase no configurado. Ejecuta con --dart-define-from-file=.env o define SUPABASE_URL/SUPABASE_ANON_KEY.',
                   ),
                 ),
               ],
