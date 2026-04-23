@@ -6,6 +6,11 @@ import 'package:pet_appointment/services/auth_service.dart';
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
+  static void selectTab(BuildContext context, int index) {
+    final shellState = context.findAncestorStateOfType<_AppShellState>();
+    shellState?._onTabSelected(index);
+  }
+
   @override
   State<AppShell> createState() => _AppShellState();
 }

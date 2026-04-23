@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Maneja toda la comunicación con Supabase Auth.
@@ -16,26 +15,14 @@ class AuthService {
     required String name,
     required String phone,
   }) async {
-    // 1. Crear usuario en Auth
+    // Crea el usuario en Auth. El trigger on_auth_user_created (migración 003)
+    // inserta automáticamente la fila en public.users con los metadatos aquí
+    // enviados, sin depender de la sesión activa ni de RLS.
     await _client.auth.signUp(
       email: email,
       password: password,
       data: {'full_name': name, 'phone': phone, 'role': 'client'},
     );
-
-    // 2. Insertar registro en tabla users (requiere autenticación)
-    // La sesión se crea automáticamente después de signUp
-    try {
-      await _client.from('users').insert({
-        'email': email,
-        'full_name': name,
-        'phone': phone,
-        'role': 'client',
-      });
-    } catch (e) {
-      debugPrint('Error al insertar usuario en tabla users: $e');
-      // No re-lanzar para no romper el flujo si la tabla ya tiene el registro
-    }
   }
 
   /// Retorna true si hay una sesión activa (usuario ya autenticado).
@@ -84,5 +71,32 @@ class AuthService {
   /// Debe llamarse cuando la sesión ya fue establecida por el deep link.
   Future<void> updatePassword({required String newPassword}) async {
     await _client.auth.updateUser(UserAttributes(password: newPassword));
+  }
+
+  /// Correo del usuario autenticado.
+  String get currentUserEmail => _client.auth.currentUser?.email ?? '';
+
+  /// Teléfono del usuario autenticado (del metadata de registro).
+  String get currentUserPhone =>
+      _client.auth.currentUser?.userMetadata?['phone'] as String? ?? '';
+
+  /// Actualiza el nombre y teléfono del usuario en Auth y en public.users.
+  Future<void> updateProfile({
+    required String name,
+    required String phone,
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw Exception('No hay sesión activa');
+
+    // 1. Actualizar metadata en auth.users
+    await _client.auth.updateUser(
+      UserAttributes(data: {'full_name': name, 'phone': phone}),
+    );
+
+    // 2. Sincronizar con public.users
+    await _client
+        .from('users')
+        .update({'full_name': name, 'phone': phone})
+        .eq('id', userId);
   }
 }
