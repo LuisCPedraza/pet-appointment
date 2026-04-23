@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pet_appointment/screens/authenticated_home_screen.dart';
 import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/screens/forgot_password_screen.dart';
 import 'package:pet_appointment/screens/register_screen.dart';
@@ -36,23 +37,38 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await _authService.login(
+      final role = await _authService.login(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+
+      final destination = role == 'client'
+          ? const AppShell()
+          : AuthenticatedHomeScreen(
+              name: _authService.currentUserName,
+              role: role,
+            );
 
       // Limpiar todo el stack y dejar solo AppShell para que el botón
       // atrás no regrese a ninguna pantalla anterior sin sesión
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const AppShell()),
+          MaterialPageRoute(builder: (_) => destination),
           (_) => false,
         );
       }
     } on AuthException catch (e) {
       if (mounted) {
+        final raw = e.message.toLowerCase();
+        final message =
+            raw.contains('confirmar tu correo') ||
+                raw.contains('email not confirmed')
+            ? 'Debes confirmar tu correo antes de iniciar sesión.'
+            : raw.contains('invalid login credentials')
+            ? 'Credenciales inválidas. Verifica tu correo y contraseña.'
+            : 'No fue posible iniciar sesión. Intenta de nuevo.';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message), backgroundColor: AppColors.error),
+          SnackBar(content: Text(message), backgroundColor: AppColors.error),
         );
       }
     } catch (_) {

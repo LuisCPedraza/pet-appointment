@@ -12,14 +12,27 @@ class HomeScreen extends StatelessWidget {
     final authService = AuthService();
 
     if (authService.hasActiveSession) {
-      return AuthenticatedHomeScreen(name: authService.currentUserName);
+      return FutureBuilder<String>(
+        future: authService.getCurrentUserRole(),
+        builder: (context, snapshot) {
+          final role = snapshot.data ?? 'client';
+          if (role == 'client') {
+            return AuthenticatedHomeScreen(
+              name: authService.currentUserName,
+              role: role,
+            );
+          }
+
+          return AuthenticatedHomeScreen(
+            name: authService.currentUserName,
+            role: role,
+          );
+        },
+      );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pet-Appointment'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Pet-Appointment'), centerTitle: true),
       body: const SingleChildScrollView(
         child: Column(
           children: [
@@ -54,7 +67,6 @@ class _HeroSection extends StatelessWidget {
         ),
         child: Stack(
           children: [
-
             Padding(
               padding: const EdgeInsets.all(28),
               child: Column(
@@ -64,16 +76,16 @@ class _HeroSection extends StatelessWidget {
                   Text(
                     'El amor se escribe\ncon cuatro patas.',
                     style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                          color: Colors.white,
-                          height: 1.2,
-                        ),
+                      color: Colors.white,
+                      height: 1.2,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     'Cuida la salud, el bienestar y la felicidad\nde tu mascota en un solo lugar.',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.85),
-                        ),
+                      color: Colors.white.withValues(alpha: 0.85),
+                    ),
                   ),
                   const SizedBox(height: 20),
                   FilledButton.icon(
@@ -81,7 +93,9 @@ class _HeroSection extends StatelessWidget {
                       backgroundColor: Colors.white,
                       foregroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 14),
+                        horizontal: 24,
+                        vertical: 14,
+                      ),
                       shape: const StadiumBorder(),
                     ),
                     onPressed: () => Navigator.of(context).push(
@@ -116,8 +130,10 @@ class _ServicesSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Nuestros Servicios',
-                  style: Theme.of(context).textTheme.headlineMedium),
+              Text(
+                'Nuestros Servicios',
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -178,33 +194,32 @@ class _ServiceCard extends StatelessWidget {
   final Color iconColor;
   final bool wide;
 
-
   @override
   Widget build(BuildContext context) {
     final iconWidget = Container(
       width: 48,
       height: 48,
-      decoration: BoxDecoration(
-        color: iconColor,
-        shape: BoxShape.circle,
-      ),
+      decoration: BoxDecoration(color: iconColor, shape: BoxShape.circle),
       child: Icon(icon, color: Colors.white, size: 22),
     );
 
     final textWidget = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title,
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(fontSize: 16)),
+        Text(
+          title,
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontSize: 16),
+        ),
         if (subtitle != null) ...[
           const SizedBox(height: 4),
-          Text(subtitle!,
-              style: Theme.of(context).textTheme.bodyMedium,
-              maxLines: 2),
-        ]
+          Text(
+            subtitle!,
+            style: Theme.of(context).textTheme.bodyMedium,
+            maxLines: 2,
+          ),
+        ],
       ],
     );
 
@@ -215,18 +230,16 @@ class _ServiceCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: wide
-          ? Row(children: [
-              iconWidget,
-              const SizedBox(width: 16),
-              Expanded(child: textWidget),
-            ])
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          ? Row(
               children: [
                 iconWidget,
-                const SizedBox(height: 16),
-                textWidget,
+                const SizedBox(width: 16),
+                Expanded(child: textWidget),
               ],
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [iconWidget, const SizedBox(height: 16), textWidget],
             ),
     );
   }
@@ -327,15 +340,12 @@ class _StatItem extends StatelessWidget {
               Text(
                 title,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.onSurface,
-                    ),
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.onSurface,
+                ),
               ),
               const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
             ],
           ),
         ),
@@ -367,16 +377,19 @@ class _CtaSection extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.surface, width: 4),
               ),
-              child: const Icon(Icons.star_rounded,
-                  color: AppColors.primary, size: 32),
+              child: const Icon(
+                Icons.star_rounded,
+                color: AppColors.primary,
+                size: 32,
+              ),
             ),
             const SizedBox(height: 20),
             Text(
               '¿Listo para consentir a tu\nmejor amigo?',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: Colors.white,
-                    height: 1.3,
-                  ),
+                color: Colors.white,
+                height: 1.3,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -384,15 +397,18 @@ class _CtaSection extends StatelessWidget {
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 40, vertical: 16),
+                  horizontal: 40,
+                  vertical: 16,
+                ),
                 shape: const StadiumBorder(),
               ),
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              onPressed: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const LoginScreen())),
+              child: const Text(
+                'Únete ahora',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
-              child: const Text('Únete ahora',
-                  style: TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w700)),
             ),
           ],
         ),

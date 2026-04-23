@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pet_appointment/widgets/widgets.dart';
@@ -38,6 +39,13 @@ class MyApp extends StatelessWidget {
       title: 'PetAppointment',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('es'), Locale('es', 'ES'), Locale('en')],
+      locale: const Locale('es', 'ES'),
       home: const AppShell(),
       routes: {
         '/home': (_) => const AppShell(),

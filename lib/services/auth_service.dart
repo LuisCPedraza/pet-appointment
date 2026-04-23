@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Maneja toda la comunicación con Supabase Auth.
@@ -28,16 +30,62 @@ class AuthService {
   /// Retorna true si hay una sesión activa (usuario ya autenticado).
   bool get hasActiveSession => _client.auth.currentSession != null;
 
+  /// URL de la foto de perfil guardada en metadata.
+  String get currentUserPhotoUrl =>
+      _client.auth.currentUser?.userMetadata?['photo_url'] as String? ?? '';
+
   /// Nombre del usuario autenticado (del metadata de registro).
   String get currentUserName =>
       _client.auth.currentUser?.userMetadata?['full_name'] as String? ??
       _client.auth.currentUser?.email ??
       'Usuario';
 
-  /// Inicia sesión con email y contraseña.
-  /// Lanza [AuthException] si las credenciales son incorrectas.
-  Future<void> login({required String email, required String password}) async {
-    await _client.auth.signInWithPassword(email: email, password: password);
+  /// Inicia sesión y retorna el rol del usuario autenticado.
+  /// Valida además que el correo esté confirmado.
+  Future<String> login({
+    required String email,
+    required String password,
+  }) async {
+    final response = await _client.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
+
+    final user = response.user ?? _client.auth.currentUser;
+    if (user == null) {
+      throw const AuthException('No se pudo iniciar sesión. Intenta de nuevo.');
+    }
+
+    if (user.emailConfirmedAt == null) {
+      await _client.auth.signOut();
+      throw const AuthException(
+        'Debes confirmar tu correo antes de iniciar sesión. Revisa tu bandeja.',
+      );
+    }
+
+    return getCurrentUserRole();
+  }
+
+  /// Obtiene el rol desde public.users; si falla, intenta metadata y finalmente client.
+  Future<String> getCurrentUserRole() async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return 'client';
+
+    try {
+      final response = await _client
+          .from('users')
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle();
+
+      final role = response?['role'] as String?;
+      if (role != null && role.isNotEmpty) return role;
+    } catch (_) {
+      // fallback a metadata cuando no se pueda consultar public.users
+    }
+
+    return _client.auth.currentUser?.userMetadata?['role'] as String? ??
+        'client';
   }
 
   /// Cierra la sesión del usuario actual.
@@ -80,23 +128,52 @@ class AuthService {
   String get currentUserPhone =>
       _client.auth.currentUser?.userMetadata?['phone'] as String? ?? '';
 
-  /// Actualiza el nombre y teléfono del usuario en Auth y en public.users.
-  Future<void> updateProfile({
-    required String name,
-    required String phone,
+  /// Sube la imagen de perfil a Supabase Storage y retorna su URL pública.
+  Future<String> uploadProfilePhoto({
+    required Uint8List bytes,
+    required String extension,
   }) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) throw Exception('No hay sesión activa');
 
+    final safeExtension = extension.isEmpty ? 'jpg' : extension.toLowerCase();
+    final objectPath =
+        '$userId/avatar_${DateTime.now().millisecondsSinceEpoch}.$safeExtension';
+
+    await _client.storage
+        .from('profile-photos')
+        .uploadBinary(
+          objectPath,
+          bytes,
+          fileOptions: const FileOptions(upsert: true),
+        );
+
+    return _client.storage.from('profile-photos').getPublicUrl(objectPath);
+  }
+
+  /// Actualiza el nombre, teléfono y opcionalmente foto en Auth y public.users.
+  Future<void> updateProfile({
+    required String name,
+    required String phone,
+    String? photoUrl,
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw Exception('No hay sesión activa');
+
+    final metadata = <String, dynamic>{'full_name': name, 'phone': phone};
+    if (photoUrl != null && photoUrl.isNotEmpty) {
+      metadata['photo_url'] = photoUrl;
+    }
+
     // 1. Actualizar metadata en auth.users
-    await _client.auth.updateUser(
-      UserAttributes(data: {'full_name': name, 'phone': phone}),
-    );
+    await _client.auth.updateUser(UserAttributes(data: metadata));
 
     // 2. Sincronizar con public.users
-    await _client
-        .from('users')
-        .update({'full_name': name, 'phone': phone})
-        .eq('id', userId);
+    final payload = <String, dynamic>{'full_name': name, 'phone': phone};
+    if (photoUrl != null && photoUrl.isNotEmpty) {
+      payload['photo_url'] = photoUrl;
+    }
+
+    await _client.from('users').update(payload).eq('id', userId);
   }
 }

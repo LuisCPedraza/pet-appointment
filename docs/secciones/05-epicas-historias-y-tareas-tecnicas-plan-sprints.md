@@ -135,14 +135,14 @@ test(EP-02): agregar pruebas unitarias para PetRepository
 
 #### Entregables del Sprint 1
 
-| Entregable                                                 | Estado |
-| ---------------------------------------------------------- | ------ |
+| Entregable                                                    | Estado |
+| ------------------------------------------------------------- | ------ |
 | Repositorio GitHub con ramas `main`,`develop`,`staging` | ✅     |
-| Tablero Jira con épicas, historias y tareas               | ✅     |
-| Documentación técnica completa (`.md`)                 | ✅     |
-| PDF Entrega 1 con evidencias                               | ✅     |
-| Bosquejos visuales de 4 pantallas principales              | ✅     |
-| Estructura inicial de proyecto Flutter                     | ✅     |
+| Tablero Jira con épicas, historias y tareas                  | ✅     |
+| Documentación técnica completa (`.md`)                    | ✅     |
+| PDF Entrega 1 con evidencias                                  | ✅     |
+| Bosquejos visuales de 4 pantallas principales                 | ✅     |
+| Estructura inicial de proyecto Flutter                        | ✅     |
 
 #### Tareas completadas
 
@@ -342,12 +342,12 @@ Auth operativa (Sprint 2)
 
 **Criterios de aceptación:**
 
-* [ ] El formulario valida: correo con formato válido, contraseña mínimo 8 caracteres, campos no vacíos.
-* [ ] Si el correo ya está registrado, muestra mensaje de error claro sin exponer información sensible.
-* [ ] Si las contraseñas no coinciden, el error se muestra inline bajo el campo de confirmación.
-* [ ] Tras registro exitoso, se muestra pantalla de confirmación indicando revisar el correo.
-* [ ] El usuario no puede acceder al home hasta confirmar el correo.
-* [ ] El rol `cliente` se asigna automáticamente en la creación del perfil.
+* [X] El formulario valida: correo con formato válido, contraseña mínimo 8 caracteres, campos no vacíos.
+* [X] Si el correo ya está registrado, muestra mensaje de error claro sin exponer información sensible.
+* [X] Si las contraseñas no coinciden, el error se muestra inline bajo el campo de confirmación.
+* [X] Tras registro exitoso, se muestra pantalla de confirmación indicando revisar el correo.
+* [X] El usuario no puede acceder al home hasta confirmar el correo.
+* [X] El rol `cliente` se asigna automáticamente en la creación del perfil.
 
 | Campo        | Valor            |
 | ------------ | ---------------- |
@@ -385,12 +385,12 @@ Auth operativa (Sprint 2)
 
 **Criterios de aceptación:**
 
-* [ ] El login con credenciales válidas redirige al home correcto según el rol.
-* [ ] El login con credenciales inválidas muestra mensaje de error genérico.
-* [ ] Si el correo no está confirmado, muestra mensaje indicando verificar el correo.
-* [ ] La sesión persiste entre reinicios de la app (auto-login).
-* [ ] El botón "Cerrar sesión" invalida el token y redirige al login.
-* [ ] El campo contraseña tiene opción de mostrar/ocultar el texto.
+* [X] El login con credenciales válidas redirige al home correcto según el rol.
+* [X] El login con credenciales inválidas muestra mensaje de error genérico.
+* [X] Si el correo no está confirmado, muestra mensaje indicando verificar el correo.
+* [X] La sesión persiste entre reinicios de la app (auto-login).
+* [X] El botón "Cerrar sesión" invalida el token y redirige al login.
+* [X] El campo contraseña tiene opción de mostrar/ocultar el texto.
 
 | Campo        | Valor            |
 | ------------ | ---------------- |
@@ -424,11 +424,11 @@ Auth operativa (Sprint 2)
 
 **Criterios de aceptación:**
 
-* [ ] Si el correo existe, se envía el correo de recuperación y se muestra confirmación en pantalla.
-* [ ] Si el correo no existe, **no** se revela esta información (mensaje genérico por seguridad).
+* [X] Si el correo existe, se envía el correo de recuperación y se muestra confirmación en pantalla.
+* [X] Si el correo no existe, **no** se revela esta información (mensaje genérico por seguridad).
 * [ ] El enlace de recuperación expira en 1 hora.
-* [ ] Tras restablecer la contraseña, el usuario puede iniciar sesión con la nueva.
-* [ ] La nueva contraseña debe cumplir los mismos criterios de validación que el registro.
+* [X] Tras restablecer la contraseña, el usuario puede iniciar sesión con la nueva.
+* [X] La nueva contraseña debe cumplir los mismos criterios de validación que el registro.
 
 | Campo        | Valor            |
 | ------------ | ---------------- |
@@ -463,12 +463,12 @@ Auth operativa (Sprint 2)
 
 **Criterios de aceptación:**
 
-* [ ] El formulario viene prellenado con los datos actuales del usuario.
-* [ ] Los cambios se persisten en la tabla `users` de Supabase.
-* [ ] La foto de perfil se sube a Supabase Storage y se almacena la URL en la tabla.
-* [ ] Si la subida de foto falla, los demás datos se guardan igualmente.
-* [ ] Se muestra mensaje de éxito o error según resultado.
-* [ ] El nombre actualizado se refleja inmediatamente en la barra de navegación / header.
+* [X] El formulario viene prellenado con los datos actuales del usuario.
+* [X] Los cambios se persisten en la tabla `users` de Supabase.
+* [X] La foto de perfil se sube a Supabase Storage y se almacena la URL en la tabla.
+* [X] Si la subida de foto falla, los demás datos se guardan igualmente.
+* [X] Se muestra mensaje de éxito o error según resultado.
+* [X] El nombre actualizado se refleja inmediatamente en la barra de navegación / header.
 
 | Campo        | Valor            |
 | ------------ | ---------------- |
@@ -561,12 +561,12 @@ Auth operativa (Sprint 2)
 
 **Criterios de aceptación:**
 
-* [ ] El formulario valida campos obligatorios antes de enviar.
-* [ ] La mascota se guarda en la tabla `pets` con el `user_id` del cliente autenticado.
-* [ ] La foto se sube a Storage y se guarda la URL pública en `pets.photo_url`.
-* [ ] Si no se sube foto, se muestra un avatar genérico según la especie.
-* [ ] Tras guardar, la mascota aparece inmediatamente en la lista sin recargar.
-* [ ] Si el guardado falla, se muestra mensaje de error y el formulario no se cierra (para no perder los datos).
+* [x] El formulario valida campos obligatorios antes de enviar.
+* [x] La mascota se guarda en la tabla `pets` con el `user_id` del cliente autenticado.
+* [x] La foto se sube a Storage y se guarda la URL pública en `pets.photo_url`.
+* [x] Si no se sube foto, se muestra un avatar genérico según la especie.
+* [x] Tras guardar, la mascota aparece inmediatamente en la lista sin recargar.
+* [x] Si el guardado falla, se muestra mensaje de error y el formulario no se cierra (para no perder los datos).
 
 | Campo        | Valor               |
 | ------------ | ------------------- |
@@ -1265,7 +1265,7 @@ en_espera
 | TASK ID   | Tarea                      | Descripción técnica                                                                                           | Horas | HU    |
 | --------- | -------------------------- | --------------------------------------------------------------------------------------------------------------- | ----- | ----- |
 | TASK-11P2 | Realtime citas             | Suscripción al canal de `appointments`para cliente y profesional, dispatch de notificaciones locales         | 5h    | US-20 |
-| TASK-18   | GitHub Actions APK         | Workflow `build-apk.yml`,`flutter build apk --release`, upload artifact, triggers en push a `main`      | 4h    | —    |
+| TASK-18   | GitHub Actions APK         | Workflow `build-apk.yml`,`flutter build apk --release`, upload artifact, triggers en push a `main`        | 4h    | —    |
 | TASK-19P2 | GitHub Actions CI completo | `flutter analyze`,`flutter test`, badge de estado en README                                                 | 3h    | —    |
 | TASK-20   | Pruebas unitarias y widget | Tests para `AppointmentRepository`,`AuthService`,`PetRepository`, widget tests para formularios críticos | 5h    | —    |
 | TASK-21   | Keystore y firma APK       | Generar keystore, configurar `key.properties`, firmar APK con `--release`, documentar proceso               | 2h    | —    |
@@ -1418,13 +1418,13 @@ Una historia o tarea se considera **COMPLETADA** únicamente cuando cumple **tod
 
 ## 11. Referencias Cruzadas
 
-| Recurso                             | Enlace                                                                                            |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------- |
-| 📄 Documentación técnica completa | [PetAppointment_Documentacion_Tecnica.md](https://claude.ai/PetAppointment_Documentacion_Tecnica.md) |
+| Recurso                             | Enlace                                                                                                                                                          |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 📄 Documentación técnica completa | [PetAppointment_Documentacion_Tecnica.md](https://claude.ai/PetAppointment_Documentacion_Tecnica.md)                                                               |
 | 📋 Tablero Jira                     | https://correounivalle-team-f1bug4uj.atlassian.net/jira/software/projects/PA/summary?atlOrigin=eyJpIjoiM2Y2ZDkwMzk2NWNiNDNmMjk5OTQwMmZkMzIzYjZjZmMiLCJwIjoiaiJ9 |
-| 🔗 Repositorio GitHub               | https://github.com/LuisCPedraza/pet-appointment                                                   |
-| 📝 Entrega 1 - evidencias           | [Entrega_1_Primer_Adelanto.md](https://claude.ai/Entrega_1_Primer_Adelanto.md)                       |
-| 🎨 Guía de estilo visual           | [STYLE_GUIDE.md](https://claude.ai/STYLE_GUIDE.md)                                                   |
+| 🔗 Repositorio GitHub               | https://github.com/LuisCPedraza/pet-appointment                                                                                                                 |
+| 📝 Entrega 1 - evidencias           | [Entrega_1_Primer_Adelanto.md](https://claude.ai/Entrega_1_Primer_Adelanto.md)                                                                                     |
+| 🎨 Guía de estilo visual           | [STYLE_GUIDE.md](https://claude.ai/STYLE_GUIDE.md)                                                                                                                 |
 
 ---
 
