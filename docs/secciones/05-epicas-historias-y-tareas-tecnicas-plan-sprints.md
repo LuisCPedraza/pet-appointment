@@ -598,11 +598,11 @@ Auth operativa (Sprint 2)
 
 **Criterios de aceptación:**
 
-* [ ] La lista solo muestra las mascotas del cliente autenticado.
-* [ ] Cada tarjeta muestra: foto/avatar, nombre, especie, y última cita (o "Sin citas aún").
-* [ ] Si no hay mascotas, se muestra un estado vacío con CTA para registrar la primera.
-* [ ] Al pulsar una mascota, se navega a la pantalla de detalle con todos sus datos.
-* [ ] La lista se ordena por nombre alfabéticamente de forma predeterminada.
+* [x] La lista solo muestra las mascotas del cliente autenticado.
+* [x] Cada tarjeta muestra: foto/avatar, nombre, especie, y última cita (o "Sin citas aún").
+* [x] Si no hay mascotas, se muestra un estado vacío con CTA para registrar la primera.
+* [x] Al pulsar una mascota, se navega a la pantalla de detalle con todos sus datos.
+* [x] La lista se ordena por nombre alfabéticamente de forma predeterminada.
 
 | Campo        | Valor               |
 | ------------ | ------------------- |

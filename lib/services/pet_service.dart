@@ -48,6 +48,14 @@ class Pet {
   }
 }
 
+/// DTO para listado de mascotas con fecha de última cita.
+class PetListItem {
+  final Pet pet;
+  final DateTime? lastAppointmentAt;
+
+  PetListItem({required this.pet, required this.lastAppointmentAt});
+}
+
 /// Servicio para gestionar mascotas del usuario autenticado.
 class PetService {
   final SupabaseClient _client = Supabase.instance.client;
@@ -189,8 +197,58 @@ class PetService {
         .from('pets')
         .stream(primaryKey: ['id'])
         .eq('owner_id', userId)
-        .order('created_at', ascending: false)
+        .order('name', ascending: true)
         .map((maps) => maps.map((map) => Pet.fromJson(map)).toList());
+  }
+
+  /// Obtiene mascotas del usuario con la fecha de la última cita por mascota.
+  ///
+  /// Usa JOIN a appointments para calcular la última cita visible por RLS.
+  Future<List<PetListItem>> getUserPetsWithLastAppointment() async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return [];
+
+    final response = await _client
+        .from('pets')
+        .select('''
+          id,
+          owner_id,
+          name,
+          species,
+          breed,
+          birth_date,
+          weight,
+          notes,
+          photo_url,
+          created_at,
+          appointments!left (
+            created_at,
+            client_id
+          )
+        ''')
+        .eq('owner_id', userId)
+        .order('name', ascending: true);
+
+    return (response as List).map((row) {
+      final map = row as Map<String, dynamic>;
+      final pet = Pet.fromJson(map);
+
+      final appointmentsRaw = (map['appointments'] as List?) ?? const [];
+      DateTime? latest;
+
+      for (final item in appointmentsRaw) {
+        final appt = item as Map<String, dynamic>;
+        final createdAtRaw = appt['created_at'] as String?;
+        if (createdAtRaw == null) continue;
+        final dt = DateTime.tryParse(createdAtRaw);
+        if (dt == null) continue;
+        if (latest == null || dt.isAfter(latest)) {
+          latest = dt;
+        }
+      }
+
+      return PetListItem(pet: pet, lastAppointmentAt: latest);
+    }).toList();
   }
 
   /// Obtiene todas las mascotas del usuario como Future (una sola lectura).
@@ -219,7 +277,7 @@ class PetService {
           .select()
           .eq('id', petId)
           .single();
-      return Pet.fromJson(response as Map<String, dynamic>);
+      return Pet.fromJson(response);
     } catch (e) {
       print('Error obteniendo mascota: $e');
       return null;
@@ -246,8 +304,9 @@ class PetService {
     if (name != null) updateData['name'] = name;
     if (species != null) updateData['species'] = species;
     if (breed != null) updateData['breed'] = breed;
-    if (birthDate != null)
+    if (birthDate != null) {
       updateData['birth_date'] = birthDate.toIso8601String();
+    }
     if (weight != null) updateData['weight'] = weight;
     if (notes != null) updateData['notes'] = notes;
 
