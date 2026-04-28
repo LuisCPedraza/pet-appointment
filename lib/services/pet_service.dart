@@ -59,6 +59,10 @@ class PetListItem {
 /// Servicio para gestionar mascotas del usuario autenticado.
 class PetService {
   final SupabaseClient _client = Supabase.instance.client;
+  static const List<String> _activeAppointmentStatuses = [
+    'En espera',
+    'Confirmada',
+  ];
 
   String? _extractStoragePathFromPublicUrl(String? publicUrl) {
     if (publicUrl == null || publicUrl.isEmpty) return null;
@@ -282,6 +286,27 @@ class PetService {
 
       return PetListItem(pet: pet, lastAppointmentAt: latest);
     }).toList();
+  }
+
+  /// Retorna cuántas citas activas tiene una mascota.
+  ///
+  /// Se consideran activas las citas en estado `En espera` o `Confirmada`.
+  Future<int> getActiveAppointmentsCount(String petId) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return 0;
+
+    final response = await _client
+        .from('appointments')
+        .select('id')
+        .eq('pet_id', petId)
+        .inFilter('status', _activeAppointmentStatuses);
+
+    return (response as List).length;
+  }
+
+  /// Indica si una mascota tiene citas activas pendientes de atención.
+  Future<bool> hasActiveAppointments(String petId) async {
+    return (await getActiveAppointmentsCount(petId)) > 0;
   }
 
   /// Obtiene todas las mascotas del usuario como Future (una sola lectura).

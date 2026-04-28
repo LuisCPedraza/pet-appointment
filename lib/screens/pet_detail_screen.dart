@@ -90,48 +90,79 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
   }
 
   Future<void> _deletePet() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Eliminar mascota'),
-        content: Text(
-          '¿Deseas eliminar a ${_pet.name}? Esta acción no se puede deshacer.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Eliminar'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true || !mounted) return;
+    if (_isDeleting) return;
 
     setState(() => _isDeleting = true);
-    final deleted = await _petService.deletePet(_pet.id);
-    if (!mounted) return;
-    setState(() => _isDeleting = false);
 
-    if (deleted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mascota eliminada exitosamente')),
-      );
-      Navigator.of(context).pop(true);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'No fue posible eliminar la mascota. Intenta de nuevo.',
+    try {
+      final activeAppointmentsCount = await _petService
+          .getActiveAppointmentsCount(_pet.id);
+      if (!mounted) return;
+
+      if (activeAppointmentsCount > 0) {
+        await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('No se puede eliminar'),
+            content: Text(
+              'Esta mascota tiene $activeAppointmentsCount cita${activeAppointmentsCount == 1 ? '' : 's'} activ${activeAppointmentsCount == 1 ? 'a' : 'as'} en estado "En espera" o "Confirmada". Cancélalas primero para continuar.',
+            ),
+            actions: [
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Entendido'),
+              ),
+            ],
           ),
-          backgroundColor: AppColors.error,
+        );
+        return;
+      }
+
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Eliminar mascota'),
+          content: Text(
+            '¿Deseas eliminar a ${_pet.name}? Esta acción no se puede deshacer.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+              child: const Text('Eliminar'),
+            ),
+          ],
         ),
       );
+
+      if (confirmed != true || !mounted) return;
+
+      final deleted = await _petService.deletePet(_pet.id);
+      if (!mounted) return;
+
+      if (deleted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Mascota eliminada exitosamente')),
+        );
+        Navigator.of(context).pop(true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'No fue posible eliminar la mascota. Intenta de nuevo.',
+            ),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isDeleting = false);
+      }
     }
   }
 

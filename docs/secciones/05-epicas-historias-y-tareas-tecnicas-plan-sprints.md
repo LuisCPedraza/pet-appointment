@@ -674,12 +674,12 @@ Auth operativa (Sprint 2)
 
 **Criterios de aceptación:**
 
-* [ ] Antes de eliminar, se verifica si la mascota tiene citas en estado `en_espera` o `confirmada`.
-* [ ] Si tiene citas activas, se muestra advertencia indicando que deberá cancelarlas primero.
-* [ ] Si no tiene citas activas, el diálogo de confirmación es simple.
-* [ ] La eliminación borra la foto de Storage (si existe).
-* [ ] Solo el propietario puede eliminar su mascota (RLS).
-* [ ] Tras eliminar, el usuario regresa automáticamente a la lista de mascotas.
+* [x] Antes de eliminar, se verifica si la mascota tiene citas en estado `en_espera` o `confirmada`.
+* [x] Si tiene citas activas, se muestra advertencia indicando que deberá cancelarlas primero.
+* [x] Si no tiene citas activas, el diálogo de confirmación es simple.
+* [x] La eliminación borra la foto de Storage (si existe).
+* [x] Solo el propietario puede eliminar su mascota (RLS).
+* [x] Tras eliminar, el usuario regresa automáticamente a la lista de mascotas.
 
 | Campo        | Valor               |
 | ------------ | ------------------- |
