@@ -5,7 +5,8 @@ class AppointmentTile extends StatelessWidget {
   final Appointment appointment;
   final VoidCallback? onTap;
 
-  const AppointmentTile({Key? key, required this.appointment, this.onTap}) : super(key: key);
+  const AppointmentTile({Key? key, required this.appointment, this.onTap})
+    : super(key: key);
 
   Color _statusColor(String s) {
     switch (s) {

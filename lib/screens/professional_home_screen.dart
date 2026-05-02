@@ -10,7 +10,8 @@ class ProfessionalHomeScreen extends StatefulWidget {
   State<ProfessionalHomeScreen> createState() => _ProfessionalHomeScreenState();
 }
 
-class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> with SingleTickerProviderStateMixin {
+class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final AppointmentService _service = AppointmentService();
   late DateTime _today;
@@ -32,7 +33,8 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> with Si
     return FutureBuilder<List<Appointment>>(
       future: _service.fetchDailyAppointments(_today),
       builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
+        if (snap.connectionState == ConnectionState.waiting)
+          return Center(child: CircularProgressIndicator());
         final list = snap.data ?? [];
         if (list.isEmpty) return Center(child: Text('No hay citas para hoy'));
         list.sort((a, b) => a.startsAt.compareTo(b.startsAt));
@@ -54,11 +56,18 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> with Si
                       Text('Cliente: ${ap.clientName}'),
                       Text('Mascota: ${ap.petName}'),
                       Text('Servicio: ${ap.serviceName}'),
-                      Text('Hora: ${TimeOfDay.fromDateTime(ap.startsAt).format(context)}'),
+                      Text(
+                        'Hora: ${TimeOfDay.fromDateTime(ap.startsAt).format(context)}',
+                      ),
                       Text('Estado: ${ap.status}'),
                     ],
                   ),
-                  actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('Cerrar'))],
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('Cerrar'),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -72,7 +81,8 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> with Si
     return FutureBuilder<Map<String, int>>(
       future: _service.fetchWeeklySummary(_today),
       builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
+        if (snap.connectionState == ConnectionState.waiting)
+          return Center(child: CircularProgressIndicator());
         final map = snap.data ?? {};
         final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         return Padding(
@@ -102,7 +112,10 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen> with Si
         title: Text('Panel Profesional'),
         bottom: TabBar(
           controller: _tabController,
-          tabs: [Tab(text: 'Diaria'), Tab(text: 'Semanal')],
+          tabs: [
+            Tab(text: 'Diaria'),
+            Tab(text: 'Semanal'),
+          ],
         ),
       ),
       body: TabBarView(
