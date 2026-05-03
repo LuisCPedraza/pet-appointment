@@ -118,7 +118,6 @@ void main() {
     group('updatePet', () {
       test('should validate update payload structure', () async {
         // Arrange
-        const petId = 'pet-update-123';
         const newName = 'Fluffy Updated';
         final newBirthDate = DateTime(2019, 8, 20);
         const newWeight = 4.2;

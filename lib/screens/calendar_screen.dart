@@ -1,10 +1,8 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_appointment/config/theme.dart';
+import 'package:pet_appointment/controllers/calendar_controller.dart';
 import 'package:pet_appointment/models/availability_slot.dart';
-import 'package:pet_appointment/models/service_model.dart';
-import 'package:pet_appointment/services/appointment_service.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -15,173 +13,57 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  final _service = AppointmentService();
+  final _controller = CalendarController();
   final _notesController = TextEditingController();
-
-  List<Map<String, dynamic>> _pets = [];
-  List<ServiceModel> _services = [];
-  String? _selectedPetId;
-  String? _selectedServiceId;
-
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
-  Map<DateTime, List<AvailabilitySlot>> _slotsByDay = {};
-  Set<String> _bookedIds = {};
-  AvailabilitySlot? _selectedSlot;
-
-  bool _isLoading = false;
-  bool _isSubmitting = false;
-
-  RealtimeChannel? _appointmentsChannel;
-  RealtimeChannel? _slotsChannel;
 
   @override
   void initState() {
     super.initState();
-    _loadInitialData();
-    _subscribeRealtime();
+    _controller.addListener(_onControllerChange);
+    _init();
+  }
+
+  Future<void> _init() async {
+    try {
+      await _controller.loadInitialData();
+      _controller.subscribeRealtime();
+    } catch (e) {
+      if (mounted) _showSnack('Error al cargar datos: $e', isError: true);
+    }
+  }
+
+  void _onControllerChange() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_onControllerChange);
+    _controller.unsubscribe();
+    _controller.dispose();
     _notesController.dispose();
-    _appointmentsChannel?.unsubscribe();
-    _slotsChannel?.unsubscribe();
     super.dispose();
   }
 
-  // ─── Data ────────────────────────────────────────────────────────────────
-
-  Future<void> _loadInitialData() async {
-    setState(() => _isLoading = true);
-    try {
-      final results = await Future.wait([
-        _service.fetchUserPets(),
-        _service.fetchServices(),
-      ]);
-      final pets = results[0] as List<Map<String, dynamic>>;
-      final services = results[1] as List<ServiceModel>;
-      if (mounted) {
-        setState(() {
-          _pets = pets;
-          _services = services;
-          if (pets.isNotEmpty) _selectedPetId = pets.first['id'] as String;
-        });
-        await _loadMonth(_focusedDay);
-      }
-    } catch (e) {
-      if (mounted) {
-        _showSnack('Error al cargar datos: $e', isError: true);
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _loadMonth(DateTime month) async {
-    final from = DateTime(month.year, month.month, 1);
-    final to = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
-    try {
-      final slots = await _service.fetchAllSlots(
-        from: from,
-        to: to,
-        serviceId: _selectedServiceId,
-      );
-      final booked =
-          await _service.fetchAllBookedSlotIds(from: from, to: to);
-      final Map<DateTime, List<AvailabilitySlot>> grouped = {};
-      for (final s in slots) {
-        final key = DateTime(s.start.year, s.start.month, s.start.day);
-        grouped.putIfAbsent(key, () => []).add(s);
-      }
-      if (mounted) setState(() { _slotsByDay = grouped; _bookedIds = booked; });
-    } catch (e) {
-      debugPrint('_loadMonth error: $e');
-    }
-  }
-
-  Future<void> _refreshBookedIds() async {
-    final month = _focusedDay;
-    final from = DateTime(month.year, month.month, 1);
-    final to = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
-    try {
-      final booked =
-          await _service.fetchAllBookedSlotIds(from: from, to: to);
-      if (mounted) {
-        setState(() {
-          _bookedIds = booked;
-          if (_selectedSlot != null && booked.contains(_selectedSlot!.id)) {
-            _selectedSlot = null;
-          }
-        });
-      }
-    } catch (e) {
-      debugPrint('_refreshBookedIds error: $e');
-    }
-  }
-
-  Future<void> _refreshSlots() async {
-    final month = _focusedDay;
-    final from = DateTime(month.year, month.month, 1);
-    final to = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
-    try {
-      final slots = await _service.fetchAllSlots(
-        from: from,
-        to: to,
-        serviceId: _selectedServiceId,
-      );
-      final Map<DateTime, List<AvailabilitySlot>> grouped = {};
-      for (final s in slots) {
-        final key = DateTime(s.start.year, s.start.month, s.start.day);
-        grouped.putIfAbsent(key, () => []).add(s);
-      }
-      if (mounted) setState(() => _slotsByDay = grouped);
-    } catch (e) {
-      debugPrint('_refreshSlots error: $e');
-    }
-  }
-
-  void _subscribeRealtime() {
-    _appointmentsChannel = _service.subscribeToAllAppointments(
-      onChanged: () => _refreshBookedIds(),
-    );
-    _slotsChannel = _service.subscribeToAllSlots(
-      onChanged: () => _refreshSlots(),
-    );
-  }
+  // ─── UI helpers ───────────────────────────────────────────────────────────
 
   Future<void> _confirm() async {
-    if (_selectedPetId == null) {
+    if (_controller.selectedPetId == null) {
       _showSnack('Selecciona una mascota');
       return;
     }
-    if (_selectedSlot == null) {
+    if (_controller.selectedSlot == null) {
       _showSnack('Selecciona una hora disponible');
       return;
     }
-    setState(() => _isSubmitting = true);
     try {
-      await _service.createAppointment(
-        petId: _selectedPetId!,
-        professionalId: _selectedSlot!.professionalId,
-        serviceId: _selectedServiceId ?? _selectedSlot!.serviceId,
-        availabilityId: _selectedSlot!.id,
-        notes: _notesController.text.trim().isEmpty
-            ? null
-            : _notesController.text.trim(),
-      );
+      await _controller.confirm(notes: _notesController.text);
       if (mounted) {
         _showSnack('Cita agendada con exito!');
-        setState(() {
-          _selectedSlot = null;
-          _selectedDay = null;
-          _notesController.clear();
-        });
+        _notesController.clear();
       }
     } catch (e) {
       if (mounted) _showSnack('Error al agendar: $e', isError: true);
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -194,23 +76,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  // ─── Helpers ─────────────────────────────────────────────────────────────
-
-  List<AvailabilitySlot> get _slotsForDay {
-    if (_selectedDay == null) return [];
-    final key = DateTime(
-      _selectedDay!.year,
-      _selectedDay!.month,
-      _selectedDay!.day,
-    );
-    return (_slotsByDay[key] ?? []).where((s) => !s.isPast).toList();
-  }
-
   // ─── Build ────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    if (_controller.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return Scaffold(
@@ -219,12 +89,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
         child: CustomScrollView(
           slivers: [
             _SliverSection(child: _buildHeading()),
-            if (_pets.isNotEmpty) _SliverSection(child: _buildPetCard()),
-            if (_services.isNotEmpty)
+            if (_controller.pets.isNotEmpty) _SliverSection(child: _buildPetCard()),
+            if (_controller.services.isNotEmpty)
               _SliverSection(child: _buildServiceCard()),
-            _SliverSection(child: _buildCalendarCard()),
-            if (_selectedDay != null)
-              _SliverSection(child: _buildTimeSlotsCard()),
+            if (_controller.selectedServiceId == null)
+              _SliverSection(child: _buildServiceRequiredHint())
+            else ...[  
+              _SliverSection(child: _buildCalendarCard()),
+              if (_controller.selectedDay != null)
+                _SliverSection(child: _buildTimeSlotsCard()),
+            ],
             _SliverSection(child: _buildNotesCard()),
             _SliverSection(child: _buildConfirmBtn()),
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
@@ -270,8 +144,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
           _Label('Mascota'),
           const SizedBox(height: 10),
           _Dropdown(
-            value: _selectedPetId,
-            items: _pets.map((p) {
+            value: _controller.selectedPetId,
+            items: _controller.pets.map((p) {
               final name = p['name'] as String? ?? '';
               final breed = p['breed'] as String? ?? '';
               final species = p['species'] as String? ?? '';
@@ -281,7 +155,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 child: Text('$name${sub.isNotEmpty ? " ($sub)" : ""}'),
               );
             }).toList(),
-            onChanged: (v) => setState(() => _selectedPetId = v),
+            onChanged: (v) => _controller.selectPet(v),
           ),
         ],
       ),
@@ -298,24 +172,36 @@ class _CalendarScreenState extends State<CalendarScreen> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: _services.map((svc) {
-                final sel = _selectedServiceId == svc.id;
+              children: _controller.services.map((svc) {
+                final sel = _controller.selectedServiceId == svc.id;
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: _Chip(
                     label: svc.name,
                     selected: sel,
-                    onTap: () async {
-                      setState(() {
-                        _selectedServiceId = sel ? null : svc.id;
-                        _selectedSlot = null;
-                      });
-                      await _loadMonth(_focusedDay);
-                    },
+                    onTap: () => _controller.changeService(sel ? null : svc.id),
                   ),
                 );
               }).toList(),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServiceRequiredHint() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline_rounded,
+              size: 16, color: AppColors.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Text(
+            'Selecciona un servicio para ver el calendario.',
+            style:
+                TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
           ),
         ],
       ),
@@ -327,27 +213,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
       child: TableCalendar<AvailabilitySlot>(
         firstDay: DateTime.now(),
         lastDay: DateTime.now().add(const Duration(days: 90)),
-        focusedDay: _focusedDay,
+        focusedDay: _controller.focusedDay,
         locale: 'es_ES',
-        selectedDayPredicate: (d) => isSameDay(_selectedDay, d),
-        onDaySelected: (sel, foc) {
-          setState(() {
-            _selectedDay = sel;
-            _focusedDay = foc;
-            _selectedSlot = null;
-          });
-        },
+        selectedDayPredicate: (d) => isSameDay(_controller.selectedDay, d),
+        onDaySelected: (sel, foc) => _controller.selectDay(sel, foc),
         onPageChanged: (foc) {
-          _focusedDay = foc;
-          _loadMonth(foc);
+          _controller.focusedDay = foc;
+          _controller.loadMonth(foc);
         },
         eventLoader: (day) {
           final key = DateTime(day.year, day.month, day.day);
-          return (_slotsByDay[key] ?? [])
-              .where((s) => !_bookedIds.contains(s.id) && !s.isPast)
+          return (_controller.slotsByDay[key] ?? [])
+              .where((s) => !_controller.bookedIds.contains(s.id) && !s.isPast)
               .toList();
         },
         calendarFormat: CalendarFormat.month,
+        availableGestures: AvailableGestures.none,
         headerStyle: HeaderStyle(
           formatButtonVisible: false,
           titleCentered: true,
@@ -396,14 +277,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ),
         calendarBuilders: CalendarBuilders<AvailabilitySlot>(
           defaultBuilder: (ctx, day, _) {
-            if (_slotsByDay.isEmpty) { return null; }
-            if (day.year != _focusedDay.year ||
-                day.month != _focusedDay.month) { return null; }
+            if (_controller.slotsByDay.isEmpty) return null;
+            if (day.year != _controller.focusedDay.year ||
+                day.month != _controller.focusedDay.month) return null;
             final key = DateTime(day.year, day.month, day.day);
-            final slots = _slotsByDay[key] ?? [];
-            if (slots.isEmpty) { return null; }
-            final hasFree =
-                slots.any((s) => !_bookedIds.contains(s.id) && !s.isPast);
+            final slots = _controller.slotsByDay[key] ?? [];
+            if (slots.isEmpty) return null;
+            final hasFree = slots.any(
+              (s) => !_controller.bookedIds.contains(s.id) && !s.isPast,
+            );
             return Container(
               margin: const EdgeInsets.all(6),
               alignment: Alignment.center,
@@ -417,10 +299,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 '${day.day}',
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight:
-                      hasFree ? FontWeight.w700 : FontWeight.w400,
-                  color:
-                      hasFree ? AppColors.secondary : AppColors.outline,
+                  fontWeight: hasFree ? FontWeight.w700 : FontWeight.w400,
+                  color: hasFree ? AppColors.secondary : AppColors.outline,
                 ),
               ),
             );
@@ -431,7 +311,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Widget _buildTimeSlotsCard() {
-    final slots = _slotsForDay;
+    final slots = _controller.slotsForDay(_controller.selectedDay);
     return _Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -451,8 +331,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
               spacing: 8,
               runSpacing: 8,
               children: slots.map((slot) {
-                final booked = _bookedIds.contains(slot.id);
-                final sel = _selectedSlot?.id == slot.id;
+                final booked = _controller.bookedIds.contains(slot.id);
+                final sel = _controller.selectedSlot?.id == slot.id;
                 return _TimeChip(
                   label: DateFormat('hh:mm a').format(slot.start),
                   sublabel: slot.professionalName,
@@ -460,7 +340,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   booked: booked,
                   onTap: booked
                       ? null
-                      : () => setState(() => _selectedSlot = slot),
+                      : () => _controller.selectSlot(slot),
                 );
               }).toList(),
             ),
@@ -506,7 +386,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
         width: double.infinity,
         height: 54,
         child: ElevatedButton(
-          onPressed: _isSubmitting ? null : _confirm,
+          onPressed:
+              (_controller.isSubmitting || !_controller.canSubmit)
+                  ? null
+                  : _confirm,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
@@ -515,7 +398,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
             elevation: 3,
           ),
-          child: _isSubmitting
+          child: _controller.isSubmitting
               ? const SizedBox(
                   width: 20,
                   height: 20,
