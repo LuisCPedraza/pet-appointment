@@ -960,11 +960,11 @@ Auth operativa (Sprint 2)
 
 **Criterios de aceptación:**
 
-* [ ] Las citas en estado `en_espera` tienen un botón de "Confirmar" visible.
-* [ ] Al confirmar, el estado cambia a `confirmada` en la DB.
-* [ ] El cliente recibe una notificación local informando que su cita fue confirmada.
-* [ ] El cambio se refleja en tiempo real en la agenda del profesional.
-* [ ] Solo el profesional asignado a la cita puede confirmarla (RLS).
+* [X] Las citas en estado `en_espera` tienen un botón de "Confirmar" visible.
+* [X] Al confirmar, el estado cambia a `confirmada` en la DB.
+* [X] El cliente recibe una notificación local informando que su cita fue confirmada.
+* [X] El cambio se refleja en tiempo real en la agenda del profesional.
+* [X] Solo el profesional asignado a la cita puede confirmarla (RLS).
 
 | Campo        | Valor               |
 | ------------ | ------------------- |
