@@ -89,12 +89,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
         child: CustomScrollView(
           slivers: [
             _SliverSection(child: _buildHeading()),
-            if (_controller.pets.isNotEmpty) _SliverSection(child: _buildPetCard()),
+            if (_controller.pets.isNotEmpty)
+              _SliverSection(child: _buildPetCard()),
             if (_controller.services.isNotEmpty)
               _SliverSection(child: _buildServiceCard()),
             if (_controller.selectedServiceId == null)
               _SliverSection(child: _buildServiceRequiredHint())
-            else ...[  
+            else ...[
               _SliverSection(child: _buildCalendarCard()),
               if (_controller.selectedDay != null)
                 _SliverSection(child: _buildTimeSlotsCard()),
@@ -195,13 +196,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       child: Row(
         children: [
-          Icon(Icons.info_outline_rounded,
-              size: 16, color: AppColors.onSurfaceVariant),
+          Icon(
+            Icons.info_outline_rounded,
+            size: 16,
+            color: AppColors.onSurfaceVariant,
+          ),
           const SizedBox(width: 8),
           Text(
             'Selecciona un servicio para ver el calendario.',
-            style:
-                TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
+            style: TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
           ),
         ],
       ),
@@ -277,12 +280,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ),
         calendarBuilders: CalendarBuilders<AvailabilitySlot>(
           defaultBuilder: (ctx, day, _) {
-            if (_controller.slotsByDay.isEmpty) return null;
+            if (_controller.slotsByDay.isEmpty) {
+              return null;
+            }
             if (day.year != _controller.focusedDay.year ||
-                day.month != _controller.focusedDay.month) return null;
+                day.month != _controller.focusedDay.month) {
+              return null;
+            }
             final key = DateTime(day.year, day.month, day.day);
             final slots = _controller.slotsByDay[key] ?? [];
-            if (slots.isEmpty) return null;
+            if (slots.isEmpty) {
+              return null;
+            }
             final hasFree = slots.any(
               (s) => !_controller.bookedIds.contains(s.id) && !s.isPast,
             );
@@ -321,10 +330,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           if (slots.isEmpty)
             Text(
               'No hay horarios disponibles para este dia.',
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.onSurfaceVariant,
-              ),
+              style: TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
             )
           else
             Wrap(
@@ -338,9 +344,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   sublabel: slot.professionalName,
                   selected: sel,
                   booked: booked,
-                  onTap: booked
-                      ? null
-                      : () => _controller.selectSlot(slot),
+                  onTap: booked ? null : () => _controller.selectSlot(slot),
                 );
               }).toList(),
             ),
@@ -386,10 +390,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         width: double.infinity,
         height: 54,
         child: ElevatedButton(
-          onPressed:
-              (_controller.isSubmitting || !_controller.canSubmit)
-                  ? null
-                  : _confirm,
+          onPressed: (_controller.isSubmitting || !_controller.canSubmit)
+              ? null
+              : _confirm,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
@@ -427,8 +430,7 @@ class _SliverSection extends StatelessWidget {
   const _SliverSection({required this.child});
   final Widget child;
   @override
-  Widget build(BuildContext context) =>
-      SliverToBoxAdapter(child: child);
+  Widget build(BuildContext context) => SliverToBoxAdapter(child: child);
 }
 
 class _Card extends StatelessWidget {

@@ -1,6 +1,6 @@
-import 'dart:typed_data';
 import 'package:pet_appointment/models/pet.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 export 'package:pet_appointment/models/pet.dart';
 
@@ -41,7 +41,7 @@ class PetService {
     try {
       await _client.storage.from('pet-photos').remove([path]);
     } catch (e) {
-      print('Error eliminando foto de mascota en storage: $e');
+      debugPrint('Error eliminando foto de mascota en storage: $e');
     }
   }
 
@@ -77,7 +77,7 @@ class PetService {
       final publicUrl = _client.storage.from('pet-photos').getPublicUrl(path);
       return publicUrl;
     } catch (e) {
-      print('Error subiendo foto de mascota: $e');
+      debugPrint('Error subiendo foto de mascota: $e');
       return null;
     }
   }
@@ -285,7 +285,7 @@ class PetService {
           .single();
       return Pet.fromJson(response);
     } catch (e) {
-      print('Error obteniendo mascota: $e');
+      debugPrint('Error obteniendo mascota: $e');
       return null;
     }
   }
@@ -373,7 +373,7 @@ class PetService {
 
       return updatedPet;
     } catch (e) {
-      print('Error actualizando mascota: $e');
+      debugPrint('Error actualizando mascota: $e');
       return null;
     }
   }
@@ -389,7 +389,7 @@ class PetService {
 
       return true;
     } catch (e) {
-      print('Error eliminando mascota: $e');
+      debugPrint('Error eliminando mascota: $e');
       return false;
     }
   }
