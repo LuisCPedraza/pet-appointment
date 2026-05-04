@@ -932,12 +932,12 @@ Auth operativa (Sprint 2)
 
 **Criterios de aceptación:**
 
-* [ ] Vista diaria: muestra las citas del día con hora, cliente, mascota y servicio.
-* [ ] Vista semanal: muestra un resumen visual de citas por día de la semana.
-* [ ] Las citas se ordenan cronológicamente.
-* [ ] El estado de cada cita está visualmente diferenciado.
-* [ ] Al pulsar una cita, se muestra el detalle completo del cliente y la mascota.
-* [ ] Las nuevas citas aparecen en tiempo real sin recargar (Realtime).
+* [X] Vista diaria: muestra las citas del día con hora, cliente, mascota y servicio.
+* [X] Vista semanal: muestra un resumen visual de citas por día de la semana.
+* [X] Las citas se ordenan cronológicamente.
+* [X] El estado de cada cita está visualmente diferenciado.
+* [X] Al pulsar una cita, se muestra el detalle completo del cliente y la mascota.
+* [X] Las nuevas citas aparecen en tiempo real sin recargar (Realtime).
 
 | Campo        | Valor               |
 | ------------ | ------------------- |
@@ -1240,6 +1240,7 @@ en_espera
 Estado actual de estas tareas:
 
 * [X] TASK-09 Integrar table_calendar
+* [X] TASK-12P1 Implementar panel profesional - agenda
 * [ ] TASK-10P1 Lógica de reserva
 
 #### Luis Carlos Pedraza — Panel Profesional (18h)
