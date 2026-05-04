@@ -21,9 +21,11 @@ class ProfessionalAgendaController extends ChangeNotifier {
       return availSlot != null &&
           availSlot.isAfter(dayStart) &&
           availSlot.isBefore(dayEnd);
-    }).toList()
-      ..sort((a, b) => (a.scheduledAt ?? DateTime.now())
-          .compareTo(b.scheduledAt ?? DateTime.now()));
+    }).toList()..sort(
+      (a, b) => (a.scheduledAt ?? DateTime.now()).compareTo(
+        b.scheduledAt ?? DateTime.now(),
+      ),
+    );
   }
 
   /// Retorna todas las citas para la semana indicada, agrupadas por día.
@@ -59,6 +61,22 @@ class ProfessionalAgendaController extends ChangeNotifier {
     _appointmentsChannel = _service.subscribeToProfessionalAppointments(
       onChanged: _onAppointmentsChanged,
     );
+  }
+
+  /// Confirma una cita (cambia su estado a 'Confirmada').
+  Future<void> confirmAppointment(String appointmentId) async {
+    try {
+      await _service.updateAppointmentStatus(
+        appointmentId: appointmentId,
+        newStatus: 'Confirmada',
+      );
+      // Refrescar lista local
+      appointments = await _service.fetchProfessionalAppointments();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error confirming appointment: $e');
+      rethrow;
+    }
   }
 
   /// Callback para cuando hay cambios en appointments (insert, update, delete).

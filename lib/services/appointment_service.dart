@@ -83,7 +83,9 @@ class AppointmentService {
         );
 
     channel.subscribe((status, error) {
-      debugPrint('🔌 Realtime appointments [$professionalId]: $status${error != null ? ' — $error' : ''}');
+      debugPrint(
+        '🔌 Realtime appointments [$professionalId]: $status${error != null ? ' — $error' : ''}',
+      );
     });
     return channel;
   }
@@ -110,7 +112,9 @@ class AppointmentService {
         );
 
     channel.subscribe((status, error) {
-      debugPrint('🔌 Realtime slots [$professionalId]: $status${error != null ? ' — $error' : ''}');
+      debugPrint(
+        '🔌 Realtime slots [$professionalId]: $status${error != null ? ' — $error' : ''}',
+      );
     });
     return channel;
   }
@@ -220,9 +224,7 @@ class AppointmentService {
   }
 
   /// Suscribe a cambios en [availability] sin filtro de profesional.
-  RealtimeChannel subscribeToAllSlots({
-    required void Function() onChanged,
-  }) {
+  RealtimeChannel subscribeToAllSlots({required void Function() onChanged}) {
     final channel = _client
         .channel('slots:all')
         .onPostgresChanges(
@@ -282,7 +284,9 @@ class AppointmentService {
       final appointments = <AppointmentModel>[];
       for (final row in (rows as List)) {
         try {
-          final appointment = AppointmentModel.fromJson(row as Map<String, dynamic>);
+          final appointment = AppointmentModel.fromJson(
+            row as Map<String, dynamic>,
+          );
           appointments.add(appointment);
         } catch (e) {
           debugPrint('Error parsing appointment: $e');
@@ -292,6 +296,44 @@ class AppointmentService {
       return appointments;
     } catch (e) {
       debugPrint('Error fetching professional appointments: $e');
+      return [];
+    }
+  }
+
+  /// Obtiene las citas del cliente autenticado actual con detalles de cliente, mascota y servicio.
+  Future<List<AppointmentModel>> fetchClientAppointments() async {
+    final clientId = _client.auth.currentUser?.id;
+    if (clientId == null) return [];
+
+    try {
+      final rows = await _client
+          .from('appointments')
+          .select(
+            'id, professional_id, status, notes, created_at, '
+            'client_id, pet_id, service_id, availability_id, '
+            'users!appointments_client_id_fkey(id, full_name, email), '
+            'pets(id, name, species), '
+            'services(id, name), '
+            'availability(slot_start, slot_end)',
+          )
+          .eq('client_id', clientId)
+          .order('availability(slot_start)', ascending: true);
+
+      final appointments = <AppointmentModel>[];
+      for (final row in (rows as List)) {
+        try {
+          final appointment = AppointmentModel.fromJson(
+            row as Map<String, dynamic>,
+          );
+          appointments.add(appointment);
+        } catch (e) {
+          debugPrint('Error parsing client appointment: $e');
+          continue;
+        }
+      }
+      return appointments;
+    } catch (e) {
+      debugPrint('Error fetching client appointments: $e');
       return [];
     }
   }
@@ -326,5 +368,82 @@ class AppointmentService {
     });
 
     return channel;
+  }
+
+  /// Suscribe a cambios en las citas del cliente autenticado.
+  RealtimeChannel subscribeToClientAppointments({
+    required void Function() onChanged,
+  }) {
+    final clientId = _client.auth.currentUser?.id;
+    if (clientId == null) {
+      return _client.channel('empty');
+    }
+
+    final channel = _client
+        .channel('client:$clientId:appointments')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'appointments',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'client_id',
+            value: clientId,
+          ),
+          callback: (_) => onChanged(),
+        );
+
+    channel.subscribe((status, error) {
+      debugPrint(
+        '🔌 Realtime client appointments [$clientId]: $status${error != null ? ' — $error' : ''}',
+      );
+    });
+
+    return channel;
+  }
+
+  /// Actualiza el estado de una cita y registra el cambio en `appointment_history`.
+  /// Solo el profesional asignado podrá actualizar (verificación por `professional_id`).
+  Future<void> updateAppointmentStatus({
+    required String appointmentId,
+    required String newStatus,
+  }) async {
+    final professionalId = _client.auth.currentUser?.id;
+    if (professionalId == null) throw Exception('No hay sesión activa');
+
+    // Obtener estado actual y profesional asignado
+    final selectRows = await _client
+        .from('appointments')
+        .select('id, status, professional_id')
+        .eq('id', appointmentId)
+        .limit(1);
+
+    if (selectRows.isEmpty) throw Exception('Cita no encontrada');
+    final current = selectRows.first;
+    final previousStatus = current['status'] as String? ?? '';
+    final assignedProfessional = current['professional_id'] as String? ?? '';
+
+    if (assignedProfessional != professionalId) {
+      throw Exception('No autorizado para confirmar esta cita');
+    }
+
+    // Actualizar estado
+    await _client
+        .from('appointments')
+        .update({
+          'status': newStatus,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('id', appointmentId)
+        .eq('professional_id', professionalId);
+
+    // Insertar en historial
+    await _client.from('appointment_history').insert({
+      'appointment_id': appointmentId,
+      'previous_status': previousStatus.isNotEmpty ? previousStatus : null,
+      'new_status': newStatus,
+      'changed_by': professionalId,
+      'changed_at': DateTime.now().toUtc().toIso8601String(),
+    });
   }
 }

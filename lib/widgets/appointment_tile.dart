@@ -8,11 +8,13 @@ import 'package:pet_appointment/models/appointment_model.dart';
 class AppointmentTile extends StatelessWidget {
   final AppointmentModel appointment;
   final VoidCallback? onTap;
+  final VoidCallback? onConfirm;
 
   const AppointmentTile({
     super.key,
     required this.appointment,
     this.onTap,
+    this.onConfirm,
   });
 
   /// Retorna el color de fondo según el estado de la cita.
@@ -62,10 +64,7 @@ class AppointmentTile extends StatelessWidget {
       color: _statusColor(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: _statusBorderColor(context),
-          width: 2,
-        ),
+        side: BorderSide(color: _statusBorderColor(context), width: 2),
       ),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
@@ -93,10 +92,7 @@ class AppointmentTile extends StatelessWidget {
                       appointment.status,
                       style: const TextStyle(fontSize: 12),
                     ),
-                    avatar: Icon(
-                      _statusIcon(),
-                      size: 16,
-                    ),
+                    avatar: Icon(_statusIcon(), size: 16),
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ],
@@ -155,6 +151,19 @@ class AppointmentTile extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 12),
+              // Acción: Confirmar si está en espera
+              if (appointment.status == 'En espera')
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: onConfirm,
+                      icon: const Icon(Icons.check),
+                      label: const Text('Confirmar'),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),

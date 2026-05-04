@@ -28,7 +28,8 @@ class AppointmentModel {
   final String serviceId;
   final String serviceName;
   final DateTime? scheduledAt;
-  final String status; // 'En espera', 'Confirmada', 'En progreso', 'Atendida', 'Cancelada'
+  final String
+  status; // 'En espera', 'Confirmada', 'En progreso', 'Atendida', 'Cancelada'
   final String? notes;
   final DateTime? createdAt;
 
@@ -100,29 +101,35 @@ class AppointmentModel {
 
     if (availabilityData != null) {
       if (availabilityData is Map && availabilityData['slot_start'] != null) {
-        scheduledAt =
-            DateTime.tryParse(availabilityData['slot_start'] as String)
-                ?.toLocal();
+        scheduledAt = DateTime.tryParse(
+          availabilityData['slot_start'] as String,
+        )?.toLocal();
       } else if (availabilityData is List &&
           availabilityData.isNotEmpty &&
           availabilityData[0] is Map) {
         final avail = availabilityData[0] as Map<String, dynamic>;
         if (avail['slot_start'] != null) {
-          scheduledAt = DateTime.tryParse(avail['slot_start'] as String)?.toLocal();
+          scheduledAt = DateTime.tryParse(
+            avail['slot_start'] as String,
+          )?.toLocal();
         }
       }
     }
 
     return AppointmentModel(
       id: json['id'] as String,
-      clientId: clientId.isNotEmpty ? clientId : (json['client_id'] as String? ?? ''),
+      clientId: clientId.isNotEmpty
+          ? clientId
+          : (json['client_id'] as String? ?? ''),
       clientName: clientName,
       clientEmail: clientEmail,
       petId: petId.isNotEmpty ? petId : (json['pet_id'] as String? ?? ''),
       petName: petName,
       petSpecies: petSpecies,
       professionalId: json['professional_id'] as String,
-      serviceId: serviceId.isNotEmpty ? serviceId : (json['service_id'] as String? ?? ''),
+      serviceId: serviceId.isNotEmpty
+          ? serviceId
+          : (json['service_id'] as String? ?? ''),
       serviceName: serviceName,
       scheduledAt: scheduledAt,
       status: json['status'] as String? ?? 'En espera',

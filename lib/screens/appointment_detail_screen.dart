@@ -7,10 +7,7 @@ import 'package:pet_appointment/models/appointment_model.dart';
 class AppointmentDetailScreen extends StatelessWidget {
   final AppointmentModel appointment;
 
-  const AppointmentDetailScreen({
-    super.key,
-    required this.appointment,
-  });
+  const AppointmentDetailScreen({super.key, required this.appointment});
 
   /// Retorna el color del badge del estado.
   Color _statusColor() {
@@ -53,11 +50,7 @@ class AppointmentDetailScreen extends StatelessWidget {
                       shape: BoxShape.circle,
                       color: _statusColor().withAlpha((0.2 * 255).toInt()),
                     ),
-                    child: Icon(
-                      _statusIcon(),
-                      size: 40,
-                      color: _statusColor(),
-                    ),
+                    child: Icon(_statusIcon(), size: 40, color: _statusColor()),
                   ),
                   const SizedBox(height: 16),
                   Chip(
@@ -132,7 +125,8 @@ class AppointmentDetailScreen extends StatelessWidget {
                         : 'No disponible',
                   ),
                   // Notas (si existen)
-                  if (appointment.notes != null && appointment.notes!.isNotEmpty) ...[
+                  if (appointment.notes != null &&
+                      appointment.notes!.isNotEmpty) ...[
                     const SizedBox(height: 20),
                     _SectionTitle('Notas'),
                     Container(
@@ -180,9 +174,9 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-        fontWeight: FontWeight.bold,
-      ),
+      style: Theme.of(
+        context,
+      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
     );
   }
 }
@@ -212,15 +206,15 @@ class _DetailRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Colors.grey.shade600,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelSmall?.copyWith(color: Colors.grey.shade600),
               ),
               Text(
                 value,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
               ),
             ],
           ),

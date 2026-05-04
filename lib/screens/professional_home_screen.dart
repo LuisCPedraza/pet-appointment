@@ -64,9 +64,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
       body: Consumer<ProfessionalAgendaController>(
         builder: (context, controller, _) {
           if (controller.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (controller.appointments.isEmpty) {
@@ -74,11 +72,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.event_note,
-                    size: 64,
-                    color: Colors.grey.shade400,
-                  ),
+                  Icon(Icons.event_note, size: 64, color: Colors.grey.shade400),
                   const SizedBox(height: 16),
                   Text(
                     'No hay citas agendadas',
@@ -104,10 +98,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
               // Tab 1: Vista diaria (hoy)
               _DailyView(controller: controller),
               // Tab 2: Vista semanal
-              _WeeklyView(
-                controller: controller,
-                weekStart: _currentWeekStart,
-              ),
+              _WeeklyView(controller: controller, weekStart: _currentWeekStart),
             ],
           );
         },
@@ -135,17 +126,13 @@ class _DailyView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.check_circle,
-              size: 64,
-              color: Colors.green.shade400,
-            ),
+            Icon(Icons.check_circle, size: 64, color: Colors.green.shade400),
             const SizedBox(height: 16),
             Text(
               'No hay citas hoy',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Colors.grey.shade600,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
             ),
           ],
         ),
@@ -160,32 +147,42 @@ class _DailyView extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Text(
               formattedDate,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
         ),
         // Lista de citas
         SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final appointment = appointmentsToday[index];
-              return AppointmentTile(
-                appointment: appointment,
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => AppointmentDetailScreen(
-                        appointment: appointment,
-                      ),
-                    ),
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final appointment = appointmentsToday[index];
+            return AppointmentTile(
+              appointment: appointment,
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        AppointmentDetailScreen(appointment: appointment),
+                  ),
+                );
+              },
+              onConfirm: () async {
+                try {
+                  await controller.confirmAppointment(appointment.id);
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Cita confirmada')),
                   );
-                },
-              );
-            },
-            childCount: appointmentsToday.length,
-          ),
+                } catch (e) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: ${e.toString()}')),
+                  );
+                }
+              },
+            );
+          }, childCount: appointmentsToday.length),
         ),
       ],
     );
@@ -197,10 +194,7 @@ class _WeeklyView extends StatefulWidget {
   final ProfessionalAgendaController controller;
   final DateTime weekStart;
 
-  const _WeeklyView({
-    required this.controller,
-    required this.weekStart,
-  });
+  const _WeeklyView({required this.controller, required this.weekStart});
 
   @override
   State<_WeeklyView> createState() => _WeeklyViewState();
@@ -243,11 +237,11 @@ class _WeeklyViewState extends State<_WeeklyView> {
     final rangeFormatter = DateFormat('d \'de\' MMMM', 'es_ES');
 
     final weekEnd = _weekStart.add(const Duration(days: 6));
-    final isCurrentWeek = DateTime.now().isBefore(weekEnd) &&
+    final isCurrentWeek =
+        DateTime.now().isBefore(weekEnd) &&
         DateTime.now().isAfter(_weekStart.subtract(const Duration(days: 1)));
 
-    final appointmentsByDay =
-        widget.controller.appointmentsForWeek(_weekStart);
+    final appointmentsByDay = widget.controller.appointmentsForWeek(_weekStart);
 
     return Column(
       children: [
@@ -267,9 +261,8 @@ class _WeeklyViewState extends State<_WeeklyView> {
                     children: [
                       Text(
                         '${rangeFormatter.format(_weekStart)} - ${rangeFormatter.format(weekEnd)}',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       if (!isCurrentWeek)
                         TextButton(
@@ -295,9 +288,13 @@ class _WeeklyViewState extends State<_WeeklyView> {
             itemBuilder: (context, dayIndex) {
               final day = _weekStart.add(Duration(days: dayIndex));
               final appointments = appointmentsByDay[dayIndex] ?? [];
-              final isToday = DateTime(day.year, day.month, day.day) ==
-                  DateTime(DateTime.now().year, DateTime.now().month,
-                      DateTime.now().day);
+              final isToday =
+                  DateTime(day.year, day.month, day.day) ==
+                  DateTime(
+                    DateTime.now().year,
+                    DateTime.now().month,
+                    DateTime.now().day,
+                  );
 
               return _DayCard(
                 date: day,
@@ -307,11 +304,24 @@ class _WeeklyViewState extends State<_WeeklyView> {
                 onTapAppointment: (appointment) {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => AppointmentDetailScreen(
-                        appointment: appointment,
-                      ),
+                      builder: (_) =>
+                          AppointmentDetailScreen(appointment: appointment),
                     ),
                   );
+                },
+                onConfirmAppointment: (appointment) async {
+                  try {
+                    await widget.controller.confirmAppointment(appointment.id);
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Cita confirmada')),
+                    );
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: ${e.toString()}')),
+                    );
+                  }
                 },
               );
             },
@@ -329,6 +339,7 @@ class _DayCard extends StatelessWidget {
   final List appointments;
   final bool isToday;
   final Function(dynamic) onTapAppointment;
+  final Function(dynamic)? onConfirmAppointment;
 
   const _DayCard({
     required this.date,
@@ -336,6 +347,7 @@ class _DayCard extends StatelessWidget {
     required this.appointments,
     required this.isToday,
     required this.onTapAppointment,
+    this.onConfirmAppointment,
   });
 
   @override
@@ -404,11 +416,15 @@ class _DayCard extends StatelessWidget {
                 child: ListView.separated(
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: appointments.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 8),
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     return _CompactAppointmentTile(
                       appointment: appointments[index],
                       onTap: () => onTapAppointment(appointments[index]),
+                      onConfirm: onConfirmAppointment == null
+                          ? null
+                          : () => onConfirmAppointment!(appointments[index]),
                     );
                   },
                 ),
@@ -424,10 +440,12 @@ class _DayCard extends StatelessWidget {
 class _CompactAppointmentTile extends StatelessWidget {
   final dynamic appointment;
   final VoidCallback onTap;
+  final VoidCallback? onConfirm;
 
   const _CompactAppointmentTile({
     required this.appointment,
     required this.onTap,
+    this.onConfirm,
   });
 
   Color _statusColor() {
@@ -454,12 +472,7 @@ class _CompactAppointmentTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(
-              color: _statusColor(),
-              width: 4,
-            ),
-          ),
+          border: Border(left: BorderSide(color: _statusColor(), width: 4)),
           borderRadius: BorderRadius.circular(8),
           color: Colors.grey.shade50,
         ),
@@ -470,9 +483,9 @@ class _CompactAppointmentTile extends StatelessWidget {
               width: 50,
               child: Text(
                 time,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
             // Separador
@@ -507,6 +520,13 @@ class _CompactAppointmentTile extends StatelessWidget {
                 ],
               ),
             ),
+            // Botón confirmar si aplica
+            if (appointment.status == 'En espera')
+              IconButton(
+                onPressed: onConfirm,
+                icon: const Icon(Icons.check, color: Colors.blue),
+                tooltip: 'Confirmar cita',
+              ),
           ],
         ),
       ),
