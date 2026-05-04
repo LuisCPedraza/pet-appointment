@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
 import 'package:pet_appointment/widgets/widgets.dart';
 import 'package:pet_appointment/config/config.dart';
 import 'package:pet_appointment/screens/register_screen.dart';
@@ -10,6 +11,8 @@ import 'package:pet_appointment/screens/login_screen.dart';
 import 'package:pet_appointment/screens/forgot_password_screen.dart';
 import 'package:pet_appointment/screens/reset_password_screen.dart';
 import 'package:pet_appointment/screens/calendar_screen.dart';
+import 'package:pet_appointment/screens/professional_home_screen.dart';
+import 'package:pet_appointment/controllers/professional_agenda_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,26 +41,32 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'PetAppointment',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      home: const AppShell(),
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ProfessionalAgendaController()),
       ],
-      supportedLocales: const [Locale('es', 'ES'), Locale('en', 'US')],
-      locale: const Locale('es', 'ES'),
-      routes: {
-        '/home': (_) => const AppShell(),
-        '/login': (_) => const LoginScreen(),
-        '/register': (_) => const RegisterScreen(),
-        '/forgot-password': (_) => const ForgotPasswordScreen(),
-        '/reset-password': (_) => const ResetPasswordScreen(),
-        '/calendar': (_) => const CalendarScreen(),
-      },
+      child: MaterialApp(
+        title: 'PetAppointment',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        home: const AppShell(),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('es', 'ES'), Locale('en', 'US')],
+        locale: const Locale('es', 'ES'),
+        routes: {
+          '/home': (_) => const AppShell(),
+          '/login': (_) => const LoginScreen(),
+          '/register': (_) => const RegisterScreen(),
+          '/forgot-password': (_) => const ForgotPasswordScreen(),
+          '/reset-password': (_) => const ResetPasswordScreen(),
+          '/calendar': (_) => const CalendarScreen(),
+          '/professional-home': (_) => const ProfessionalHomeScreen(),
+        },
+      ),
     );
   }
 }

@@ -724,9 +724,9 @@ Auth operativa (Sprint 2)
 **Criterios de aceptación:**
 
 * [ ] El calendario resalta en verde los días con disponibilidad y en gris los sin disponibilidad.
-* [ ] Los slots horarios muestran claramente cuáles están libres y cuáles ocupados.
+* [X] Los slots horarios muestran claramente cuáles están libres y cuáles ocupados.
 * [ ] Los slots pasados (horas ya transcurridas en el día actual) están deshabilitados.
-* [ ] Si otro cliente reserva un slot mientras el usuario está en la pantalla, ese slot se deshabilita automáticamente (Realtime).
+* [X] Si otro cliente reserva un slot mientras el usuario está en la pantalla, ese slot se deshabilita automáticamente (Realtime).
 * [ ] El calendario carga en menos de 2 segundos en conexión normal.
 * [ ] Si no hay disponibilidad en el mes actual, se sugiere navegar al mes siguiente.
 
@@ -769,7 +769,7 @@ Auth operativa (Sprint 2)
 * [ ] El flujo en pasos tiene navegación "Atrás" sin perder los datos seleccionados.
 * [ ] No es posible avanzar al siguiente paso sin completar el actual.
 * [ ] Si el slot se ocupa entre que el usuario lo seleccionó y lo confirmó, se muestra error y se regresa al calendario.
-* [ ] La cita se crea con estado `en_espera` en la tabla `appointments`.
+* [X] La cita se crea con estado `en_espera` en la tabla `appointments`.
 * [ ] El cliente recibe confirmación visual inmediata (pantalla de éxito).
 * [ ] La validación de conflicto existe tanto en la app (UX) como en la base de datos (integridad).
 
@@ -1236,6 +1236,11 @@ en_espera
 | TASK-10P2 | Pantalla confirmación  | `AppointmentConfirmScreen`, resumen de datos, notificación local de confirmación, navegación post-confirmación              | 3h    | US-12 |
 | TASK-14   | Notificaciones locales  | Integrar `flutter_local_notifications`, crear `NotificationService`, configurar canales Android/iOS                           | 2h    | US-20 |
 | TASK-11P1 | Realtime para slots     | `SupabaseClient.channel('slots').onPostgresChanges(...)`, actualizar estado del calendario en tiempo real                       | 3h    | US-10 |
+
+Estado actual de estas tareas:
+
+* [X] TASK-09 Integrar table_calendar
+* [ ] TASK-10P1 Lógica de reserva
 
 #### Luis Carlos Pedraza — Panel Profesional (18h)
 

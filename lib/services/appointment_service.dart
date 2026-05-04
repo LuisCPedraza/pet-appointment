@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:pet_appointment/models/appointment_model.dart';
 import 'package:pet_appointment/models/availability_slot.dart';
 import 'package:pet_appointment/models/service_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -252,10 +253,78 @@ class AppointmentService {
       'client_id': userId,
       'pet_id': petId,
       'professional_id': professionalId,
-      'service_id': ?serviceId,
+      'service_id': serviceId,
       'availability_id': availabilityId,
       'status': 'En espera',
       'notes': notes?.isNotEmpty == true ? notes : null,
     });
+  }
+
+  /// Obtiene todas las citas del profesional autenticado actual con detalles de cliente, mascota y servicio.
+  Future<List<AppointmentModel>> fetchProfessionalAppointments() async {
+    final professionalId = _client.auth.currentUser?.id;
+    if (professionalId == null) return [];
+
+    try {
+      final rows = await _client
+          .from('appointments')
+          .select(
+            'id, professional_id, status, notes, created_at, '
+            'client_id, pet_id, service_id, availability_id, '
+            'users!appointments_client_id_fkey(id, full_name, email), '
+            'pets(id, name, species), '
+            'services(id, name), '
+            'availability(slot_start, slot_end)',
+          )
+          .eq('professional_id', professionalId)
+          .order('availability(slot_start)', ascending: true);
+
+      final appointments = <AppointmentModel>[];
+      for (final row in (rows as List)) {
+        try {
+          final appointment = AppointmentModel.fromJson(row as Map<String, dynamic>);
+          appointments.add(appointment);
+        } catch (e) {
+          debugPrint('Error parsing appointment: $e');
+          continue;
+        }
+      }
+      return appointments;
+    } catch (e) {
+      debugPrint('Error fetching professional appointments: $e');
+      return [];
+    }
+  }
+
+  /// Suscribe a cambios en las citas del profesional autenticado.
+  RealtimeChannel subscribeToProfessionalAppointments({
+    required void Function() onChanged,
+  }) {
+    final professionalId = _client.auth.currentUser?.id;
+    if (professionalId == null) {
+      return _client.channel('empty'); // canal dummy si no hay usuario
+    }
+
+    final channel = _client
+        .channel('professional:$professionalId:appointments')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'appointments',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'professional_id',
+            value: professionalId,
+          ),
+          callback: (_) => onChanged(),
+        );
+
+    channel.subscribe((status, error) {
+      debugPrint(
+        '🔌 Realtime professional appointments [$professionalId]: $status${error != null ? ' — $error' : ''}',
+      );
+    });
+
+    return channel;
   }
 }
