@@ -50,10 +50,7 @@ class _AppShellState extends State<AppShell> {
     return Scaffold(
       // IndexedStack muestra solo el tab activo pero mantiene todos en memoria.
       // Ventaja: volver al tab de Citas mantiene en qué pantalla estabas.
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         backgroundColor: Colors.white.withValues(alpha: 0.9),

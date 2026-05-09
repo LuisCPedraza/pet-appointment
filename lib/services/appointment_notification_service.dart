@@ -9,7 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AppointmentNotificationService {
   AppointmentNotificationService({AppointmentService? appointmentService})
-      : _appointmentService = appointmentService ?? AppointmentService();
+    : _appointmentService = appointmentService ?? AppointmentService();
 
   final AppointmentService _appointmentService;
   final FlutterLocalNotificationsPlugin _notifications =
@@ -46,22 +46,23 @@ class AppointmentNotificationService {
   }
 
   Future<void> _initializePlugin() async {
-    const androidSettings = AndroidInitializationSettings('ic_launcher');
+    const androidSettings = AndroidInitializationSettings('ic_notification');
     const iosSettings = DarwinInitializationSettings();
 
     await _notifications.initialize(
-      const InitializationSettings(
-        android: androidSettings,
-        iOS: iosSettings,
-      ),
+      const InitializationSettings(android: androidSettings, iOS: iosSettings),
     );
 
-    final androidImpl = _notifications.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidImpl = _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     await androidImpl?.requestNotificationsPermission();
 
-    final iosImpl = _notifications.resolvePlatformSpecificImplementation<
-      IOSFlutterLocalNotificationsPlugin>();
+    final iosImpl = _notifications
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
     await iosImpl?.requestPermissions(alert: true, badge: true, sound: true);
   }
 

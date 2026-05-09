@@ -140,6 +140,17 @@ class AuthService {
     }
   }
 
+  /// Inicia sesión usando Google a través de Supabase OAuth.
+  /// En móviles usará el flujo de navegador/ deep link configurado en Supabase.
+  Future<void> signInWithGoogle({String? redirectTo}) async {
+    // redirectTo es opcional; en Android/iOS configurar el scheme en Google Cloud
+    // y en Supabase. Ej: 'io.supabase.flutter://login-callback/'
+    await _client.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: redirectTo,
+    );
+  }
+
   /// Envía un correo de recuperación con un código OTP de 8 dígitos.
   /// Por seguridad no revela si el correo existe o no: siempre completa sin lanzar.
   /// Lanza [AuthException] únicamente en errores de configuración o red.
