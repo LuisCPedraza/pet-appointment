@@ -724,9 +724,9 @@ Auth operativa (Sprint 2)
 **Criterios de aceptación:**
 
 * [ ] El calendario resalta en verde los días con disponibilidad y en gris los sin disponibilidad.
-* [ ] Los slots horarios muestran claramente cuáles están libres y cuáles ocupados.
+* [X] Los slots horarios muestran claramente cuáles están libres y cuáles ocupados.
 * [ ] Los slots pasados (horas ya transcurridas en el día actual) están deshabilitados.
-* [ ] Si otro cliente reserva un slot mientras el usuario está en la pantalla, ese slot se deshabilita automáticamente (Realtime).
+* [X] Si otro cliente reserva un slot mientras el usuario está en la pantalla, ese slot se deshabilita automáticamente (Realtime).
 * [ ] El calendario carga en menos de 2 segundos en conexión normal.
 * [ ] Si no hay disponibilidad en el mes actual, se sugiere navegar al mes siguiente.
 
@@ -769,7 +769,7 @@ Auth operativa (Sprint 2)
 * [ ] El flujo en pasos tiene navegación "Atrás" sin perder los datos seleccionados.
 * [ ] No es posible avanzar al siguiente paso sin completar el actual.
 * [ ] Si el slot se ocupa entre que el usuario lo seleccionó y lo confirmó, se muestra error y se regresa al calendario.
-* [ ] La cita se crea con estado `en_espera` en la tabla `appointments`.
+* [X] La cita se crea con estado `en_espera` en la tabla `appointments`.
 * [ ] El cliente recibe confirmación visual inmediata (pantalla de éxito).
 * [ ] La validación de conflicto existe tanto en la app (UX) como en la base de datos (integridad).
 
@@ -932,12 +932,12 @@ Auth operativa (Sprint 2)
 
 **Criterios de aceptación:**
 
-* [ ] Vista diaria: muestra las citas del día con hora, cliente, mascota y servicio.
-* [ ] Vista semanal: muestra un resumen visual de citas por día de la semana.
-* [ ] Las citas se ordenan cronológicamente.
-* [ ] El estado de cada cita está visualmente diferenciado.
-* [ ] Al pulsar una cita, se muestra el detalle completo del cliente y la mascota.
-* [ ] Las nuevas citas aparecen en tiempo real sin recargar (Realtime).
+* [X] Vista diaria: muestra las citas del día con hora, cliente, mascota y servicio.
+* [X] Vista semanal: muestra un resumen visual de citas por día de la semana.
+* [X] Las citas se ordenan cronológicamente.
+* [X] El estado de cada cita está visualmente diferenciado.
+* [X] Al pulsar una cita, se muestra el detalle completo del cliente y la mascota.
+* [X] Las nuevas citas aparecen en tiempo real sin recargar (Realtime).
 
 | Campo        | Valor               |
 | ------------ | ------------------- |
@@ -960,11 +960,11 @@ Auth operativa (Sprint 2)
 
 **Criterios de aceptación:**
 
-* [ ] Las citas en estado `en_espera` tienen un botón de "Confirmar" visible.
-* [ ] Al confirmar, el estado cambia a `confirmada` en la DB.
-* [ ] El cliente recibe una notificación local informando que su cita fue confirmada.
-* [ ] El cambio se refleja en tiempo real en la agenda del profesional.
-* [ ] Solo el profesional asignado a la cita puede confirmarla (RLS).
+* [X] Las citas en estado `en_espera` tienen un botón de "Confirmar" visible.
+* [X] Al confirmar, el estado cambia a `confirmada` en la DB.
+* [X] El cliente recibe una notificación local informando que su cita fue confirmada.
+* [X] El cambio se refleja en tiempo real en la agenda del profesional.
+* [X] Solo el profesional asignado a la cita puede confirmarla (RLS).
 
 | Campo        | Valor               |
 | ------------ | ------------------- |
@@ -1236,6 +1236,12 @@ en_espera
 | TASK-10P2 | Pantalla confirmación  | `AppointmentConfirmScreen`, resumen de datos, notificación local de confirmación, navegación post-confirmación              | 3h    | US-12 |
 | TASK-14   | Notificaciones locales  | Integrar `flutter_local_notifications`, crear `NotificationService`, configurar canales Android/iOS                           | 2h    | US-20 |
 | TASK-11P1 | Realtime para slots     | `SupabaseClient.channel('slots').onPostgresChanges(...)`, actualizar estado del calendario en tiempo real                       | 3h    | US-10 |
+
+Estado actual de estas tareas:
+
+* [X] TASK-09 Integrar table_calendar
+* [X] TASK-12P1 Implementar panel profesional - agenda
+* [ ] TASK-10P1 Lógica de reserva
 
 #### Luis Carlos Pedraza — Panel Profesional (18h)
 

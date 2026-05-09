@@ -41,8 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (mounted) {
-        Navigator.of(context)
-            .pushNamedAndRemoveUntil('/home', (_) => false);
+        Navigator.of(context).pushNamedAndRemoveUntil('/home', (_) => false);
       }
     } on AuthException catch (e) {
       if (mounted) showAppSnackBar(context, e.message, color: AppColors.error);
@@ -54,6 +53,30 @@ class _LoginScreenState extends State<LoginScreen> {
           color: AppColors.error,
         );
       }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loginWithGoogle() async {
+    setState(() => _isLoading = true);
+
+    try {
+      await _authService.signInWithGoogle(
+        redirectTo: 'com.example.pet_appointment://login-callback/',
+      );
+      if (!mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil('/home', (_) => false);
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(context, e.message, color: AppColors.error);
+    } catch (_) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        'Error iniciando sesión con Google. Intenta de nuevo.',
+        color: AppColors.error,
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -142,6 +165,24 @@ class _LoginScreenState extends State<LoginScreen> {
                       label: 'Iniciar sesión',
                       onPressed: _login,
                       isLoading: _isLoading,
+                    ),
+                    const SizedBox(height: 12),
+                    // --- Botón Google ---
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.login_rounded),
+                        label: const Text('Continuar con Google'),
+                        onPressed: _isLoading ? null : _loginWithGoogle,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(
+                            color: AppColors.onSurfaceVariant.withValues(
+                              alpha: 0.2,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),

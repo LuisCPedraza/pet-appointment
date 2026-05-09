@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pet_appointment/config/config.dart';
+import 'package:pet_appointment/services/appointment_notification_service.dart';
 import 'package:pet_appointment/screens/screens.dart';
 import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/widgets/booking_flow_navigator.dart';
@@ -13,6 +16,7 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _currentIndex = 0;
+  late final AppointmentNotificationService _notificationService;
 
   // IndexedStack mantiene vivos todos los tabs — el estado no se pierde
   // al cambiar de pestaña (ej. el stack de navegación de Citas se preserva).
@@ -25,6 +29,13 @@ class _AppShellState extends State<AppShell> {
 
   // Tabs que requieren sesión activa
   static const _protectedTabs = {1, 2, 3};
+
+  @override
+  void initState() {
+    super.initState();
+    _notificationService = AppointmentNotificationService();
+    unawaited(_notificationService.start());
+  }
 
   void _onTabSelected(int index) {
     if (_protectedTabs.contains(index) && !AuthService().hasActiveSession) {
@@ -39,10 +50,7 @@ class _AppShellState extends State<AppShell> {
     return Scaffold(
       // IndexedStack muestra solo el tab activo pero mantiene todos en memoria.
       // Ventaja: volver al tab de Citas mantiene en qué pantalla estabas.
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         backgroundColor: Colors.white.withValues(alpha: 0.9),
@@ -72,5 +80,11 @@ class _AppShellState extends State<AppShell> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    unawaited(_notificationService.stop());
+    super.dispose();
   }
 }

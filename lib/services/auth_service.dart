@@ -1,7 +1,6 @@
-import 'dart:typed_data';
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter/foundation.dart';
 
 /// Maneja toda la comunicación con Supabase Auth.
 /// La pantalla no sabe cómo funciona Supabase, solo llama métodos de aquí.
@@ -9,7 +8,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class AuthService {
   // Acceso al cliente de Supabase (ya inicializado en main.dart)
   final _client = Supabase.instance.client;
-  
+
   // Almacenamiento seguro para tokens y datos de sesión
   static const _secureStorage = FlutterSecureStorage();
   static const String _sessionTokenKey = 'auth_token';
@@ -136,9 +135,20 @@ class AuthService {
       // La mejor práctica es dejar que Supabase maneje la persistencia automáticamente
       return hasActiveSession;
     } catch (e) {
-      print('Error restaurando sesión: $e');
+      debugPrint('Error restaurando sesión: $e');
       return false;
     }
+  }
+
+  /// Inicia sesión usando Google a través de Supabase OAuth.
+  /// En móviles usará el flujo de navegador/ deep link configurado en Supabase.
+  Future<void> signInWithGoogle({String? redirectTo}) async {
+    // redirectTo es opcional; en Android/iOS configurar el scheme en Google Cloud
+    // y en Supabase. Ej: 'io.supabase.flutter://login-callback/'
+    await _client.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: redirectTo,
+    );
   }
 
   /// Envía un correo de recuperación con un código OTP de 8 dígitos.
