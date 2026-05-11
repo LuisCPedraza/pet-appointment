@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
+import 'package:pet_appointment/models/appointment_history_model.dart';
 import 'package:pet_appointment/models/appointment_model.dart';
+import 'package:pet_appointment/models/appointment_status.dart';
 import 'package:pet_appointment/models/availability_slot.dart';
 import 'package:pet_appointment/models/service_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -504,15 +506,37 @@ class AppointmentService {
       throw Exception('No autorizado para cancelar esta cita');
     }
 
-    await _client
+    // Solo se permite cancelar si la cita está en 'En espera' o 'Confirmada'
+    if (!(previousStatus == 'En espera' || previousStatus == 'Confirmada')) {
+      throw Exception('Solo se pueden cancelar citas en estado En espera o Confirmada');
+    }
+
+    // Actualizar estado de la cita
+    final updateResp = await _client
         .from('appointments')
         .update({
           'status': 'Cancelada',
           'updated_at': DateTime.now().toUtc().toIso8601String(),
         })
         .eq('id', appointmentId)
-        .eq('client_id', clientId);
+        .eq('client_id', clientId)
+        .select('availability_id')
+        .maybeSingle();
 
+    // Liberar el slot asociado si existe
+    final availabilityId = updateResp is Map ? updateResp['availability_id'] as String? : null;
+    if (availabilityId != null) {
+      try {
+        await _client
+            .from('availability')
+            .update({'is_available': true})
+            .eq('id', availabilityId);
+      } catch (e) {
+        debugPrint('No se pudo liberar el slot: $e');
+      }
+    }
+
+    // Registrar en historial
     await _client.from('appointment_history').insert({
       'appointment_id': appointmentId,
       'previous_status': previousStatus.isNotEmpty ? previousStatus : null,
@@ -520,5 +544,79 @@ class AppointmentService {
       'changed_by': clientId,
       'changed_at': DateTime.now().toUtc().toIso8601String(),
     });
+  }
+
+  /// Obtiene el historial completo de cambios de estado de una cita.
+  /// Devuelve los registros ordenados por fecha (más reciente primero).
+  Future<List<AppointmentHistoryModel>> fetchAppointmentHistory(
+    String appointmentId,
+  ) async {
+    try {
+      final rows = await _client
+          .from('appointment_history')
+          .select(
+            'id, appointment_id, previous_status, new_status, changed_by, changed_at, '
+            'users(full_name)',
+          )
+          .eq('appointment_id', appointmentId)
+          .order('changed_at', ascending: false);
+
+      return (rows as List)
+          .map((row) => AppointmentHistoryModel.fromJson(
+            row as Map<String, dynamic>,
+          ))
+          .toList();
+    } catch (e) {
+      debugPrint('Error fetching appointment history: $e');
+      return [];
+    }
+  }
+
+  /// Suscribe a cambios en el historial de una cita específica.
+  RealtimeChannel subscribeToAppointmentHistory({
+    required String appointmentId,
+    required void Function() onChanged,
+  }) {
+    final channel = _client
+        .channel('appointment_history:$appointmentId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'appointment_history',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'appointment_id',
+            value: appointmentId,
+          ),
+          callback: (_) => onChanged(),
+        );
+
+    channel.subscribe((status, error) {
+      debugPrint(
+        '🔌 Realtime appointment_history [$appointmentId]: $status${error != null ? ' — $error' : ''}',
+      );
+    });
+
+    return channel;
+  }
+
+  /// Retorna los estados válidos a los que se puede transicionar
+  /// desde el estado actual de la cita.
+  List<AppointmentStatus> getValidNextStatuses(String currentStatusString) {
+    final currentStatus = AppointmentStatus.fromString(currentStatusString);
+    if (currentStatus == null) return [];
+    return currentStatus.getValidNextStates();
+  }
+
+  /// Valida si una transición de estado es permitida
+  bool isValidStatusTransition(
+    String currentStatusString,
+    String nextStatusString,
+  ) {
+    final currentStatus = AppointmentStatus.fromString(currentStatusString);
+    final nextStatus = AppointmentStatus.fromString(nextStatusString);
+    
+    if (currentStatus == null || nextStatus == null) return false;
+    return currentStatus.canTransitionTo(nextStatus);
   }
 }

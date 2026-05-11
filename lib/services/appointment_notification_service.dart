@@ -18,6 +18,7 @@ class AppointmentNotificationService {
   RealtimeChannel? _channel;
   final Map<String, String> _lastStatuses = {};
   bool _initialized = false;
+  bool? _isClient;
 
   Future<void> start() async {
     if (_initialized) return;
@@ -26,14 +27,23 @@ class AppointmentNotificationService {
     if (!authService.hasActiveSession) return;
 
     final role = await authService.getCurrentUserRole();
-    if (role != 'client') return;
 
     await _initializePlugin();
-    await _primeLastStatuses();
 
-    _channel = _appointmentService.subscribeToClientAppointments(
-      onChanged: _handleAppointmentsChanged,
-    );
+    if (role == 'client') {
+      await _primeLastStatuses(isClient: true);
+      _channel = _appointmentService.subscribeToClientAppointments(
+        onChanged: _handleAppointmentsChanged,
+      );
+    } else if (role == 'professional') {
+      await _primeLastStatuses(isClient: false);
+      _channel = _appointmentService.subscribeToProfessionalAppointments(
+        onChanged: _handleAppointmentsChanged,
+      );
+    } else {
+      // Otros roles no reciben notificaciones locales de citas
+      return;
+    }
 
     _initialized = true;
   }
@@ -80,8 +90,18 @@ class AppointmentNotificationService {
     _replaceStatusCache(appointments);
   }
 
+  Future<void> _primeLastStatuses({required bool isClient}) async {
+    _isClient = isClient;
+    final appointments = isClient
+        ? await _appointmentService.fetchClientAppointments()
+        : await _appointmentService.fetchProfessionalAppointments();
+    _replaceStatusCache(appointments);
+  }
+
   Future<void> _handleAppointmentsChanged() async {
-    final appointments = await _appointmentService.fetchClientAppointments();
+    final appointments = _isClient == true
+        ? await _appointmentService.fetchClientAppointments()
+        : await _appointmentService.fetchProfessionalAppointments();
     await _notifyOnMeaningfulStatusChanges(appointments);
     _replaceStatusCache(appointments);
   }
@@ -107,6 +127,12 @@ class AppointmentNotificationService {
 
       if (currentStatus == 'Confirmada' && previousStatus != null) {
         await _showAppointmentConfirmedNotification(appointment);
+      } else if (currentStatus == 'En progreso' && previousStatus != null) {
+        await _showAppointmentStartedNotification(appointment);
+      } else if (currentStatus == 'Atendida' && previousStatus != null) {
+        await _showAppointmentCompletedNotification(appointment);
+      } else if (currentStatus == 'Cancelada' && previousStatus != null) {
+        await _showAppointmentCancelledNotification(appointment);
       }
     }
   }
@@ -134,6 +160,78 @@ class AppointmentNotificationService {
       appointment.id.hashCode,
       'Tu cita fue confirmada',
       '${appointment.serviceName.isNotEmpty ? appointment.serviceName : 'Cita'} para ${appointment.petName} el $scheduledAt',
+      details,
+      payload: appointment.id,
+    );
+  }
+
+  /// Notificación cuando una cita comienza (estado: En progreso)
+  Future<void> _showAppointmentStartedNotification(
+    AppointmentModel appointment,
+  ) async {
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'appointment_updates',
+        'Actualizaciones de citas',
+        channelDescription: 'Notificaciones sobre cambios de estado de citas',
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+      iOS: DarwinNotificationDetails(),
+    );
+
+    await _notifications.show(
+      appointment.id.hashCode,
+      'Cita en progreso',
+      'La cita de ${appointment.petName} con ${appointment.professionalName} ha comenzado',
+      details,
+      payload: appointment.id,
+    );
+  }
+
+  /// Notificación cuando una cita se completa (estado: Atendida)
+  Future<void> _showAppointmentCompletedNotification(
+    AppointmentModel appointment,
+  ) async {
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'appointment_updates',
+        'Actualizaciones de citas',
+        channelDescription: 'Notificaciones sobre cambios de estado de citas',
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+      iOS: DarwinNotificationDetails(),
+    );
+
+    await _notifications.show(
+      appointment.id.hashCode,
+      'Cita completada',
+      'La cita de ${appointment.petName} ha sido completada',
+      details,
+      payload: appointment.id,
+    );
+  }
+
+  /// Notificación cuando una cita se cancela (estado: Cancelada)
+  Future<void> _showAppointmentCancelledNotification(
+    AppointmentModel appointment,
+  ) async {
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'appointment_updates',
+        'Actualizaciones de citas',
+        channelDescription: 'Notificaciones sobre cambios de estado de citas',
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+      iOS: DarwinNotificationDetails(),
+    );
+
+    await _notifications.show(
+      appointment.id.hashCode,
+      'Cita cancelada',
+      'La cita de ${appointment.petName} ha sido cancelada',
       details,
       payload: appointment.id,
     );
