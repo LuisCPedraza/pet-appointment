@@ -165,28 +165,18 @@ class CalendarController extends ChangeNotifier {
     isSubmitting = true;
     notifyListeners();
     try {
-      await _service.createAppointment(
+      final appointment = await _service.createAppointment(
         petId: selectedPetId!,
         professionalId: selectedSlot!.professionalId,
         serviceId: selectedServiceId ?? selectedSlot!.serviceId,
         availabilityId: selectedSlot!.id,
         notes: notes.trim().isEmpty ? null : notes.trim(),
       );
-      
-      // Obtener la cita creada para mostrar en la pantalla de confirmación
-      final appointments = await _service.fetchClientAppointments();
-      if (appointments.isNotEmpty) {
-        final createdAppointment = appointments.first; // La más reciente
-        selectedSlot = null;
-        selectedDay = null;
-        notifyListeners();
-        return createdAppointment;
-      }
-      
+
       selectedSlot = null;
       selectedDay = null;
       notifyListeners();
-      return null;
+      return appointment;
     } finally {
       isSubmitting = false;
       notifyListeners();

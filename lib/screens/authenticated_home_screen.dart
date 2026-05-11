@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/widgets/app_logo_title.dart';
+import 'package:pet_appointment/widgets/app_shell.dart';
 
 class AuthenticatedHomeScreen extends StatelessWidget {
   const AuthenticatedHomeScreen({super.key, required this.name});
@@ -71,6 +72,17 @@ class AuthenticatedHomeScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 48),
+              FilledButton.icon(
+                onPressed: () => AppShell.selectTab(3),
+                icon: const Icon(Icons.history_edu_outlined),
+                label: const Text('Mis citas'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                ),
+              ),
+              const SizedBox(height: 24),
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 10),

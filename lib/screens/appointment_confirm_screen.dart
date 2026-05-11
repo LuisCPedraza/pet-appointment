@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_appointment/models/appointment_model.dart';
+import 'package:pet_appointment/widgets/app_shell.dart';
 
 /// Pantalla de confirmación inmediata tras reservar una cita.
 /// Muestra un resumen completo de los detalles de la cita agendada
@@ -131,7 +132,9 @@ class AppointmentConfirmScreen extends StatelessWidget {
                   _DetailCard(
                     icon: Icons.person,
                     label: 'Profesional',
-                    value: 'ID: ${appointment.professionalId}',
+                    value: appointment.professionalName.isNotEmpty
+                        ? appointment.professionalName
+                        : 'No disponible',
                   ),
                   const SizedBox(height: 16),
 
@@ -184,9 +187,10 @@ class AppointmentConfirmScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        Navigator.of(context).pushReplacementNamed(
-                          '/appointments-history',
-                          arguments: {'appointmentId': appointment.id},
+                        AppShell.selectTab(3);
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          '/home',
+                          (route) => false,
                         );
                       },
                       icon: const Icon(Icons.list),

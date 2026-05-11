@@ -168,6 +168,7 @@ class AppointmentService {
     required DateTime from,
     required DateTime to,
     String? serviceId,
+    String? professionalId,
   }) async {
     var query = _client
         .from('availability')
@@ -178,6 +179,9 @@ class AppointmentService {
 
     if (serviceId != null) {
       query = query.or('service_id.eq.$serviceId,service_id.is.null');
+    }
+    if (professionalId != null) {
+      query = query.eq('professional_id', professionalId);
     }
 
     final rows = await query.order('slot_start');
@@ -241,8 +245,8 @@ class AppointmentService {
     return channel;
   }
 
-  /// Crea una nueva cita para el usuario autenticado.
-  Future<void> createAppointment({
+  /// Crea una nueva cita para el usuario autenticado y devuelve el objeto creado.
+  Future<AppointmentModel> createAppointment({
     required String petId,
     required String professionalId,
     String? serviceId,
@@ -251,7 +255,8 @@ class AppointmentService {
   }) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) throw Exception('No hay sesión activa');
-    await _client.from('appointments').insert({
+
+    final insertResponse = await _client.from('appointments').insert({
       'client_id': userId,
       'pet_id': petId,
       'professional_id': professionalId,
@@ -259,7 +264,40 @@ class AppointmentService {
       'availability_id': availabilityId,
       'status': 'En espera',
       'notes': notes?.isNotEmpty == true ? notes : null,
-    });
+    }).select('id').single();
+
+    final appointmentId = insertResponse['id'] as String;
+
+    final rows = await _client
+        .from('appointments')
+        .select(
+          'id, professional_id, status, notes, created_at, '
+          'client_id, pet_id, service_id, availability_id, '
+          'users!appointments_client_id_fkey(id, full_name, email), '
+          'pets(id, name, species), '
+          'services(id, name), '
+          'availability(slot_start, slot_end)',
+        )
+        .eq('id', appointmentId)
+        .single();
+
+    var appointment = AppointmentModel.fromJson(rows);
+
+    if (appointment.professionalName.isEmpty) {
+      try {
+        final professionalRow = await _client
+            .from('users')
+            .select('full_name')
+            .eq('id', professionalId)
+            .single();
+        final professionalName = professionalRow['full_name'] as String? ?? '';
+        appointment = appointment.copyWith(professionalName: professionalName);
+      } catch (e) {
+        debugPrint('No se pudo cargar el nombre del profesional: $e');
+      }
+    }
+
+    return appointment;
   }
 
   /// Obtiene todas las citas del profesional autenticado actual con detalles de cliente, mascota y servicio.
@@ -273,13 +311,12 @@ class AppointmentService {
           .select(
             'id, professional_id, status, notes, created_at, '
             'client_id, pet_id, service_id, availability_id, '
-            'users!appointments_client_id_fkey(id, full_name, email), '
             'pets(id, name, species), '
             'services(id, name), '
             'availability(slot_start, slot_end)',
           )
           .eq('professional_id', professionalId)
-          .order('availability(slot_start)', ascending: true);
+          .order('created_at', ascending: false);
 
       final appointments = <AppointmentModel>[];
       for (final row in (rows as List)) {
@@ -311,13 +348,12 @@ class AppointmentService {
           .select(
             'id, professional_id, status, notes, created_at, '
             'client_id, pet_id, service_id, availability_id, '
-            'users!appointments_client_id_fkey(id, full_name, email), '
             'pets(id, name, species), '
             'services(id, name), '
             'availability(slot_start, slot_end)',
           )
           .eq('client_id', clientId)
-          .order('availability(slot_start)', ascending: true);
+          .order('created_at', ascending: false);
 
       final appointments = <AppointmentModel>[];
       for (final row in (rows as List)) {
@@ -443,6 +479,45 @@ class AppointmentService {
       'previous_status': previousStatus.isNotEmpty ? previousStatus : null,
       'new_status': newStatus,
       'changed_by': professionalId,
+      'changed_at': DateTime.now().toUtc().toIso8601String(),
+    });
+  }
+
+  /// Cancela una cita del cliente autenticado.
+  Future<void> cancelClientAppointment(String appointmentId) async {
+    final clientId = _client.auth.currentUser?.id;
+    if (clientId == null) throw Exception('No hay sesión activa');
+
+    final selectRows = await _client
+        .from('appointments')
+        .select('id, status, client_id')
+        .eq('id', appointmentId)
+        .limit(1);
+
+    if (selectRows.isEmpty) throw Exception('Cita no encontrada');
+
+    final current = selectRows.first;
+    final assignedClient = current['client_id'] as String? ?? '';
+    final previousStatus = current['status'] as String? ?? '';
+
+    if (assignedClient != clientId) {
+      throw Exception('No autorizado para cancelar esta cita');
+    }
+
+    await _client
+        .from('appointments')
+        .update({
+          'status': 'Cancelada',
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('id', appointmentId)
+        .eq('client_id', clientId);
+
+    await _client.from('appointment_history').insert({
+      'appointment_id': appointmentId,
+      'previous_status': previousStatus.isNotEmpty ? previousStatus : null,
+      'new_status': 'Cancelada',
+      'changed_by': clientId,
       'changed_at': DateTime.now().toUtc().toIso8601String(),
     });
   }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/controllers/calendar_controller.dart';
 import 'package:pet_appointment/services/appointment_notification_service.dart';
-import 'package:pet_appointment/screens/appointment_confirm_screen.dart';
 import 'package:pet_appointment/widgets/calendar/booking_heading.dart';
 import 'package:pet_appointment/widgets/calendar/calendar_card.dart';
 import 'package:pet_appointment/widgets/calendar/confirm_button.dart';
@@ -73,12 +72,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
           
           // Navegar a la pantalla de confirmación
           if (mounted) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => AppointmentConfirmScreen(
-                  appointment: appointment,
-                ),
-              ),
+            Navigator.of(context).pushNamed(
+              '/confirm',
+              arguments: appointment,
             );
           }
         }

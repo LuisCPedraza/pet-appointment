@@ -829,11 +829,11 @@ Auth operativa (Sprint 2)
 
 **Criterios de aceptación:**
 
-* [ ] La lista muestra citas futuras arriba y pasadas abajo.
-* [ ] Se puede filtrar por estado (todas, pendientes, completadas, canceladas).
-* [ ] El estado de cada cita está visualmente diferenciado (colores/íconos por estado).
-* [ ] Al pulsar una cita activa, se ofrecen opciones de cancelar o reprogramar.
-* [ ] Si no hay citas, se muestra estado vacío con CTA para agendar la primera.
+* [X] La lista muestra citas futuras arriba y pasadas abajo.
+* [X] Se puede filtrar por estado (todas, pendientes, completadas, canceladas).
+* [X] El estado de cada cita está visualmente diferenciado (colores/íconos por estado).
+* [X] Al pulsar una cita activa, se ofrecen opciones de cancelar o reprogramar.
+* [X] Si no hay citas, se muestra estado vacío con CTA para agendar la primera.
 
 | Campo        | Valor            |
 | ------------ | ---------------- |
@@ -901,11 +901,11 @@ Auth operativa (Sprint 2)
 
 **Criterios de aceptación:**
 
-* [ ] Solo se pueden reprogramar citas en estado `en_espera` o `confirmada`.
-* [ ] Al reprogramar, se libera el slot anterior automáticamente.
-* [ ] La nueva cita comienza en estado `en_espera`.
-* [ ] El profesional recibe notificación del cambio.
-* [ ] Si no hay disponibilidad alternativa, se informa al cliente.
+* [X] Solo se pueden reprogramar citas en estado `en_espera` o `confirmada`.
+* [X] Al reprogramar, se libera el slot anterior automáticamente.
+* [X] La nueva cita comienza en estado `en_espera`.
+* [X] El profesional recibe notificación del cambio.
+* [X] Si no hay disponibilidad alternativa, se informa al cliente.
 
 | Campo        | Valor            |
 | ------------ | ---------------- |
