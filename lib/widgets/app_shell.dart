@@ -8,7 +8,12 @@ import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/widgets/booking_flow_navigator.dart';
 
 class AppShell extends StatefulWidget {
-  const AppShell({super.key});
+  const AppShell({super.key, this.initialIndex = 0});
+
+  final int initialIndex;
+  static final ValueNotifier<int> tabIndexNotifier = ValueNotifier<int>(0);
+
+  static void selectTab(int index) => tabIndexNotifier.value = index;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -24,17 +29,29 @@ class _AppShellState extends State<AppShell> {
     HomeScreen(),
     PetsScreen(),
     BookingFlowNavigator(), // flujo Servicio → Profesional → Calendario
+    AppointmentHistoryScreen(),
     ProfileScreen(),
   ];
 
   // Tabs que requieren sesión activa
-  static const _protectedTabs = {1, 2, 3};
+  static const _protectedTabs = {1, 2, 3, 4};
 
   @override
   void initState() {
     super.initState();
+    _currentIndex = AppShell.tabIndexNotifier.value;
+    if (widget.initialIndex != 0 && widget.initialIndex != _currentIndex) {
+      _currentIndex = widget.initialIndex;
+      AppShell.tabIndexNotifier.value = widget.initialIndex;
+    }
     _notificationService = AppointmentNotificationService();
     unawaited(_notificationService.start());
+    AppShell.tabIndexNotifier.addListener(_onExternalTabSelected);
+  }
+
+  void _onExternalTabSelected() {
+    if (!mounted) return;
+    setState(() => _currentIndex = AppShell.tabIndexNotifier.value);
   }
 
   void _onTabSelected(int index) {
@@ -42,7 +59,7 @@ class _AppShellState extends State<AppShell> {
       Navigator.of(context).pushNamed('/login');
       return;
     }
-    setState(() => _currentIndex = index);
+    AppShell.selectTab(index);
   }
 
   @override
@@ -73,6 +90,11 @@ class _AppShellState extends State<AppShell> {
             label: 'Calendario',
           ),
           NavigationDestination(
+            icon: Icon(Icons.history_outlined),
+            selectedIcon: Icon(Icons.history),
+            label: 'Historial',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.person_outlined),
             selectedIcon: Icon(Icons.person),
             label: 'Perfil',
@@ -84,6 +106,7 @@ class _AppShellState extends State<AppShell> {
 
   @override
   void dispose() {
+    AppShell.tabIndexNotifier.removeListener(_onExternalTabSelected);
     unawaited(_notificationService.stop());
     super.dispose();
   }

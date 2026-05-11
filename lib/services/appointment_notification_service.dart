@@ -45,6 +45,15 @@ class AppointmentNotificationService {
     _initialized = false;
   }
 
+  /// Muestra una notificación local de confirmación inmediata de cita.
+  /// Se usa después de que el cliente realiza una reserva exitosa.
+  Future<void> showAppointmentConfirmationNotification(
+    AppointmentModel appointment,
+  ) async {
+    await _initializePlugin();
+    await _showAppointmentConfirmedNotification(appointment);
+  }
+
   Future<void> _initializePlugin() async {
     const androidSettings = AndroidInitializationSettings('ic_notification');
     const iosSettings = DarwinInitializationSettings();

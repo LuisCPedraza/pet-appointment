@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:pet_appointment/models/appointment_model.dart';
 import 'package:pet_appointment/models/availability_slot.dart';
 import 'package:pet_appointment/models/service_model.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
@@ -160,20 +161,22 @@ class CalendarController extends ChangeNotifier {
     await loadMonth(focusedDay);
   }
 
-  Future<void> confirm({required String notes}) async {
+  Future<AppointmentModel?> confirm({required String notes}) async {
     isSubmitting = true;
     notifyListeners();
     try {
-      await _service.createAppointment(
+      final appointment = await _service.createAppointment(
         petId: selectedPetId!,
         professionalId: selectedSlot!.professionalId,
         serviceId: selectedServiceId ?? selectedSlot!.serviceId,
         availabilityId: selectedSlot!.id,
         notes: notes.trim().isEmpty ? null : notes.trim(),
       );
+
       selectedSlot = null;
       selectedDay = null;
       notifyListeners();
+      return appointment;
     } finally {
       isSubmitting = false;
       notifyListeners();

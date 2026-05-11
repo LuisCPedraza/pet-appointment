@@ -9,12 +9,14 @@ class AppointmentModel {
     required this.petName,
     required this.petSpecies,
     required this.professionalId,
+    required this.professionalName,
     required this.serviceId,
     required this.serviceName,
     required this.scheduledAt,
     required this.status,
     this.notes,
     this.createdAt,
+    this.availabilityId,
   });
 
   final String id;
@@ -25,6 +27,7 @@ class AppointmentModel {
   final String petName;
   final String petSpecies;
   final String professionalId;
+  final String professionalName;
   final String serviceId;
   final String serviceName;
   final DateTime? scheduledAt;
@@ -32,6 +35,7 @@ class AppointmentModel {
   status; // 'En espera', 'Confirmada', 'En progreso', 'Atendida', 'Cancelada'
   final String? notes;
   final DateTime? createdAt;
+  final String? availabilityId;
 
   /// Mapea desde un JSON de Supabase (con joins)
   factory AppointmentModel.fromJson(Map<String, dynamic> json) {
@@ -52,6 +56,23 @@ class AppointmentModel {
           clientId = client['id'] as String? ?? '';
           clientName = client['full_name'] as String? ?? '';
           clientEmail = client['email'] as String? ?? '';
+        }
+      }
+    }
+
+    // Extrae datos del profesional desde el alias de relación
+    String professionalName = '';
+    final professionalKey = 'users!appointments_professional_id_fkey';
+    if (json.containsKey(professionalKey)) {
+      var professionalData = json[professionalKey];
+      if (professionalData != null) {
+        if (professionalData is Map) {
+          professionalName = professionalData['full_name'] as String? ?? '';
+        } else if (professionalData is List && professionalData.isNotEmpty) {
+          final prof = professionalData[0] as Map<String, dynamic>?;
+          if (prof != null) {
+            professionalName = prof['full_name'] as String? ?? '';
+          }
         }
       }
     }
@@ -127,6 +148,7 @@ class AppointmentModel {
       petName: petName,
       petSpecies: petSpecies,
       professionalId: json['professional_id'] as String,
+      professionalName: professionalName,
       serviceId: serviceId.isNotEmpty
           ? serviceId
           : (json['service_id'] as String? ?? ''),
@@ -137,6 +159,7 @@ class AppointmentModel {
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)?.toLocal()
           : null,
+      availabilityId: json['availability_id'] as String?,
     );
   }
 
@@ -150,12 +173,14 @@ class AppointmentModel {
     String? petName,
     String? petSpecies,
     String? professionalId,
+    String? professionalName,
     String? serviceId,
     String? serviceName,
     DateTime? scheduledAt,
     String? status,
     String? notes,
     DateTime? createdAt,
+    String? availabilityId,
   }) {
     return AppointmentModel(
       id: id ?? this.id,
@@ -166,12 +191,14 @@ class AppointmentModel {
       petName: petName ?? this.petName,
       petSpecies: petSpecies ?? this.petSpecies,
       professionalId: professionalId ?? this.professionalId,
+      professionalName: professionalName ?? this.professionalName,
       serviceId: serviceId ?? this.serviceId,
       serviceName: serviceName ?? this.serviceName,
       scheduledAt: scheduledAt ?? this.scheduledAt,
       status: status ?? this.status,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
+      availabilityId: availabilityId ?? this.availabilityId,
     );
   }
 
