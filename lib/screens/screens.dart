@@ -14,3 +14,4 @@ export 'package:pet_appointment/screens/otp_verification_screen.dart';
 export 'package:pet_appointment/screens/reset_password_screen.dart';
 export 'package:pet_appointment/screens/appointment_history_screen.dart';
 export 'package:pet_appointment/screens/appointment_confirm_screen.dart';
+export 'package:pet_appointment/screens/professional_availability_screen.dart';

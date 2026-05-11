@@ -4,6 +4,7 @@ import 'package:pet_appointment/models/appointment_model.dart';
 import 'package:pet_appointment/models/appointment_status.dart';
 import 'package:pet_appointment/models/availability_slot.dart';
 import 'package:pet_appointment/models/service_model.dart';
+import 'package:pet_appointment/utils/slot_generation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AppointmentService {
@@ -35,6 +36,77 @@ class AppointmentService {
     return (rows as List)
         .map((row) => AvailabilitySlot.fromJson(row as Map<String, dynamic>))
         .toList();
+  }
+
+  /// Crea slots entre dos timestamps (UTC) para el profesional.
+  /// Retorna la cantidad de slots creados.
+  Future<int> createSlotsBetween({
+    required String professionalId,
+    required DateTime start,
+    required DateTime end,
+    required int slotMinutes,
+    String? serviceId,
+  }) async {
+    final candidateRanges = buildSlotRanges(
+      start: start,
+      end: end,
+      slotMinutes: slotMinutes,
+    );
+    if (candidateRanges.isEmpty) return 0;
+
+    final existingRows = await _client
+        .from('availability')
+        .select('slot_start')
+        .eq('professional_id', professionalId)
+        .gte('slot_start', start.toUtc().toIso8601String())
+        .lte('slot_start', end.toUtc().toIso8601String());
+
+    final existingStarts = (existingRows as List)
+        .map(
+          (row) =>
+              DateTime.tryParse(row['slot_start'] as String? ?? '')?.toUtc(),
+        )
+        .whereType<DateTime>()
+        .toSet();
+
+    final inserts = candidateRanges
+        .where((range) => !existingStarts.contains(range.start.toUtc()))
+        .map(
+          (range) => {
+            'professional_id': professionalId,
+            'service_id': serviceId,
+            'slot_start': range.start.toUtc().toIso8601String(),
+            'slot_end': range.end.toUtc().toIso8601String(),
+            'is_available': true,
+          },
+        )
+        .toList();
+
+    if (inserts.isEmpty) return 0;
+
+    try {
+      await _client.from('availability').insert(inserts);
+      return inserts.length;
+    } catch (e) {
+      debugPrint('Error creando slots: $e');
+      return 0;
+    }
+  }
+
+  /// Actualiza el flag `is_available` de un slot por su id.
+  Future<void> updateSlotAvailability({
+    required String slotId,
+    required bool isAvailable,
+  }) async {
+    try {
+      await _client
+          .from('availability')
+          .update({'is_available': isAvailable})
+          .eq('id', slotId);
+    } catch (e) {
+      debugPrint('Error actualizando availability: $e');
+      rethrow;
+    }
   }
 
   /// Devuelve los [availability_id] que ya tienen una cita activa
@@ -499,10 +571,7 @@ class AppointmentService {
 
     await _client.rpc(
       'cancel_client_appointment',
-      params: {
-        'p_appointment_id': appointmentId,
-        'p_reason': reason,
-      },
+      params: {'p_appointment_id': appointmentId, 'p_reason': reason},
     );
   }
 

@@ -53,6 +53,15 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
       appBar: AppBar(
         title: const Text('Mi Agenda'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            tooltip: 'Mi disponibilidad',
+            icon: const Icon(Icons.schedule),
+            onPressed: () {
+              Navigator.of(context).pushNamed('/professional-availability');
+            },
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: const [

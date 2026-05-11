@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:pet_appointment/models/appointment_history_model.dart';
 import 'package:pet_appointment/models/appointment_model.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
+import 'package:pet_appointment/utils/appointment_rules.dart';
 import 'package:pet_appointment/widgets/appointment_history_view.dart';
 import 'package:pet_appointment/widgets/status_selector.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -160,9 +161,7 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
     final isClient =
         currentUserId != null && currentUserId == _appointment.clientId;
-    final allowedStatus =
-        _appointment.status == 'En espera' ||
-        _appointment.status == 'Confirmada';
+    final allowedStatus = canClientCancelAppointment(_appointment.status);
     return isClient && allowedStatus && !_statusChanging;
   }
 

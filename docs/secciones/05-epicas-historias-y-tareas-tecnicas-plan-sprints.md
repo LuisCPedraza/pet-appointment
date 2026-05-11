@@ -6,7 +6,7 @@
 
 **Fecha de creación:** 12 de abril de 2026
 
-**Última actualización:** 12 de abril de 2026
+**Última actualización:** 11 de mayo de 2026
 
 **Equipo:** 2 desarrolladores (Luis Carlos Pedraza, Nicolas Gonzalez)
 
@@ -257,7 +257,7 @@ Auth operativa (Sprint 2)
 * [ ] El cliente puede reservar una cita y recibir confirmación inmediata.
 * [ ] No es posible reservar dos citas en el mismo slot (validación doble: app + DB).
 * [ ] El profesional puede ver su agenda diaria y semanal.
-* [ ] El profesional puede cambiar el estado de una cita siguiendo el flujo válido.
+* [X] El profesional puede cambiar el estado de una cita siguiendo el flujo válido.
 * [ ] Los cambios se reflejan en tiempo real sin necesidad de recargar la pantalla.
 
 ---
@@ -867,11 +867,11 @@ Auth operativa (Sprint 2)
 
 **Criterios de aceptación:**
 
-* [ ] Solo aparece la opción "Cancelar" para citas en estado `en_espera` o `confirmada`.
-* [ ] Si la cita es en menos de 2 horas, se muestra advertencia pero se permite cancelar (decisión de negocio).
-* [ ] Tras cancelar, el estado cambia a `cancelada` y el slot queda disponible en el calendario.
-* [ ] El profesional recibe notificación de la cancelación.
-* [ ] La cita cancelada permanece en el historial con el estado visible.
+* [X] Solo aparece la opción "Cancelar" para citas en estado `en_espera` o `confirmada`.
+* [X] Si la cita es en menos de 2 horas, se muestra advertencia pero se permite cancelar (decisión de negocio).
+* [X] Tras cancelar, el estado cambia a `cancelada` y el slot queda disponible en el calendario.
+* [X] El profesional recibe notificación de la cancelación.
+* [X] La cita cancelada permanece en el historial con el estado visible.
 
 | Campo        | Valor               |
 | ------------ | ------------------- |
@@ -997,11 +997,11 @@ en_espera
 
 **Criterios de aceptación:**
 
-* [ ] El selector de estado solo muestra las transiciones válidas desde el estado actual.
-* [ ] Al cambiar el estado, se registra la fecha/hora del cambio en la tabla `appointment_history`.
-* [ ] El cliente recibe notificación local al detectar cada cambio de estado.
-* [ ] El cambio se propaga en tiempo real vía Supabase Realtime.
-* [ ] Solo el profesional asignado puede cambiar el estado (RLS).
+* [X] El selector de estado solo muestra las transiciones válidas desde el estado actual.
+* [X] Al cambiar el estado, se registra la fecha/hora del cambio en la tabla `appointment_history`.
+* [X] El cliente recibe notificación local al detectar cada cambio de estado.
+* [X] El cambio se propaga en tiempo real vía Supabase Realtime.
+* [X] Solo el profesional asignado puede cambiar el estado (RLS).
 
 | Campo        | Valor               |
 | ------------ | ------------------- |
@@ -1031,11 +1031,13 @@ en_espera
 
 **Criterios de aceptación:**
 
-* [ ] El profesional puede habilitar/deshabilitar días individualmente.
-* [ ] Puede definir hora de inicio y fin de jornada por día.
-* [ ] Puede bloquear horarios específicos (descanso, reuniones).
-* [ ] Los cambios se reflejan en el calendario del cliente en tiempo real.
-* [ ] La configuración persiste entre sesiones.
+* [X] El profesional puede habilitar/deshabilitar días individualmente.
+* [X] Puede definir hora de inicio y fin de jornada por día.
+* [X] Puede bloquear horarios específicos (descanso, reuniones).
+* [X] Los cambios se reflejan en el calendario del cliente en tiempo real.
+* [X] La configuración persiste entre sesiones.
+
+Implementación: `ProfessionalAvailabilityScreen` (lib/screens/professional_availability_screen.dart) y métodos en `AppointmentService` para creación y actualización de slots. Suscripción Realtime disponible via `AppointmentService.subscribeToSlots`.
 
 | Campo        | Valor               |
 | ------------ | ------------------- |

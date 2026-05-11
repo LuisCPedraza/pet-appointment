@@ -14,6 +14,7 @@ import 'package:pet_appointment/screens/calendar_screen.dart';
 import 'package:pet_appointment/screens/appointment_confirm_screen.dart';
 import 'package:pet_appointment/screens/appointment_history_screen.dart';
 import 'package:pet_appointment/screens/professional_home_screen.dart';
+import 'package:pet_appointment/screens/professional_availability_screen.dart';
 import 'package:pet_appointment/controllers/professional_agenda_controller.dart';
 
 Future<void> main() async {
@@ -68,6 +69,8 @@ class MyApp extends StatelessWidget {
           '/calendar': (_) => const CalendarScreen(),
           '/appointments-history': (_) => const AppointmentHistoryScreen(),
           '/professional-home': (_) => const ProfessionalHomeScreen(),
+          '/professional-availability': (_) =>
+              const ProfessionalAvailabilityScreen(),
         },
         onGenerateRoute: _generateRoute,
       ),
@@ -80,19 +83,19 @@ class MyApp extends StatelessWidget {
       case '/appointment-confirm':
         final appointment = settings.arguments;
         return MaterialPageRoute(
-          builder: (context) => AppointmentConfirmScreen(
-            appointment: appointment as dynamic,
-          ),
+          builder: (context) =>
+              AppointmentConfirmScreen(appointment: appointment as dynamic),
         );
       case '/appointments-history':
+        return MaterialPageRoute(builder: (context) => const AppShell());
+      case '/professional-availability':
         return MaterialPageRoute(
-          builder: (context) => const AppShell(),
+          builder: (context) => const ProfessionalAvailabilityScreen(),
         );
       default:
         return MaterialPageRoute(
-          builder: (context) => const Scaffold(
-            body: Center(child: Text('Ruta no encontrada')),
-          ),
+          builder: (context) =>
+              const Scaffold(body: Center(child: Text('Ruta no encontrada'))),
         );
     }
   }
