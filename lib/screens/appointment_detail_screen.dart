@@ -22,7 +22,7 @@ class AppointmentDetailScreen extends StatefulWidget {
 
 class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
   final _appointmentService = AppointmentService();
-  
+
   late AppointmentModel _appointment;
   List<AppointmentHistoryModel> _history = [];
   bool _historyLoading = false;
@@ -48,10 +48,11 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
   Future<void> _loadHistory() async {
     if (!mounted) return;
     setState(() => _historyLoading = true);
-    
+
     try {
-      final history =
-          await _appointmentService.fetchAppointmentHistory(_appointment.id);
+      final history = await _appointmentService.fetchAppointmentHistory(
+        _appointment.id,
+      );
       if (mounted) {
         setState(() {
           _history = history;
@@ -73,11 +74,10 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
 
   /// Se suscribe a cambios en el historial en tiempo real
   void _subscribeToHistoryChanges() {
-    _historyChannel =
-        _appointmentService.subscribeToAppointmentHistory(
-          appointmentId: _appointment.id,
-          onChanged: _loadHistory,
-        );
+    _historyChannel = _appointmentService.subscribeToAppointmentHistory(
+      appointmentId: _appointment.id,
+      onChanged: _loadHistory,
+    );
   }
 
   /// Maneja el cambio de estado
@@ -139,10 +139,7 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_errorMessage!),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(_errorMessage!), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -155,15 +152,17 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
   /// Verifica si el usuario actual es el profesional asignado
   bool get _canChangeStatus {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
-    return currentUserId == _appointment.professionalId &&
-        !_statusChanging;
+    return currentUserId == _appointment.professionalId && !_statusChanging;
   }
 
   /// Verifica si el cliente autenticado puede cancelar esta cita
   bool get _canCancel {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
-    final isClient = currentUserId != null && currentUserId == _appointment.clientId;
-    final allowedStatus = _appointment.status == 'En espera' || _appointment.status == 'Confirmada';
+    final isClient =
+        currentUserId != null && currentUserId == _appointment.clientId;
+    final allowedStatus =
+        _appointment.status == 'En espera' ||
+        _appointment.status == 'Confirmada';
     return isClient && allowedStatus && !_statusChanging;
   }
 
@@ -172,58 +171,64 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
   Future<void> _handleClientCancel() async {
     final now = DateTime.now().toUtc();
     final scheduled = _appointment.scheduledAt?.toUtc();
-    final withinTwoHours = scheduled != null && scheduled.difference(now).inMinutes <= 120;
+    final withinTwoHours =
+        scheduled != null && scheduled.difference(now).inMinutes <= 120;
 
     final reasonController = TextEditingController();
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancelar cita'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (withinTwoHours)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Text(
-                  'Advertencia: la cita está a menos de 2 horas. Al cancelar podría aplicarse una penalización.',
-                  style: TextStyle(color: Colors.orange.shade800),
+    try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Cancelar cita'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (withinTwoHours)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Text(
+                    'Advertencia: la cita está a menos de 2 horas. Al cancelar podría aplicarse una penalización.',
+                    style: TextStyle(color: Colors.orange.shade800),
+                  ),
+                ),
+              TextField(
+                controller: reasonController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Motivo (opcional)',
+                  border: OutlineInputBorder(),
                 ),
               ),
-            TextField(
-              controller: reasonController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Motivo (opcional)',
-                border: OutlineInputBorder(),
-              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Confirmar'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Confirmar'),
-          ),
-        ],
-      ),
-    );
+      );
 
-    if (confirmed != true) return;
+      if (confirmed != true) return;
 
-    if (!mounted) return;
-    setState(() {
-      _statusChanging = true;
-      _errorMessage = null;
-    });
+      if (!mounted) return;
+      setState(() {
+        _statusChanging = true;
+        _errorMessage = null;
+      });
 
-    try {
-      await _appointmentService.cancelClientAppointment(_appointment.id);
+      await _appointmentService.cancelClientAppointment(
+        appointmentId: _appointment.id,
+        reason: reasonController.text.trim().isEmpty
+            ? null
+            : reasonController.text.trim(),
+      );
 
       if (mounted) {
         setState(() {
@@ -231,7 +236,10 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cita cancelada correctamente'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Cita cancelada correctamente'),
+            backgroundColor: Colors.green,
+          ),
         );
 
         await _loadHistory();
@@ -247,6 +255,7 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
         );
       }
     } finally {
+      reasonController.dispose();
       if (mounted) setState(() => _statusChanging = false);
     }
   }
@@ -304,8 +313,7 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
                       shape: BoxShape.circle,
                       color: _statusColor().withAlpha((0.2 * 255).toInt()),
                     ),
-                    child:
-                        Icon(_statusIcon(), size: 40, color: _statusColor()),
+                    child: Icon(_statusIcon(), size: 40, color: _statusColor()),
                   ),
                   const SizedBox(height: 16),
                   Chip(
@@ -351,8 +359,7 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
                         ],
                       ),
                     ),
-                  if (_errorMessage != null)
-                    const SizedBox(height: 16),
+                  if (_errorMessage != null) const SizedBox(height: 16),
 
                   // Selector de estado (solo si es el profesional asignado)
                   if (_canChangeStatus) ...[

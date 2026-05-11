@@ -7,6 +7,7 @@ class AppointmentHistoryModel {
     required this.newStatus,
     this.changedById,
     this.changedByName,
+    this.changeReason,
     required this.changedAt,
   });
 
@@ -16,6 +17,7 @@ class AppointmentHistoryModel {
   final String newStatus;
   final String? changedById;
   final String? changedByName;
+  final String? changeReason;
   final DateTime changedAt;
 
   /// Mapea desde un JSON de Supabase
@@ -43,9 +45,8 @@ class AppointmentHistoryModel {
       newStatus: json['new_status'] as String,
       changedById: changedById,
       changedByName: changedByName,
-      changedAt: DateTime.parse(
-        json['changed_at'] as String,
-      ).toLocal(),
+      changeReason: json['change_reason'] as String?,
+      changedAt: DateTime.parse(json['changed_at'] as String).toLocal(),
     );
   }
 
@@ -56,6 +57,7 @@ class AppointmentHistoryModel {
       'previous_status': previousStatus,
       'new_status': newStatus,
       'changed_by': changedById,
+      'change_reason': changeReason,
       'changed_at': changedAt.toUtc().toIso8601String(),
     };
   }
@@ -68,6 +70,7 @@ class AppointmentHistoryModel {
     String? newStatus,
     String? changedById,
     String? changedByName,
+    String? changeReason,
     DateTime? changedAt,
   }) {
     return AppointmentHistoryModel(
@@ -77,11 +80,12 @@ class AppointmentHistoryModel {
       newStatus: newStatus ?? this.newStatus,
       changedById: changedById ?? this.changedById,
       changedByName: changedByName ?? this.changedByName,
+      changeReason: changeReason ?? this.changeReason,
       changedAt: changedAt ?? this.changedAt,
     );
   }
 
   @override
   String toString() =>
-      'AppointmentHistoryModel(id: $id, appointmentId: $appointmentId, previousStatus: $previousStatus, newStatus: $newStatus, changedBy: $changedByName, changedAt: $changedAt)';
+      'AppointmentHistoryModel(id: $id, appointmentId: $appointmentId, previousStatus: $previousStatus, newStatus: $newStatus, changedBy: $changedByName, changeReason: $changeReason, changedAt: $changedAt)';
 }

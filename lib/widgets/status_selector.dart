@@ -27,7 +27,9 @@ class StatusSelector extends StatefulWidget {
 class _StatusSelectorState extends State<StatusSelector> {
   @override
   Widget build(BuildContext context) {
-    final currentStatusEnum = AppointmentStatus.fromString(widget.currentStatus);
+    final currentStatusEnum = AppointmentStatus.fromString(
+      widget.currentStatus,
+    );
     if (currentStatusEnum == null) {
       return const SizedBox.shrink();
     }
@@ -60,10 +62,7 @@ class _StatusSelectorState extends State<StatusSelector> {
                 children: [
                   const Text(
                     'Estado actual',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                   Text(
                     widget.currentStatus,
@@ -87,10 +86,7 @@ class _StatusSelectorState extends State<StatusSelector> {
             children: [
               const Text(
                 'Cambiar a:',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               SizedBox(
@@ -136,10 +132,7 @@ class _StatusSelectorState extends State<StatusSelector> {
                 Expanded(
                   child: Text(
                     'No hay transiciones disponibles para este estado',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ),
               ],

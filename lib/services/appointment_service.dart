@@ -258,15 +258,19 @@ class AppointmentService {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) throw Exception('No hay sesión activa');
 
-    final insertResponse = await _client.from('appointments').insert({
-      'client_id': userId,
-      'pet_id': petId,
-      'professional_id': professionalId,
-      'service_id': serviceId,
-      'availability_id': availabilityId,
-      'status': 'En espera',
-      'notes': notes?.isNotEmpty == true ? notes : null,
-    }).select('id').single();
+    final insertResponse = await _client
+        .from('appointments')
+        .insert({
+          'client_id': userId,
+          'pet_id': petId,
+          'professional_id': professionalId,
+          'service_id': serviceId,
+          'availability_id': availabilityId,
+          'status': 'En espera',
+          'notes': notes?.isNotEmpty == true ? notes : null,
+        })
+        .select('id')
+        .single();
 
     final appointmentId = insertResponse['id'] as String;
 
@@ -486,64 +490,20 @@ class AppointmentService {
   }
 
   /// Cancela una cita del cliente autenticado.
-  Future<void> cancelClientAppointment(String appointmentId) async {
+  Future<void> cancelClientAppointment({
+    required String appointmentId,
+    String? reason,
+  }) async {
     final clientId = _client.auth.currentUser?.id;
     if (clientId == null) throw Exception('No hay sesión activa');
 
-    final selectRows = await _client
-        .from('appointments')
-        .select('id, status, client_id')
-        .eq('id', appointmentId)
-        .limit(1);
-
-    if (selectRows.isEmpty) throw Exception('Cita no encontrada');
-
-    final current = selectRows.first;
-    final assignedClient = current['client_id'] as String? ?? '';
-    final previousStatus = current['status'] as String? ?? '';
-
-    if (assignedClient != clientId) {
-      throw Exception('No autorizado para cancelar esta cita');
-    }
-
-    // Solo se permite cancelar si la cita está en 'En espera' o 'Confirmada'
-    if (!(previousStatus == 'En espera' || previousStatus == 'Confirmada')) {
-      throw Exception('Solo se pueden cancelar citas en estado En espera o Confirmada');
-    }
-
-    // Actualizar estado de la cita
-    final updateResp = await _client
-        .from('appointments')
-        .update({
-          'status': 'Cancelada',
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        })
-        .eq('id', appointmentId)
-        .eq('client_id', clientId)
-        .select('availability_id')
-        .maybeSingle();
-
-    // Liberar el slot asociado si existe
-    final availabilityId = updateResp is Map ? updateResp['availability_id'] as String? : null;
-    if (availabilityId != null) {
-      try {
-        await _client
-            .from('availability')
-            .update({'is_available': true})
-            .eq('id', availabilityId);
-      } catch (e) {
-        debugPrint('No se pudo liberar el slot: $e');
-      }
-    }
-
-    // Registrar en historial
-    await _client.from('appointment_history').insert({
-      'appointment_id': appointmentId,
-      'previous_status': previousStatus.isNotEmpty ? previousStatus : null,
-      'new_status': 'Cancelada',
-      'changed_by': clientId,
-      'changed_at': DateTime.now().toUtc().toIso8601String(),
-    });
+    await _client.rpc(
+      'cancel_client_appointment',
+      params: {
+        'p_appointment_id': appointmentId,
+        'p_reason': reason,
+      },
+    );
   }
 
   /// Obtiene el historial completo de cambios de estado de una cita.
@@ -555,16 +515,17 @@ class AppointmentService {
       final rows = await _client
           .from('appointment_history')
           .select(
-            'id, appointment_id, previous_status, new_status, changed_by, changed_at, '
+            'id, appointment_id, previous_status, new_status, change_reason, changed_by, changed_at, '
             'users(full_name)',
           )
           .eq('appointment_id', appointmentId)
           .order('changed_at', ascending: false);
 
       return (rows as List)
-          .map((row) => AppointmentHistoryModel.fromJson(
-            row as Map<String, dynamic>,
-          ))
+          .map(
+            (row) =>
+                AppointmentHistoryModel.fromJson(row as Map<String, dynamic>),
+          )
           .toList();
     } catch (e) {
       debugPrint('Error fetching appointment history: $e');
@@ -615,7 +576,7 @@ class AppointmentService {
   ) {
     final currentStatus = AppointmentStatus.fromString(currentStatusString);
     final nextStatus = AppointmentStatus.fromString(nextStatusString);
-    
+
     if (currentStatus == null || nextStatus == null) return false;
     return currentStatus.canTransitionTo(nextStatus);
   }

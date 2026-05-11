@@ -45,7 +45,9 @@ enum AppointmentStatus {
 /// Matriz de transiciones válidas
 const Map<AppointmentStatus, List<AppointmentStatus>> validTransitions = {
   AppointmentStatus.enEspera: <AppointmentStatus>[AppointmentStatus.confirmada],
-  AppointmentStatus.confirmada: <AppointmentStatus>[AppointmentStatus.enProgreso],
+  AppointmentStatus.confirmada: <AppointmentStatus>[
+    AppointmentStatus.enProgreso,
+  ],
   AppointmentStatus.enProgreso: <AppointmentStatus>[
     AppointmentStatus.atendida,
     AppointmentStatus.cancelada,

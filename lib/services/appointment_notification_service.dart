@@ -52,6 +52,7 @@ class AppointmentNotificationService {
     _channel?.unsubscribe();
     _channel = null;
     _lastStatuses.clear();
+    _isClient = null;
     _initialized = false;
   }
 
@@ -83,11 +84,6 @@ class AppointmentNotificationService {
           IOSFlutterLocalNotificationsPlugin
         >();
     await iosImpl?.requestPermissions(alert: true, badge: true, sound: true);
-  }
-
-  Future<void> _primeLastStatuses() async {
-    final appointments = await _appointmentService.fetchClientAppointments();
-    _replaceStatusCache(appointments);
   }
 
   Future<void> _primeLastStatuses({required bool isClient}) async {

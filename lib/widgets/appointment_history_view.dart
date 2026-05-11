@@ -19,9 +19,7 @@ class AppointmentHistoryView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (history.isEmpty) {
@@ -31,18 +29,11 @@ class AppointmentHistoryView extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.history,
-                size: 48,
-                color: Colors.grey[400],
-              ),
+              Icon(Icons.history, size: 48, color: Colors.grey[400]),
               const SizedBox(height: 16),
               Text(
                 'Sin historial de cambios',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
               ),
             ],
           ),
@@ -54,10 +45,8 @@ class AppointmentHistoryView extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: history.length,
-      separatorBuilder: (context, index) => Divider(
-        height: 1,
-        color: Colors.grey[200],
-      ),
+      separatorBuilder: (context, index) =>
+          Divider(height: 1, color: Colors.grey[200]),
       itemBuilder: (context, index) {
         final record = history[index];
         return _HistoryItem(record: record);
@@ -68,9 +57,7 @@ class AppointmentHistoryView extends StatelessWidget {
 
 /// Elemento individual del historial
 class _HistoryItem extends StatelessWidget {
-  const _HistoryItem({
-    required this.record,
-  });
+  const _HistoryItem({required this.record});
 
   final AppointmentHistoryModel record;
 
@@ -117,10 +104,7 @@ class _HistoryItem extends StatelessWidget {
                       if (record.previousStatus != null)
                         const TextSpan(
                           text: ' → ',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
                         ),
                       TextSpan(
                         text: record.newStatus,
@@ -147,30 +131,28 @@ class _HistoryItem extends StatelessWidget {
                     Expanded(
                       child: Text(
                         record.changedByName ?? 'Usuario desconocido',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Icon(
-                      Icons.schedule,
-                      size: 12,
-                      color: Colors.grey[500],
-                    ),
+                    Icon(Icons.schedule, size: 12, color: Colors.grey[500]),
                     const SizedBox(width: 4),
                     Text(
                       _formatDateTime(record.changedAt),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[500],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                     ),
                   ],
                 ),
+                if (record.changeReason != null &&
+                    record.changeReason!.trim().isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Motivo: ${record.changeReason!}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
               ],
             ),
           ),
