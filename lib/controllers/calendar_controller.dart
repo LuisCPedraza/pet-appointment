@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:pet_appointment/models/appointment_model.dart';
 import 'package:pet_appointment/models/availability_slot.dart';
 import 'package:pet_appointment/models/service_model.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
@@ -160,7 +161,7 @@ class CalendarController extends ChangeNotifier {
     await loadMonth(focusedDay);
   }
 
-  Future<void> confirm({required String notes}) async {
+  Future<AppointmentModel?> confirm({required String notes}) async {
     isSubmitting = true;
     notifyListeners();
     try {
@@ -171,9 +172,21 @@ class CalendarController extends ChangeNotifier {
         availabilityId: selectedSlot!.id,
         notes: notes.trim().isEmpty ? null : notes.trim(),
       );
+      
+      // Obtener la cita creada para mostrar en la pantalla de confirmación
+      final appointments = await _service.fetchClientAppointments();
+      if (appointments.isNotEmpty) {
+        final createdAppointment = appointments.first; // La más reciente
+        selectedSlot = null;
+        selectedDay = null;
+        notifyListeners();
+        return createdAppointment;
+      }
+      
       selectedSlot = null;
       selectedDay = null;
       notifyListeners();
+      return null;
     } finally {
       isSubmitting = false;
       notifyListeners();

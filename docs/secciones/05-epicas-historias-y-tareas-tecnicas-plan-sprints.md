@@ -798,10 +798,10 @@ Auth operativa (Sprint 2)
 
 **Criterios de aceptación:**
 
-* [ ] La pantalla muestra: servicio, mascota, profesional, fecha, hora y estado inicial.
-* [ ] Se dispara una notificación local de confirmación.
-* [ ] El botón "Ver mis citas" navega al historial filtrando por esta cita.
-* [ ] El botón "Inicio" navega al home limpiando el stack de navegación.
+* [X] La pantalla muestra: servicio, mascota, profesional, fecha, hora y estado inicial.
+* [X] Se dispara una notificación local de confirmación.
+* [~] El botón "Ver mis citas" navega al historial filtrando por esta cita. (Implementar con US-13)
+* [X] El botón "Inicio" navega al home limpiando el stack de navegación.
 
 | Campo        | Valor            |
 | ------------ | ---------------- |
@@ -1241,7 +1241,8 @@ Estado actual de estas tareas:
 
 * [X] TASK-09 Integrar table_calendar
 * [X] TASK-12P1 Implementar panel profesional - agenda
-* [ ] TASK-10P1 Lógica de reserva
+* [X] TASK-10P1 Lógica de reserva
+* [X] TASK-10P2 Pantalla confirmación
 
 #### Luis Carlos Pedraza — Panel Profesional (18h)
 

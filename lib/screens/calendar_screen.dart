@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/controllers/calendar_controller.dart';
+import 'package:pet_appointment/services/appointment_notification_service.dart';
+import 'package:pet_appointment/screens/appointment_confirm_screen.dart';
 import 'package:pet_appointment/widgets/calendar/booking_heading.dart';
 import 'package:pet_appointment/widgets/calendar/calendar_card.dart';
 import 'package:pet_appointment/widgets/calendar/confirm_button.dart';
@@ -59,10 +61,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
       return;
     }
     try {
-      await _controller.confirm(notes: _notesController.text);
+      final appointment = await _controller.confirm(notes: _notesController.text);
+      
       if (mounted) {
-        _showSnack('Cita agendada con exito!');
         _notesController.clear();
+        
+        // Mostrar notificación local de confirmación
+        if (appointment != null) {
+          final notificationService = AppointmentNotificationService();
+          await notificationService.showAppointmentConfirmationNotification(appointment);
+          
+          // Navegar a la pantalla de confirmación
+          if (mounted) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => AppointmentConfirmScreen(
+                  appointment: appointment,
+                ),
+              ),
+            );
+          }
+        }
       }
     } catch (e) {
       if (mounted) _showSnack('Error al agendar: $e', isError: true);

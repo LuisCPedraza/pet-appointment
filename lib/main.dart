@@ -11,6 +11,7 @@ import 'package:pet_appointment/screens/login_screen.dart';
 import 'package:pet_appointment/screens/forgot_password_screen.dart';
 import 'package:pet_appointment/screens/reset_password_screen.dart';
 import 'package:pet_appointment/screens/calendar_screen.dart';
+import 'package:pet_appointment/screens/appointment_confirm_screen.dart';
 import 'package:pet_appointment/screens/professional_home_screen.dart';
 import 'package:pet_appointment/controllers/professional_agenda_controller.dart';
 
@@ -66,7 +67,32 @@ class MyApp extends StatelessWidget {
           '/calendar': (_) => const CalendarScreen(),
           '/professional-home': (_) => const ProfessionalHomeScreen(),
         },
+        onGenerateRoute: _generateRoute,
       ),
     );
+  }
+
+  /// Generador de rutas dinámicas para pasar argumentos a las pantallas.
+  Route<dynamic> _generateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case '/appointment-confirm':
+        final appointment = settings.arguments;
+        return MaterialPageRoute(
+          builder: (context) => AppointmentConfirmScreen(
+            appointment: appointment as dynamic,
+          ),
+        );
+      case '/appointments-history':
+        // TODO: Implementar pantalla de historial cuando se complete US-13
+        return MaterialPageRoute(
+          builder: (context) => const AppShell(),
+        );
+      default:
+        return MaterialPageRoute(
+          builder: (context) => const Scaffold(
+            body: Center(child: Text('Ruta no encontrada')),
+          ),
+        );
+    }
   }
 }
