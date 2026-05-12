@@ -6,6 +6,7 @@ import 'package:pet_appointment/services/appointment_service.dart';
 import 'package:pet_appointment/utils/appointment_rules.dart';
 import 'package:pet_appointment/widgets/appointment_history_view.dart';
 import 'package:pet_appointment/widgets/status_selector.dart';
+import 'package:pet_appointment/screens/appointment_detail/appointment_detail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Pantalla que muestra los detalles completos de una cita.
@@ -298,36 +299,10 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header con estado
-            Container(
-              width: double.infinity,
-              color: _statusColor().withAlpha((0.1 * 255).toInt()),
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _statusColor().withAlpha((0.2 * 255).toInt()),
-                    ),
-                    child: Icon(_statusIcon(), size: 40, color: _statusColor()),
-                  ),
-                  const SizedBox(height: 16),
-                  Chip(
-                    label: Text(
-                      _appointment.status,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    backgroundColor: _statusColor(),
-                  ),
-                ],
-              ),
+            AppointmentDetailStatusHeader(
+              status: _appointment.status,
+              statusColor: _statusColor(),
+              statusIcon: _statusIcon(),
             ),
 
             // Contenido principal
@@ -338,31 +313,12 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
                 children: [
                   // Mensajes de error
                   if (_errorMessage != null)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withAlpha(26),
-                        border: Border.all(color: Colors.red),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.error, color: Colors.red),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _errorMessage!,
-                              style: const TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    AppointmentDetailErrorBanner(message: _errorMessage!),
                   if (_errorMessage != null) const SizedBox(height: 16),
 
                   // Selector de estado (solo si es el profesional asignado)
                   if (_canChangeStatus) ...[
-                    _SectionTitle('Gestionar Estado'),
+                    const AppointmentDetailSectionTitle('Gestionar Estado'),
                     StatusSelector(
                       currentStatus: _appointment.status,
                       onStatusChanged: _handleStatusChange,
@@ -372,8 +328,8 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
                   ],
 
                   // Sección de fecha y hora
-                  _SectionTitle('Cita'),
-                  _DetailRow(
+                  const AppointmentDetailSectionTitle('Cita'),
+                  AppointmentDetailRow(
                     icon: Icons.calendar_today,
                     label: 'Fecha y hora',
                     value: appointmentDate,
@@ -381,15 +337,15 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
                   const SizedBox(height: 20),
 
                   // Sección de cliente
-                  _SectionTitle('Cliente'),
-                  _DetailRow(
+                  const AppointmentDetailSectionTitle('Cliente'),
+                  AppointmentDetailRow(
                     icon: Icons.person,
                     label: 'Nombre',
                     value: _appointment.clientName.isNotEmpty
                         ? _appointment.clientName
                         : 'No disponible',
                   ),
-                  _DetailRow(
+                  AppointmentDetailRow(
                     icon: Icons.email,
                     label: 'Email',
                     value: _appointment.clientEmail.isNotEmpty
@@ -399,15 +355,15 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
                   const SizedBox(height: 20),
 
                   // Sección de mascota
-                  _SectionTitle('Mascota'),
-                  _DetailRow(
+                  const AppointmentDetailSectionTitle('Mascota'),
+                  AppointmentDetailRow(
                     icon: Icons.pets,
                     label: 'Nombre',
                     value: _appointment.petName.isNotEmpty
                         ? _appointment.petName
                         : 'No disponible',
                   ),
-                  _DetailRow(
+                  AppointmentDetailRow(
                     icon: Icons.category,
                     label: 'Especie',
                     value: _appointment.petSpecies.isNotEmpty
@@ -417,8 +373,8 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
                   const SizedBox(height: 20),
 
                   // Sección de servicio
-                  _SectionTitle('Servicio'),
-                  _DetailRow(
+                  const AppointmentDetailSectionTitle('Servicio'),
+                  AppointmentDetailRow(
                     icon: Icons.medical_services,
                     label: 'Tipo',
                     value: _appointment.serviceName.isNotEmpty
@@ -430,7 +386,7 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
                   if (_appointment.notes != null &&
                       _appointment.notes!.isNotEmpty) ...[
                     const SizedBox(height: 20),
-                    _SectionTitle('Notas'),
+                    const AppointmentDetailSectionTitle('Notas'),
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
@@ -464,7 +420,7 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
                     const SizedBox(height: 16),
                   ],
 
-                  _SectionTitle('Historial de Cambios'),
+                  const AppointmentDetailSectionTitle('Historial de Cambios'),
                   const SizedBox(height: 12),
                   AppointmentHistoryView(
                     history: _history,
@@ -476,66 +432,6 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Widget para mostrar un título de sección.
-class _SectionTitle extends StatelessWidget {
-  final String text;
-
-  const _SectionTitle(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: Theme.of(
-        context,
-      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-    );
-  }
-}
-
-/// Widget para mostrar una fila de detalles (icono, etiqueta, valor).
-class _DetailRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _DetailRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: Colors.grey.shade600),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: Theme.of(
-                  context,
-                ).textTheme.labelSmall?.copyWith(color: Colors.grey.shade600),
-              ),
-              Text(
-                value,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

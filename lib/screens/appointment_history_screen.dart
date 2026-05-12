@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/models/appointment_model.dart';
 import 'package:pet_appointment/screens/appointment_detail_screen.dart';
+import 'package:pet_appointment/screens/appointment_history/appointment_history.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
 import 'package:pet_appointment/widgets/app_shell.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -11,7 +12,8 @@ class AppointmentHistoryScreen extends StatefulWidget {
   const AppointmentHistoryScreen({super.key});
 
   @override
-  State<AppointmentHistoryScreen> createState() => _AppointmentHistoryScreenState();
+  State<AppointmentHistoryScreen> createState() =>
+      _AppointmentHistoryScreenState();
 }
 
 class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
@@ -94,10 +96,12 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
   List<AppointmentModel> get _futureAppointments {
     final now = DateTime.now();
     final items = _filteredAppointments
-        .where((appointment) =>
-            appointment.scheduledAt != null &&
-            appointment.scheduledAt!.isAfter(now) &&
-            appointment.status != 'Cancelada')
+        .where(
+          (appointment) =>
+              appointment.scheduledAt != null &&
+              appointment.scheduledAt!.isAfter(now) &&
+              appointment.status != 'Cancelada',
+        )
         .toList();
     items.sort((a, b) => a.scheduledAt!.compareTo(b.scheduledAt!));
     return items;
@@ -106,9 +110,11 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
   List<AppointmentModel> get _pastAppointments {
     final now = DateTime.now();
     final items = _filteredAppointments
-        .where((appointment) =>
-            appointment.scheduledAt == null ||
-            !appointment.scheduledAt!.isAfter(now))
+        .where(
+          (appointment) =>
+              appointment.scheduledAt == null ||
+              !appointment.scheduledAt!.isAfter(now),
+        )
         .toList();
     items.sort((a, b) {
       final left = a.scheduledAt ?? DateTime.fromMillisecondsSinceEpoch(0);
@@ -151,7 +157,10 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
     if (appointment.scheduledAt == null) return 'Fecha no disponible';
     return DateFormat('EEEE, dd MMM yyyy · HH:mm', 'es_ES')
         .format(appointment.scheduledAt!)
-        .replaceFirstMapped(RegExp(r'^[a-z]'), (m) => m.group(0)!.toUpperCase());
+        .replaceFirstMapped(
+          RegExp(r'^[a-z]'),
+          (m) => m.group(0)!.toUpperCase(),
+        );
   }
 
   void _openAppointmentDetail(AppointmentModel appointment) {
@@ -178,7 +187,6 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
                   _openAppointmentDetail(appointment);
                 },
               ),
-
             ],
           ),
         );
@@ -209,108 +217,10 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
     );
   }
 
-  Widget _buildAppointmentCard(AppointmentModel appointment) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          if (_isActiveAppointment(appointment)) {
-            _showAppointmentActions(appointment);
-          } else {
-            _openAppointmentDetail(appointment);
-          }
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      appointment.serviceName.isNotEmpty
-                          ? appointment.serviceName
-                          : 'Servicio no especificado',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Chip(
-                    backgroundColor:
-                        _statusColor(appointment.status).withAlpha(40),
-                    label: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _statusIcon(appointment.status),
-                          size: 16,
-                          color: _statusColor(appointment.status),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          appointment.status,
-                          style: TextStyle(
-                            color: _statusColor(appointment.status),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Mascota: ${appointment.petName.isNotEmpty ? appointment.petName : 'No disponible'}',
-                style: const TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Profesional: ${appointment.professionalId.isNotEmpty ? appointment.professionalId : 'No disponible'}',
-                style: const TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                _formatAppointmentDate(appointment),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.onSurfaceVariant,
-                ),
-              ),
-              if (_isActiveAppointment(appointment))
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Row(
-                    children: const [
-                      Icon(Icons.arrow_forward, size: 16),
-                      SizedBox(width: 6),
-                      Text(
-                        'Toca para cancelar o reprogramar',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis citas'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Mis citas'), centerTitle: true),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -318,59 +228,79 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _errorMessage != null
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _errorMessage!,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            const SizedBox(height: 16),
-                            FilledButton(
-                              onPressed: _loadAppointments,
-                              child: const Text('Reintentar'),
-                            ),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _errorMessage!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 16),
                         ),
-                      )
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildFilterChips(),
-                          const SizedBox(height: 20),
-                          if (_appointments.isEmpty)
-                            _buildEmptyState()
-                          else if (_filteredAppointments.isEmpty)
-                            _buildFilterEmptyState()
-                          else ...[
-                            if (_futureAppointments.isNotEmpty) ...[
-                              const Text(
-                                'Próximas citas',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              ..._futureAppointments.map(_buildAppointmentCard),
-                            ],
-                            if (_pastAppointments.isNotEmpty) ...[
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Historial',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              ..._pastAppointments.map(_buildAppointmentCard),
-                            ],
-                          ],
+                        const SizedBox(height: 16),
+                        FilledButton(
+                          onPressed: _loadAppointments,
+                          child: const Text('Reintentar'),
+                        ),
+                      ],
+                    ),
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildFilterChips(),
+                      const SizedBox(height: 20),
+                      if (_appointments.isEmpty)
+                        const AppointmentHistoryEmptyState()
+                      else if (_filteredAppointments.isEmpty)
+                        const AppointmentHistoryFilterEmptyState()
+                      else ...[
+                        if (_futureAppointments.isNotEmpty) ...[
+                          const Text(
+                            'Próximas citas',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          ..._futureAppointments.map(
+                            (appointment) => AppointmentHistoryCard(
+                              appointment: appointment,
+                              statusColor: _statusColor,
+                              statusIcon: _statusIcon,
+                              formatAppointmentDate: _formatAppointmentDate,
+                              isActiveAppointment: _isActiveAppointment,
+                              onOpenAppointmentDetail: _openAppointmentDetail,
+                              onShowAppointmentActions: _showAppointmentActions,
+                            ),
+                          ),
                         ],
-                      ),
+                        if (_pastAppointments.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Historial',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          ..._pastAppointments.map(
+                            (appointment) => AppointmentHistoryCard(
+                              appointment: appointment,
+                              statusColor: _statusColor,
+                              statusIcon: _statusIcon,
+                              formatAppointmentDate: _formatAppointmentDate,
+                              isActiveAppointment: _isActiveAppointment,
+                              onOpenAppointmentDetail: _openAppointmentDetail,
+                              onShowAppointmentActions: _showAppointmentActions,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ],
+                  ),
           ),
         ),
       ),
@@ -382,64 +312,6 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
               ),
             )
           : null,
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.calendar_month_outlined,
-            size: 64,
-            color: AppColors.primary.withValues(alpha: 0.7),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'Aún no tienes citas registradas.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Agenda tu primera cita para empezar a cuidar a tu mascota.',
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pushNamed('/calendar'),
-            child: const Text('Agendar mi primera cita'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.search_off_outlined,
-            size: 64,
-            color: AppColors.primary.withValues(alpha: 0.7),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'No hay citas que cumplan con ese criterio.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Prueba con otro filtro o revisa tus citas próximas y pasadas.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.onSurfaceVariant),
-          ),
-        ],
-      ),
     );
   }
 }
