@@ -408,7 +408,9 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
           ),
           const SizedBox(height: 24),
           FilledButton(
-            onPressed: () => Navigator.of(context).pushNamed('/calendar'),
+            onPressed: () {
+              AppShell.selectTab(2);
+            },
             child: const Text('Agendar mi primera cita'),
           ),
         ],
