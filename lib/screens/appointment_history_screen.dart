@@ -4,6 +4,7 @@ import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/models/appointment_model.dart';
 import 'package:pet_appointment/screens/appointment_detail_screen.dart';
 import 'package:pet_appointment/screens/appointment_history/appointment_history.dart';
+import 'package:pet_appointment/screens/appointment_history/reschedule_appointment_screen.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
 import 'package:pet_appointment/widgets/app_shell.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -112,6 +113,7 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
     final items = _filteredAppointments
         .where(
           (appointment) =>
+              appointment.status == 'Cancelada' ||
               appointment.scheduledAt == null ||
               !appointment.scheduledAt!.isAfter(now),
         )
@@ -171,6 +173,104 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
     );
   }
 
+  void _openRescheduleAppointment(AppointmentModel appointment) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) =>
+            RescheduleAppointmentScreen(appointment: appointment),
+      ),
+    ).then((result) {
+      if (result == true) {
+        _loadAppointments();
+      }
+    });
+  }
+
+  void _openCancelAppointmentDialog(AppointmentModel appointment) {
+    final reasonController = TextEditingController();
+    final now = DateTime.now().toUtc();
+    final scheduled = appointment.scheduledAt?.toUtc();
+    final withinTwoHours =
+        scheduled != null && scheduled.difference(now).inMinutes <= 120;
+
+    showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancelar cita'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (withinTwoHours)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  'Advertencia: la cita está a menos de 2 horas. Al cancelar podría aplicarse una penalización.',
+                  style: TextStyle(color: Colors.orange.shade800),
+                ),
+              ),
+            TextField(
+              controller: reasonController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'Motivo (opcional)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    ).then((confirmed) async {
+      if (confirmed != true) {
+        reasonController.dispose();
+        return;
+      }
+
+      try {
+        await _service.cancelClientAppointment(
+          appointmentId: appointment.id,
+          reason: reasonController.text.trim().isEmpty
+              ? null
+              : reasonController.text.trim(),
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Cita cancelada correctamente'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          _loadAppointments();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error al cancelar la cita: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        reasonController.dispose();
+      }
+    });
+  }
+
+  bool _canCancelAppointment(AppointmentModel appointment) {
+    return ['En espera', 'Confirmada'].contains(appointment.status);
+  }
+
   Future<void> _showAppointmentActions(AppointmentModel appointment) async {
     await showModalBottomSheet<void>(
       context: context,
@@ -187,6 +287,26 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
                   _openAppointmentDetail(appointment);
                 },
               ),
+              if (_isActiveAppointment(appointment))
+                ListTile(
+                  leading: const Icon(Icons.edit_calendar),
+                  title: const Text('Reprogramar'),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _openRescheduleAppointment(appointment);
+                  },
+                ),
+              if (_canCancelAppointment(appointment))
+                ListTile(
+                  leading: const Icon(Icons.cancel),
+                  title: const Text('Cancelar cita'),
+                  textColor: Colors.red,
+                  iconColor: Colors.red,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _openCancelAppointmentDialog(appointment);
+                  },
+                ),
             ],
           ),
         );
@@ -314,67 +434,4 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
           : null,
     );
   }
-<<<<<<< HEAD
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.calendar_month_outlined,
-            size: 64,
-            color: AppColors.primary.withValues(alpha: 0.7),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'Aún no tienes citas registradas.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Agenda tu primera cita para empezar a cuidar a tu mascota.',
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          FilledButton(
-            onPressed: () {
-              AppShell.selectTab(2);
-            },
-            child: const Text('Agendar mi primera cita'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.search_off_outlined,
-            size: 64,
-            color: AppColors.primary.withValues(alpha: 0.7),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'No hay citas que cumplan con ese criterio.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Prueba con otro filtro o revisa tus citas próximas y pasadas.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.onSurfaceVariant),
-          ),
-        ],
-      ),
-    );
-  }
-=======
->>>>>>> b75c1dc0f4cfc34146ba9e2413adec3283158490
 }

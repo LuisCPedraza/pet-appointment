@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:pet_appointment/models/appointment_history_model.dart';
 import 'package:pet_appointment/models/appointment_model.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
-import 'package:pet_appointment/utils/appointment_rules.dart';
-import 'package:pet_appointment/widgets/appointment_history_view.dart';
 import 'package:pet_appointment/widgets/status_selector.dart';
 import 'package:pet_appointment/screens/appointment_detail/appointment_detail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Pantalla que muestra los detalles completos de una cita.
-/// Incluye información del cliente, la mascota, el servicio, el estado y el historial.
+/// Incluye información del cliente, la mascota, el servicio y el estado.
 /// El profesional asignado puede cambiar el estado de la cita.
 class AppointmentDetailScreen extends StatefulWidget {
   final AppointmentModel appointment;
@@ -26,60 +23,18 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
   final _appointmentService = AppointmentService();
 
   late AppointmentModel _appointment;
-  List<AppointmentHistoryModel> _history = [];
-  bool _historyLoading = false;
   bool _statusChanging = false;
   String? _errorMessage;
-  RealtimeChannel? _historyChannel;
 
   @override
   void initState() {
     super.initState();
     _appointment = widget.appointment;
-    _loadHistory();
-    _subscribeToHistoryChanges();
   }
 
   @override
   void dispose() {
-    _historyChannel?.unsubscribe();
     super.dispose();
-  }
-
-  /// Carga el historial de cambios de estado
-  Future<void> _loadHistory() async {
-    if (!mounted) return;
-    setState(() => _historyLoading = true);
-
-    try {
-      final history = await _appointmentService.fetchAppointmentHistory(
-        _appointment.id,
-      );
-      if (mounted) {
-        setState(() {
-          _history = history;
-          _errorMessage = null;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = 'Error al cargar el historial: $e';
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _historyLoading = false);
-      }
-    }
-  }
-
-  /// Se suscribe a cambios en el historial en tiempo real
-  void _subscribeToHistoryChanges() {
-    _historyChannel = _appointmentService.subscribeToAppointmentHistory(
-      appointmentId: _appointment.id,
-      onChanged: _loadHistory,
-    );
   }
 
   /// Maneja el cambio de estado
@@ -130,9 +85,6 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
             backgroundColor: Colors.green,
           ),
         );
-
-        // Recargar historial
-        await _loadHistory();
       }
     } catch (e) {
       if (mounted) {
@@ -155,109 +107,6 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
   bool get _canChangeStatus {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
     return currentUserId == _appointment.professionalId && !_statusChanging;
-  }
-
-  /// Verifica si el cliente autenticado puede cancelar esta cita
-  bool get _canCancel {
-    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
-    final isClient =
-        currentUserId != null && currentUserId == _appointment.clientId;
-    final allowedStatus = canClientCancelAppointment(_appointment.status);
-    return isClient && allowedStatus && !_statusChanging;
-  }
-
-  /// Maneja la cancelación por parte del cliente. Muestra diálogo con aviso
-  /// si la cita está a menos de 2 horas y permite ingresar un motivo opcional.
-  Future<void> _handleClientCancel() async {
-    final now = DateTime.now().toUtc();
-    final scheduled = _appointment.scheduledAt?.toUtc();
-    final withinTwoHours =
-        scheduled != null && scheduled.difference(now).inMinutes <= 120;
-
-    final reasonController = TextEditingController();
-
-    try {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Cancelar cita'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (withinTwoHours)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text(
-                    'Advertencia: la cita está a menos de 2 horas. Al cancelar podría aplicarse una penalización.',
-                    style: TextStyle(color: Colors.orange.shade800),
-                  ),
-                ),
-              TextField(
-                controller: reasonController,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: 'Motivo (opcional)',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Confirmar'),
-            ),
-          ],
-        ),
-      );
-
-      if (confirmed != true) return;
-
-      if (!mounted) return;
-      setState(() {
-        _statusChanging = true;
-        _errorMessage = null;
-      });
-
-      await _appointmentService.cancelClientAppointment(
-        appointmentId: _appointment.id,
-        reason: reasonController.text.trim().isEmpty
-            ? null
-            : reasonController.text.trim(),
-      );
-
-      if (mounted) {
-        setState(() {
-          _appointment = _appointment.copyWith(status: 'Cancelada');
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cita cancelada correctamente'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        await _loadHistory();
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = 'Error cancelando la cita: ${e.toString()}';
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_errorMessage!), backgroundColor: Colors.red),
-        );
-      }
-    } finally {
-      reasonController.dispose();
-      if (mounted) setState(() => _statusChanging = false);
-    }
   }
 
   /// Retorna el color del badge del estado.
@@ -372,6 +221,17 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
                   ),
                   const SizedBox(height: 20),
 
+                  // Sección de profesional
+                  const AppointmentDetailSectionTitle('Profesional'),
+                  AppointmentDetailRow(
+                    icon: Icons.person_search,
+                    label: 'Nombre',
+                    value: _appointment.professionalName.isNotEmpty
+                        ? _appointment.professionalName
+                        : 'No disponible',
+                  ),
+                  const SizedBox(height: 20),
+
                   // Sección de servicio
                   const AppointmentDetailSectionTitle('Servicio'),
                   AppointmentDetailRow(
@@ -400,32 +260,6 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
                       ),
                     ),
                   ],
-
-                  // Historial de cambios
-                  const SizedBox(height: 24),
-                  // Botón de cancelación para el cliente
-                  if (_canCancel) ...[
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                        ),
-                        icon: const Icon(Icons.cancel),
-                        label: const Text('Cancelar cita'),
-                        onPressed: _handleClientCancel,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  const AppointmentDetailSectionTitle('Historial de Cambios'),
-                  const SizedBox(height: 12),
-                  AppointmentHistoryView(
-                    history: _history,
-                    isLoading: _historyLoading,
-                  ),
                   const SizedBox(height: 16),
                 ],
               ),

@@ -9,10 +9,12 @@ class ConfirmAppointmentButton extends StatelessWidget {
     super.key,
     required this.controller,
     required this.onPressed,
+    this.label = 'Confirmar Cita',
   });
 
   final CalendarController controller;
   final VoidCallback onPressed;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +46,7 @@ class ConfirmAppointmentButton extends StatelessWidget {
                   ),
                 )
               : Text(
-                  'Confirmar Cita',
+                  label,
                   style: TextStyle(
                     fontFamily: AppFonts.primary,
                     fontWeight: FontWeight.w700,
