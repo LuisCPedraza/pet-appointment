@@ -10,7 +10,6 @@ import 'package:pet_appointment/screens/register_screen.dart';
 import 'package:pet_appointment/screens/login_screen.dart';
 import 'package:pet_appointment/screens/forgot_password_screen.dart';
 import 'package:pet_appointment/screens/reset_password_screen.dart';
-import 'package:pet_appointment/screens/calendar_screen.dart';
 import 'package:pet_appointment/screens/appointment_confirm_screen.dart';
 import 'package:pet_appointment/screens/appointment_history_screen.dart';
 import 'package:pet_appointment/screens/professional_home_screen.dart';
@@ -66,7 +65,7 @@ class MyApp extends StatelessWidget {
           '/register': (_) => const RegisterScreen(),
           '/forgot-password': (_) => const ForgotPasswordScreen(),
           '/reset-password': (_) => const ResetPasswordScreen(),
-          '/calendar': (_) => const CalendarScreen(),
+          '/calendar': (_) => const AppShell(initialIndex: 2),
           '/appointments-history': (_) => const AppointmentHistoryScreen(),
           '/professional-home': (_) => const ProfessionalHomeScreen(),
           '/professional-availability': (_) =>

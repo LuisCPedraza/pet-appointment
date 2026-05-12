@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/models/appointment_model.dart';
+import 'package:pet_appointment/widgets/app_shell.dart';
 
 /// =============================================
 /// lib/screens/appointment_history/appointment_history_widgets.dart
@@ -35,7 +36,9 @@ class AppointmentHistoryEmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           FilledButton(
-            onPressed: () => Navigator.of(context).pushNamed('/calendar'),
+            onPressed: () {
+              AppShell.selectTab(2);
+            },
             child: const Text('Agendar mi primera cita'),
           ),
         ],
@@ -162,7 +165,7 @@ class AppointmentHistoryCard extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                'Profesional: ${appointment.professionalId.isNotEmpty ? appointment.professionalId : 'No disponible'}',
+                'Profesional: ${appointment.professionalName.isNotEmpty ? appointment.professionalName : 'No disponible'}',
                 style: const TextStyle(fontSize: 14),
               ),
               const SizedBox(height: 6),
