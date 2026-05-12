@@ -83,7 +83,9 @@ class CalendarCard extends StatelessWidget {
           defaultBuilder: (ctx, day, _) {
             if (controller.slotsByDay.isEmpty) return null;
             if (day.year != controller.focusedDay.year ||
-                day.month != controller.focusedDay.month) return null;
+                day.month != controller.focusedDay.month) {
+              return null;
+            }
             final key = DateTime(day.year, day.month, day.day);
             final slots = controller.slotsByDay[key] ?? [];
             if (slots.isEmpty) return null;

@@ -3,8 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/services/auth_service.dart';
-import 'package:pet_appointment/utils/field_validators.dart';
-import 'package:pet_appointment/widgets/widgets.dart';
+// field validators moved to widget file
+import 'package:pet_appointment/screens/edit_profile/edit_profile.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -158,139 +158,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Ícono informativo
-            Center(
-              child: Stack(
-                children: [
-                  Container(
-                    width: 96,
-                    height: 96,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryContainer.withValues(alpha: 0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: ClipOval(
-                      child: _selectedPhotoBytes != null
-                          ? Image.memory(
-                              _selectedPhotoBytes!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Icon(
-                                    Icons.person_rounded,
-                                    size: 46,
-                                    color: AppColors.primary,
-                                  ),
-                            )
-                          : (_currentPhotoUrl.isNotEmpty
-                                ? Image.network(
-                                    _currentPhotoUrl,
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) => Icon(
-                                          Icons.person_rounded,
-                                          size: 46,
-                                          color: AppColors.primary,
-                                        ),
-                                  )
-                                : Icon(
-                                    Icons.person_rounded,
-                                    size: 46,
-                                    color: AppColors.primary,
-                                  )),
-                    ),
-                  ),
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: GestureDetector(
-                      onTap: _isLoading ? null : _pickPhoto,
-                      child: Container(
-                        width: 34,
-                        height: 34,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: const Icon(
-                          Icons.photo_camera_rounded,
-                          size: 16,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            EditProfileAvatar(
+              selectedPhotoBytes: _selectedPhotoBytes,
+              currentPhotoUrl: _currentPhotoUrl,
+              isLoading: _isLoading,
+              onPickPhoto: _pickPhoto,
+              userEmail: _authService.currentUserEmail,
             ),
-            const SizedBox(height: 8),
-            Center(
-              child: TextButton(
-                onPressed: _isLoading ? null : _pickPhoto,
-                child: const Text('Cambiar foto'),
-              ),
-            ),
-            Center(
-              child: Text(
-                _authService.currentUserEmail,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.onSurfaceVariant,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
 
-            // Tarjeta del formulario
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 30,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Información personal',
-                      style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        color: AppColors.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    AppTextField(
-                      label: 'Nombre completo',
-                      hint: 'Tu nombre',
-                      controller: _nameController,
-                      validator: FieldValidators.fullName,
-                      keyboardType: TextInputType.name,
-                    ),
-                    const SizedBox(height: 16),
-                    AppTextField(
-                      label: 'Teléfono',
-                      hint: '+1 (555) 000-0000',
-                      controller: _phoneController,
-                      validator: FieldValidators.phone,
-                      keyboardType: TextInputType.phone,
-                      textInputAction: TextInputAction.done,
-                    ),
-                  ],
-                ),
-              ),
+            EditProfileFormCard(
+              formKey: _formKey,
+              nameController: _nameController,
+              phoneController: _phoneController,
             ),
             const SizedBox(height: 32),
 

@@ -2,9 +2,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:image_picker/image_picker.dart';
-import '../config/theme.dart';
 import '../services/pet_service.dart';
 import '../utils/field_validators.dart';
+import '../screens/add_pet/add_pet.dart';
 
 class AddPetScreen extends StatefulWidget {
   const AddPetScreen({super.key, this.initialPet});
@@ -200,167 +200,6 @@ class _AddPetScreenState extends State<AddPetScreen> {
     }
   }
 
-  Widget _buildSpeciesSelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Especie *', style: Theme.of(context).textTheme.labelLarge),
-        const SizedBox(height: 8),
-        SegmentedButton<String>(
-          segments: const [
-            ButtonSegment(label: Text('Perro'), value: 'Perro'),
-            ButtonSegment(label: Text('Gato'), value: 'Gato'),
-            ButtonSegment(label: Text('Otro'), value: 'Otro'),
-          ],
-          selected: {_selectedSpecies},
-          onSelectionChanged: (selected) {
-            setState(() {
-              _selectedSpecies = selected.first;
-            });
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPhotoSelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Foto (opcional)', style: Theme.of(context).textTheme.labelLarge),
-        const SizedBox(height: 12),
-        if (_selectedPhotoBytes != null)
-          Stack(
-            alignment: Alignment.topRight,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.memory(
-                  _selectedPhotoBytes!,
-                  width: 120,
-                  height: 120,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Positioned(
-                right: 0,
-                top: 0,
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedPhotoBytes = null;
-                      _removeExistingPhoto = true;
-                    });
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.error,
-                      shape: BoxShape.circle,
-                    ),
-                    padding: const EdgeInsets.all(4),
-                    child: const Icon(
-                      Icons.close,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          )
-        else if (_existingPhotoUrl != null && !_removeExistingPhoto)
-          Stack(
-            alignment: Alignment.topRight,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  _existingPhotoUrl!,
-                  width: 120,
-                  height: 120,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    width: 120,
-                    height: 120,
-                    color: AppColors.surfaceContainerLow,
-                    child: const Icon(Icons.broken_image_outlined),
-                  ),
-                ),
-              ),
-              Positioned(
-                right: 0,
-                top: 0,
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _removeExistingPhoto = true;
-                    });
-                  },
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: AppColors.error,
-                      shape: BoxShape.circle,
-                    ),
-                    padding: const EdgeInsets.all(4),
-                    child: const Icon(
-                      Icons.close,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          )
-        else
-          ElevatedButton.icon(
-            onPressed: _pickPhoto,
-            icon: const Icon(Icons.image_outlined),
-            label: const Text('Seleccionar foto'),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildBirthDateSelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Fecha de nacimiento *',
-          style: Theme.of(context).textTheme.labelLarge,
-        ),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: _selectBirthDate,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.outline),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.calendar_today_outlined),
-                const SizedBox(width: 12),
-                Text(
-                  _selectedBirthDate != null
-                      ? '${_selectedBirthDate!.day}/${_selectedBirthDate!.month}/${_selectedBirthDate!.year}'
-                      : 'Selecciona una fecha',
-                  style: _selectedBirthDate != null
-                      ? Theme.of(context).textTheme.bodyMedium
-                      : Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.outline,
-                        ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -392,7 +231,14 @@ class _AddPetScreenState extends State<AddPetScreen> {
               const SizedBox(height: 16),
 
               // Especie
-              _buildSpeciesSelector(),
+              AddPetSpeciesSelector(
+                selectedSpecies: _selectedSpecies,
+                onChanged: (species) {
+                  setState(() {
+                    _selectedSpecies = species;
+                  });
+                },
+              ),
               const SizedBox(height: 16),
 
               // Raza
@@ -412,7 +258,10 @@ class _AddPetScreenState extends State<AddPetScreen> {
               const SizedBox(height: 16),
 
               // Fecha de nacimiento
-              _buildBirthDateSelector(),
+              AddPetBirthDateSelector(
+                selectedBirthDate: _selectedBirthDate,
+                onTap: _selectBirthDate,
+              ),
               const SizedBox(height: 16),
 
               // Peso
@@ -453,7 +302,23 @@ class _AddPetScreenState extends State<AddPetScreen> {
               const SizedBox(height: 16),
 
               // Foto
-              _buildPhotoSelector(),
+              AddPetPhotoSelector(
+                selectedPhotoBytes: _selectedPhotoBytes,
+                existingPhotoUrl: _existingPhotoUrl,
+                removeExistingPhoto: _removeExistingPhoto,
+                onPickPhoto: _pickPhoto,
+                onRemoveSelectedPhoto: () {
+                  setState(() {
+                    _selectedPhotoBytes = null;
+                    _removeExistingPhoto = true;
+                  });
+                },
+                onRemoveExistingPhoto: () {
+                  setState(() {
+                    _removeExistingPhoto = true;
+                  });
+                },
+              ),
               const SizedBox(height: 24),
 
               // Botón guardar
