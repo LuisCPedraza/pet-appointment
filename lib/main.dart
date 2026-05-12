@@ -4,16 +4,9 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:pet_appointment/features/features.dart';
 import 'package:pet_appointment/widgets/widgets.dart';
 import 'package:pet_appointment/config/config.dart';
-import 'package:pet_appointment/screens/register_screen.dart';
-import 'package:pet_appointment/screens/login_screen.dart';
-import 'package:pet_appointment/screens/forgot_password_screen.dart';
-import 'package:pet_appointment/screens/reset_password_screen.dart';
-import 'package:pet_appointment/screens/appointment_confirm_screen.dart';
-import 'package:pet_appointment/screens/appointment_history_screen.dart';
-import 'package:pet_appointment/screens/professional_home_screen.dart';
-import 'package:pet_appointment/screens/professional_availability_screen.dart';
 import 'package:pet_appointment/controllers/professional_agenda_controller.dart';
 
 Future<void> main() async {

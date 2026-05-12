@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pet_appointment/screens/appointment_confirm_screen.dart';
-import 'package:pet_appointment/screens/calendar_screen.dart';
+import 'package:pet_appointment/features/appointments/appointment_confirm_screen.dart';
+import 'package:pet_appointment/features/calendar/calendar_screen.dart';
 
 /// Tab de agendamiento — mantiene un Navigator interno para que la
 /// confirmación de cita se muestre sobre la misma shell y conserve la
@@ -26,10 +26,7 @@ class BookingFlowNavigator extends StatelessWidget {
             page = const CalendarScreen();
             break;
         }
-        return MaterialPageRoute(
-          settings: settings,
-          builder: (_) => page,
-        );
+        return MaterialPageRoute(settings: settings, builder: (_) => page);
       },
     );
   }

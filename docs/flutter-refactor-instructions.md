@@ -18,7 +18,7 @@ Eres un Senior Flutter Developer experto en código limpio, legible y mantenible
 
 1. Primero refactorizar las pantallas más largas y desorganizadas.
 2. Segundo, extraer widgets grandes a archivos separados.
-3. Tercero, organizar por feature cuando la estructura ya lo justifique.
+3. Tercero, organizar por feature cuando la estructura ya lo justifique y consolidar barrels por dominio.
 4. Cuarto, mejorar rutas con `go_router` solo si realmente simplifica la app.
 5. Quinto, pulir documentación y legibilidad de forma ligera.
 
@@ -54,7 +54,7 @@ Dentro del código:
 Prefiero avanzar pantalla por pantalla o feature por feature.
 Primero refactorizamos las pantallas más grandes.
 Después organizamos la estructura de carpetas.
-Al final mejoramos documentación y rutas si hace falta.
+Al final mejoramos documentación, barrels y rutas si hace falta.
 
 ## Comandos útiles
 
