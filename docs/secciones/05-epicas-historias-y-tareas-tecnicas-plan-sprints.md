@@ -287,6 +287,8 @@ Auth operativa (Sprint 2)
 
 * [ ] El cliente recibe notificación local cuando cambia el estado de su cita.
 * [ ] El cliente recibe recordatorio 24 horas antes de su cita.
+* [ ] El home del usuario está terminado con datos reales y accesos rápidos.
+* [ ] El perfil del usuario está terminado y enlaza a edición de perfil.
 * [ ] El administrador puede gestionar servicios y ver reportes básicos.
 * [ ] El pipeline de GitHub Actions ejecuta pruebas y genera el APK automáticamente.
 * [ ] La cobertura de pruebas alcanza al menos el 60% en lógica crítica.
@@ -303,7 +305,7 @@ Auth operativa (Sprint 2)
 | **EP-03** | Reserva y Gestión de Citas           | Flujo completo: crear, modificar, cancelar citas con calendario y validación de conflictos | **Alta**  | Sprint 3 |
 | **EP-04** | Panel del Profesional                 | Agenda visual diaria/semanal, cambio de estados, configuración de disponibilidad horaria   | **Alta**  | Sprint 3 |
 | **EP-05** | Notificaciones y Tiempo Real          | Sincronización RT, notificaciones locales, recordatorios automáticos vía Edge Functions  | **Media** | Sprint 4 |
-| **EP-06** | Panel de Administración              | Gestión de servicios, horarios, usuarios y reportes básicos de citas                      | **Media** | Sprint 4 |
+| **EP-06** | Panel de Administración              | Gestión de servicios, usuarios/roles, acceso admin y soporte al flujo de asignación de profesionales | **Media** | Sprint 4 |
 | **EP-07** | CI/CD y Calidad                       | Pipeline GitHub Actions, pruebas automatizadas, generación y firma de APK                  | **Media** | Sprint 4 |
 
 ---
@@ -1174,6 +1176,68 @@ en_espera
 
 ---
 
+#### US-25 — Home del usuario terminado
+
+> **Como** cliente autenticado,
+>
+> **quiero** ver una pantalla de inicio con resumen de mis próximas citas y accesos rápidos,
+>
+> **para** navegar más rápido a las funciones más usadas sin perder contexto.
+
+**Implementación técnica:**
+
+* Actualizar `AuthenticatedHomeScreen` para reemplazar placeholders por un dashboard funcional.
+* Agregar método `fetchUpcomingAppointments()` en `AppointmentService` para consultar citas futuras activas.
+* Reutilizar `PetService` para mostrar resumen de mascotas registradas.
+
+**Criterios de aceptación:**
+
+* [ ] Muestra saludo personalizado con nombre del usuario.
+* [ ] Muestra próxima cita (mascota, servicio, profesional, fecha/hora, estado).
+* [ ] Si no hay citas futuras, muestra CTA para "Agendar cita".
+* [ ] Incluye accesos rápidos a "Nueva cita" y "Mis mascotas".
+* [ ] Al volver a la pestaña home, los datos se refrescan.
+
+| Campo        | Valor               |
+| ------------ | ------------------- |
+| Story Points | 5                   |
+| Sprint       | 4                   |
+| Responsable  | Luis Carlos Pedraza |
+| Prioridad    | Alta                |
+
+---
+
+#### US-26 — Perfil del usuario terminado
+
+> **Como** usuario autenticado,
+>
+> **quiero** ver mi perfil con datos reales y acceso a edición,
+>
+> **para** revisar y actualizar mi información personal cuando lo necesite.
+
+**Implementación técnica:**
+
+* Completar `ProfileScreen` con datos de `AuthService.getCurrentUser()` y tabla `users`.
+* Conectar botón "Editar perfil" hacia `EditProfileScreen`.
+* Mantener acción de cerrar sesión y recargar datos al regresar.
+
+**Criterios de aceptación:**
+
+* [ ] Muestra foto/avatar, nombre, correo y teléfono.
+* [ ] Muestra rol del usuario cuando aplique (ej. profesional).
+* [ ] El botón "Editar perfil" navega a `EditProfileScreen` con datos prellenados.
+* [ ] El botón "Cerrar sesión" invalida la sesión y redirige al login.
+* [ ] Al regresar desde edición, los datos se actualizan en pantalla.
+
+| Campo        | Valor            |
+| ------------ | ---------------- |
+| Story Points | 3                |
+| Sprint       | 4                |
+| Responsable  | Nicolas Gonzalez |
+| Prioridad    | Alta             |
+
+---
+
 ### Épica EP-06: Panel de Administración
 
 ---
@@ -1233,6 +1297,96 @@ en_espera
 | Sprint       | 4                   |
 | Responsable  | Luis Carlos Pedraza |
 | Prioridad    | Media               |
+
+---
+
+#### US-27 — Asignar roles a los usuarios (Admin)
+
+> **Como** administrador,
+>
+> **quiero** asignar y cambiar roles a los usuarios del sistema,
+>
+> **para** habilitar que nuevos profesionales puedan atender citas y mantener control de acceso.
+
+**Implementación técnica:**
+
+* Crear/usar RPC segura en Supabase para cambio de rol (`client` ↔ `professional`) sin exponer `service_role`.
+* Integrar selector de rol en `UsersManagementScreen` con actualización inmediata de lista.
+* Validar permisos con RLS para que solo `admin` ejecute cambios.
+
+**Criterios de aceptación:**
+
+* [ ] Solo usuarios `admin` pueden cambiar roles.
+* [ ] El admin puede cambiar de `client` a `professional` y viceversa.
+* [ ] Los cambios se reflejan en la UI sin recargar manualmente.
+* [ ] Se registra error claro cuando el cambio falla por permisos.
+
+| Campo        | Valor               |
+| ------------ | ------------------- |
+| Story Points | 5                   |
+| Sprint       | 4                   |
+| Responsable  | Luis Carlos Pedraza |
+| Prioridad    | Alta                |
+
+---
+
+#### US-28 — Seleccionar profesional al crear cita
+
+> **Como** cliente autenticado,
+>
+> **quiero** escoger el profesional que me va a atender al crear una cita,
+>
+> **para** tener control sobre quién atiende a mi mascota.
+
+**Implementación técnica:**
+
+* Extender `CalendarController` con `selectedProfessionalId` y lista de profesionales.
+* Usar `AppointmentService.fetchProfessionals()` para cargar profesionales activos.
+* Filtrar slots por `professional_id` y mostrar selección en la confirmación.
+
+**Criterios de aceptación:**
+
+* [ ] El selector de profesional aparece dentro del flujo de reserva.
+* [ ] El calendario muestra slots del profesional seleccionado.
+* [ ] Al cambiar profesional, se limpia el slot seleccionado y se recarga disponibilidad.
+* [ ] La cita se guarda con `professional_id` correcto.
+
+| Campo        | Valor            |
+| ------------ | ---------------- |
+| Story Points | 5                |
+| Sprint       | 4                |
+| Responsable  | Nicolas Gonzalez |
+| Prioridad    | Alta             |
+
+---
+
+#### US-29 — Acceso y navegación del panel admin
+
+> **Como** administrador,
+>
+> **quiero** tener un panel con navegación propia y guard de acceso,
+>
+> **para** gestionar el sistema separado de la experiencia del cliente.
+
+**Implementación técnica:**
+
+* Crear `AdminShell` con tabs para Dashboard, Usuarios, Servicios y Reportes.
+* Aplicar guard por rol en el router para restringir acceso a no administradores.
+* Mantener acción de cierre de sesión desde panel admin.
+
+**Criterios de aceptación:**
+
+* [ ] Un usuario admin entra al shell admin automáticamente.
+* [ ] Un usuario no admin no puede abrir rutas admin.
+* [ ] El panel muestra navegación con las secciones definidas.
+* [ ] El cierre de sesión funciona desde el panel.
+
+| Campo        | Valor               |
+| ------------ | ------------------- |
+| Story Points | 3                   |
+| Sprint       | 4                   |
+| Responsable  | Luis Carlos Pedraza |
+| Prioridad    | Alta                |
 
 ---
 
@@ -1303,15 +1457,19 @@ Estado actual de estas tareas:
 | TASK ID   | Tarea                         | Descripción técnica                                                                                                    | Horas | HU    |
 | --------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----- | ----- |
 | TASK-17P1 | Admin - gestión de servicios | `ServicesManagementScreen`, CRUD con `DataTable`, activar/desactivar sin eliminar                                    | 8h    | US-23 |
-| TASK-17P2 | Admin - gestión de usuarios  | `UsersManagementScreen`, tabla paginada, selector de rol, soft delete                                                  | 4h    | US-05 |
+| TASK-17P2 | Admin - gestión de usuarios  | `UsersManagementScreen`, tabla paginada, selector de rol, soft delete                                                  | 4h    | US-27 |
 | TASK-17P3 | Admin - reportes              | `ReportsScreen`, contadores por estado, filtros de fecha con `DateRangePicker`, lista paginada                       | 4h    | US-24 |
 | TASK-15   | Edge Function recordatorios   | Supabase Edge Function `send-reminders`, cron diario, query citas del día siguiente,`schedule()`notificación local | 4h    | US-21 |
+| TASK-23   | Home del cliente funcional    | Refactor de `AuthenticatedHomeScreen`, integración con próximas citas y accesos rápidos                               | 5h    | US-25 |
+| TASK-24   | Perfil de usuario funcional   | Completar `ProfileScreen` con datos reales y navegación a edición                                                     | 3h    | US-26 |
+| TASK-26   | Admin shell y guard de acceso | Implementar `AdminShell`, tabs base y guard por rol en rutas                                                          | 3h    | US-29 |
 
 #### Nicolas Gonzalez — CI/CD y Release (20h)
 
 | TASK ID   | Tarea                      | Descripción técnica                                                                                           | Horas | HU    |
 | --------- | -------------------------- | --------------------------------------------------------------------------------------------------------------- | ----- | ----- |
 | TASK-11P2 | Realtime citas             | Suscripción al canal de `appointments`para cliente y profesional, dispatch de notificaciones locales         | 5h    | US-20 |
+| TASK-25   | Selector de profesional en cita | Agregar selector de profesional, estado en controller y filtrado de slots por profesional                         | 5h    | US-28 |
 | TASK-18   | GitHub Actions APK         | Workflow `build-apk.yml`,`flutter build apk --release`, upload artifact, triggers en push a `main`        | 4h    | —    |
 | TASK-19P2 | GitHub Actions CI completo | `flutter analyze`,`flutter test`, badge de estado en README                                                 | 3h    | —    |
 | TASK-20   | Pruebas unitarias y widget | Tests para `AppointmentRepository`,`AuthService`,`PetRepository`, widget tests para formularios críticos | 5h    | —    |
@@ -1375,7 +1533,12 @@ Epic
 | Story           | Notificar cambio de estado al cliente      | EP-05  | Nicolas Gonzalez    | Alta      | 5  |
 | Story           | Recordatorio 24 horas antes                | EP-05  | Nicolas Gonzalez    | Alta      | 5  |
 | Story           | Notificar nueva cita al profesional        | EP-05  | Nicolas Gonzalez    | Media     | 3  |
+| Story           | Home del usuario terminado                 | EP-05  | Luis Carlos Pedraza | Alta      | 5  |
+| Story           | Perfil del usuario terminado               | EP-05  | Nicolas Gonzalez    | Alta      | 3  |
 | Epic            | Panel de administración                   | —     | Equipo              | Media     | — |
+| Story           | Asignar roles a los usuarios (Admin)      | EP-06  | Luis Carlos Pedraza | Alta      | 5  |
+| Story           | Seleccionar profesional al crear cita      | EP-06  | Nicolas Gonzalez    | Alta      | 5  |
+| Story           | Acceso y navegación del panel admin        | EP-06  | Luis Carlos Pedraza | Alta      | 3  |
 | Story           | Gestionar catálogo de servicios           | EP-06  | Luis Carlos Pedraza | Alta      | 5  |
 | Story           | Ver reportes de citas                      | EP-06  | Luis Carlos Pedraza | Media     | 8  |
 | Story           | Gestionar usuarios y roles                 | EP-06  | Luis Carlos Pedraza | Media     | 5  |
