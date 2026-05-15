@@ -142,7 +142,7 @@ class AuthService {
 
   /// Inicia sesión usando Google a través de Supabase OAuth.
   /// En móviles usará el flujo de navegador/ deep link configurado en Supabase.
-  /// 
+  ///
   /// Requiere:
   /// - Google Cloud Console: OAuth 2.0 credentials configuradas
   /// - Supabase: Google OAuth habilitado con Client ID y Secret
@@ -167,9 +167,7 @@ class AuthService {
         OAuthProvider.google,
         redirectTo: finalRedirectTo,
         authScreenLaunchMode: LaunchMode.externalApplication,
-        queryParams: {
-          'prompt': 'select_account',
-        },
+        queryParams: {'prompt': 'select_account'},
       );
 
       debugPrint('✅ Login con Google completado exitosamente');
@@ -178,7 +176,9 @@ class AuthService {
       rethrow;
     } catch (e) {
       debugPrint('❌ Error inesperado en Google Sign In: $e');
-      throw AuthException('Error al iniciar sesión con Google. Intenta de nuevo.');
+      throw AuthException(
+        'Error al iniciar sesión con Google. Intenta de nuevo.',
+      );
     }
   }
 
@@ -197,9 +197,7 @@ class AuthService {
         OAuthProvider.github,
         redirectTo: finalRedirectTo,
         authScreenLaunchMode: LaunchMode.externalApplication,
-        queryParams: {
-          'prompt': 'consent',
-        },
+        queryParams: {'prompt': 'consent'},
       );
 
       debugPrint('✅ Login con GitHub completado exitosamente');
@@ -208,7 +206,38 @@ class AuthService {
       rethrow;
     } catch (e) {
       debugPrint('❌ Error inesperado en GitHub Sign In: $e');
-      throw AuthException('Error al iniciar sesión con GitHub. Intenta de nuevo.');
+      throw AuthException(
+        'Error al iniciar sesión con GitHub. Intenta de nuevo.',
+      );
+    }
+  }
+
+  /// Inicia sesión usando Apple a través de Supabase OAuth.
+  /// Requiere que Apple OAuth esté habilitado en Supabase y que el redirect URI
+  /// esté correctamente configurado en el panel de Supabase y en Apple Developer.
+  Future<void> signInWithApple({String? redirectTo}) async {
+    try {
+      debugPrint('🔐 Iniciando login con Apple...');
+
+      final finalRedirectTo = redirectTo ?? _getDefaultRedirectUri();
+      debugPrint('📍 Redirect URI final: $finalRedirectTo');
+
+      debugPrint('🔄 Enviando solicitud OAuth a Supabase...');
+      await _client.auth.signInWithOAuth(
+        OAuthProvider.apple,
+        redirectTo: finalRedirectTo,
+        authScreenLaunchMode: LaunchMode.externalApplication,
+      );
+
+      debugPrint('✅ Login con Apple completado exitosamente');
+    } on AuthException catch (e) {
+      debugPrint('❌ Error de autenticación: ${e.message}');
+      rethrow;
+    } catch (e) {
+      debugPrint('❌ Error inesperado en Apple Sign In: $e');
+      throw AuthException(
+        'Error al iniciar sesión con Apple. Intenta de nuevo.',
+      );
     }
   }
 

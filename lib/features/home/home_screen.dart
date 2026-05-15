@@ -3,7 +3,7 @@ import 'package:pet_appointment/features/home/authenticated_home_screen.dart';
 import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/screens/home/home.dart';
 import 'package:pet_appointment/features/professional/professional_home_screen.dart';
-import 'package:flutter/material.dart';
+// duplicate import removed
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
