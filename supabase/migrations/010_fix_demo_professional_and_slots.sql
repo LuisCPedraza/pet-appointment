@@ -1,8 +1,9 @@
--- Seed minimo para validar TASK-02P1 y TASK-03
--- Incluye: 1 admin, 1 professional, 1 client, 2 services, 3+ availability,
--- 1 appointment y 1 appointment_history.
+-- Idempotent demo-data repair for existing installs.
+-- Ensures the demo professional can log in as profesional@pet.dev,
+-- has the professional role, and starts with visible availability slots.
 
--- 1) Usuarios base
+begin;
+
 insert into public.users (email, full_name, phone, role)
 values
   ('admin@petappointment.dev', 'Admin PetAppointment', '3000000001', 'admin'),
@@ -13,20 +14,18 @@ set full_name = excluded.full_name,
     phone = excluded.phone,
     role = excluded.role;
 
--- 2) Servicios base
 insert into public.services (name, description, duration_minutes, price, is_active)
 values
   ('Consulta Veterinaria', 'Revision general de salud', 30, 50000, true),
   ('Peluqueria y Bano', 'Aseo completo para mascota', 60, 70000, true)
 on conflict do nothing;
 
--- 3) Availability para profesional
-with pro as (
+with demo_professional as (
   select id as professional_id
   from public.users
   where email = 'profesional@pet.dev'
   limit 1
-), svc as (
+), demo_service as (
   select id as service_id
   from public.services
   order by created_at asc
@@ -34,13 +33,13 @@ with pro as (
 )
 insert into public.availability (professional_id, service_id, slot_start, slot_end, is_available)
 select
-  pro.professional_id,
-  svc.service_id,
-  s.slot_start,
-  s.slot_end,
+  demo_professional.professional_id,
+  demo_service.service_id,
+  slot_data.slot_start,
+  slot_data.slot_end,
   true
-from pro
-cross join svc
+from demo_professional
+cross join demo_service
 cross join (
   values
     (now() + interval '1 day' + interval '09:00', now() + interval '1 day' + interval '09:30'),
@@ -49,78 +48,76 @@ cross join (
     (now() + interval '2 day' + interval '09:00', now() + interval '2 day' + interval '09:30'),
     (now() + interval '2 day' + interval '10:00', now() + interval '2 day' + interval '10:30'),
     (now() + interval '2 day' + interval '11:00', now() + interval '2 day' + interval '11:30')
-) as s(slot_start, slot_end)
+) as slot_data(slot_start, slot_end)
 on conflict (professional_id, slot_start) do nothing;
 
--- 4) Mascota base para cliente
-with c as (
+with demo_client as (
   select id as owner_id
   from public.users
   where email = 'client@pet.dev'
   limit 1
 )
 insert into public.pets (owner_id, name, species, breed, birth_date, notes)
-select c.owner_id, 'Luna', 'Perro', 'Mestizo', date '2021-06-15', 'Paciente de prueba'
-from c
+select demo_client.owner_id, 'Luna', 'Perro', 'Mestizo', date '2021-06-15', 'Paciente de prueba'
+from demo_client
 where not exists (
   select 1
   from public.pets p
-  where p.owner_id = c.owner_id and p.name = 'Luna'
+  where p.owner_id = demo_client.owner_id and p.name = 'Luna'
 );
 
--- 5) Crear 1 cita de prueba + historial
-with c as (
+with demo_client as (
   select id as client_id
   from public.users
   where email = 'client@pet.dev'
   limit 1
-), p as (
+), demo_professional as (
   select id as professional_id
   from public.users
   where email = 'profesional@pet.dev'
   limit 1
-), pet as (
+), demo_pet as (
   select id as pet_id
   from public.pets
   where name = 'Luna'
   order by created_at desc
   limit 1
-), svc as (
+), demo_service as (
   select id as service_id
   from public.services
   order by created_at asc
   limit 1
-), av as (
+), demo_slot as (
   select id as availability_id
   from public.availability
-  where is_available = true
+  where professional_id = (select professional_id from demo_professional)
+    and is_available = true
   order by slot_start asc
   limit 1
-), ap as (
+), demo_appointment as (
   insert into public.appointments (client_id, pet_id, professional_id, service_id, availability_id, status, notes)
   select
-    c.client_id,
-    pet.pet_id,
-    p.professional_id,
-    svc.service_id,
-    av.availability_id,
+    demo_client.client_id,
+    demo_pet.pet_id,
+    demo_professional.professional_id,
+    demo_service.service_id,
+    demo_slot.availability_id,
     'En espera',
     'Cita semilla para validacion'
-  from c, p, pet, svc, av
+  from demo_client, demo_professional, demo_pet, demo_service, demo_slot
   where not exists (
     select 1
     from public.appointments a
-    where a.client_id = c.client_id
-      and a.pet_id = pet.pet_id
-      and a.availability_id = av.availability_id
+    where a.client_id = demo_client.client_id
+      and a.pet_id = demo_pet.pet_id
+      and a.availability_id = demo_slot.availability_id
   )
   returning id
 )
 insert into public.appointment_history (appointment_id, previous_status, new_status, changed_by)
-select ap.id, null, 'En espera', p.professional_id
-from ap, p;
+select demo_appointment.id, null, 'En espera', demo_professional.professional_id
+from demo_appointment, demo_professional;
 
--- 6) Marcar slot usado por la cita semilla (si aplica)
 update public.availability
 set is_available = false
 where id in (
@@ -129,3 +126,5 @@ where id in (
   where notes = 'Cita semilla para validacion'
     and availability_id is not null
 );
+
+commit;

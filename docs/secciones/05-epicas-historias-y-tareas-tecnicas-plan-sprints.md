@@ -116,12 +116,12 @@ test(EP-02): agregar pruebas unitarias para PetRepository
 
 ### Calendario General
 
-| Sprint               | Objetivo Principal               | Inicio | Fin    | Días laborales | Capacidad total | Por Dev | Estado |
-| -------------------- | -------------------------------- | ------ | ------ | --------------- | --------------- | ------- | ------ |
+| Sprint               | Objetivo Principal               | Inicio | Fin    | Días laborales | Capacidad total | Por Dev | Estado        |
+| -------------------- | -------------------------------- | ------ | ------ | --------------- | --------------- | ------- | ------------- |
 | **Sprint 1**✅ | Base, documentación y bosquejos | 27 mar | 14 abr | 11 días        | 80h             | 40h c/u | ✅ COMPLETADO |
 | **Sprint 2**✅ | Auth + CRUD mascotas             | 15 abr | 28 abr | 10 días        | 80h             | 40h c/u | ✅ COMPLETADO |
 | **Sprint 3**✅ | Citas + Panel profesional        | 29 abr | 12 may | 10 días        | 80h             | 40h c/u | ✅ COMPLETADO |
-| **Sprint 4**📅 | Admin + Notificaciones + CI/CD   | 13 may | 26 may | 10 días        | 80h             | 40h c/u | 📅 SCHEDULED |
+| **Sprint 4**📅 | Admin + Notificaciones + CI/CD   | 13 may | 26 may | 10 días        | 80h             | 40h c/u | 📅 SCHEDULED  |
 
 ---
 
@@ -298,15 +298,15 @@ Auth operativa (Sprint 2)
 
 ## 4. Épicas del Proyecto
 
-| ID              | Épica                                | Descripción                                                                                | Prioridad       | Sprint   |
-| --------------- | ------------------------------------- | ------------------------------------------------------------------------------------------- | --------------- | -------- |
-| **EP-01** | Autenticación y Gestión de Usuarios | Registro, login, recuperación de contraseña, perfiles por rol, guards de navegación      | **Alta**  | Sprint 2 |
-| **EP-02** | Gestión de Mascotas                  | CRUD completo: nombre, especie, raza, edad, foto, historial básico                         | **Alta**  | Sprint 2 |
-| **EP-03** | Reserva y Gestión de Citas           | Flujo completo: crear, modificar, cancelar citas con calendario y validación de conflictos | **Alta**  | Sprint 3 |
-| **EP-04** | Panel del Profesional                 | Agenda visual diaria/semanal, cambio de estados, configuración de disponibilidad horaria   | **Alta**  | Sprint 3 |
-| **EP-05** | Notificaciones y Tiempo Real          | Sincronización RT, notificaciones locales, recordatorios automáticos vía Edge Functions  | **Media** | Sprint 4 |
+| ID              | Épica                                | Descripción                                                                                           | Prioridad       | Sprint   |
+| --------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------- | -------- |
+| **EP-01** | Autenticación y Gestión de Usuarios | Registro, login, recuperación de contraseña, perfiles por rol, guards de navegación                 | **Alta**  | Sprint 2 |
+| **EP-02** | Gestión de Mascotas                  | CRUD completo: nombre, especie, raza, edad, foto, historial básico                                    | **Alta**  | Sprint 2 |
+| **EP-03** | Reserva y Gestión de Citas           | Flujo completo: crear, modificar, cancelar citas con calendario y validación de conflictos            | **Alta**  | Sprint 3 |
+| **EP-04** | Panel del Profesional                 | Agenda visual diaria/semanal, cambio de estados, configuración de disponibilidad horaria              | **Alta**  | Sprint 3 |
+| **EP-05** | Notificaciones y Tiempo Real          | Sincronización RT, notificaciones locales, recordatorios automáticos vía Edge Functions             | **Media** | Sprint 4 |
 | **EP-06** | Panel de Administración              | Gestión de servicios, usuarios/roles, acceso admin y soporte al flujo de asignación de profesionales | **Media** | Sprint 4 |
-| **EP-07** | CI/CD y Calidad                       | Pipeline GitHub Actions, pruebas automatizadas, generación y firma de APK                  | **Media** | Sprint 4 |
+| **EP-07** | CI/CD y Calidad                       | Pipeline GitHub Actions, pruebas automatizadas, generación y firma de APK                             | **Media** | Sprint 4 |
 
 ---
 
@@ -481,6 +481,7 @@ Auth operativa (Sprint 2)
 * [X] Si la subida de foto falla, los demás datos se guardan igualmente.
 
 **Implementación:** `lib/features/profile/edit_profile_screen.dart` (migrado a feature-first, refactorizado con widgets de soporte, validado sin errores).
+
 * [X] Se muestra mensaje de éxito o error según resultado.
 * [X] El nombre actualizado se refleja inmediatamente en la barra de navegación / header.
 
@@ -581,6 +582,7 @@ Auth operativa (Sprint 2)
 * [X] Si no se sube foto, se muestra un avatar genérico según la especie.
 
 **Implementación:** `lib/features/pets/add_pet_screen.dart` (migrado a feature-first, con widgets refactorizados en `lib/screens/add_pet/`, validado sin errores).
+
 * [X] Tras guardar, la mascota aparece inmediatamente en la lista sin recargar.
 * [X] Si el guardado falla, se muestra mensaje de error y el formulario no se cierra (para no perder los datos).
 
@@ -616,9 +618,10 @@ Auth operativa (Sprint 2)
 
 * [X] La lista solo muestra las mascotas del cliente autenticado.
 * [X] Cada tarjeta muestra: foto/avatar, nombre, especie, y última cita (o "Sin citas aún").
-* [X] Si no hay mascotas, se muestra un estado vacío con CTA para registrar 
+* [X] Si no hay mascotas, se muestra un estado vacío con CTA para registrar
 
 **Implementación:** `lib/features/pets/pets_screen.dart` (migrado a feature-first, con widgets de soporte, validado sin errores).la primera.
+
 * [X] Al pulsar una mascota, se navega a la pantalla de detalle con todos sus datos.
 * [X] La lista se ordena por nombre alfabéticamente de forma predeterminada.
 
@@ -658,6 +661,7 @@ Auth operativa (Sprint 2)
 * [X] Si se cambia la foto, la anterior se elimina de Storage par
 
 **Implementación:** `lib/features/pets/pet_detail_screen.dart` (migrado a feature-first, refactorizado con widgets de UI, validado sin errores).a no acumular archivos huérfanos.
+
 * [X] Los cambios se reflejan inmediatamente en la lista y en el detalle.
 * [X] Se muestra confirmación visual de éxito o mensaje de error.
 
@@ -700,6 +704,7 @@ Auth operativa (Sprint 2)
 * [X] La eliminación borra la foto de Storage (si existe).
 
 **Implementación:** Integrado en `lib/features/pets/pet_detail_screen.dart`, validado sin errores.
+
 * [X] Solo el propietario puede eliminar su mascota (RLS).
 * [X] Tras eliminar, el usuario regresa automáticamente a la lista de mascotas.
 
@@ -744,6 +749,7 @@ Auth operativa (Sprint 2)
 * Suscripción Supabase Realtime al canal de `appointments`.
 
 **CX] El calendario resalta en verde los días con disponibilidad y en gris los sin disponibilidad.
+
 * [X] Los slots horarios muestran claramente cuáles están libres y cuáles ocupados.
 * [X] Los slots pasados (horas ya transcurridas en el día actual) están deshabilitados.
 * [X] Si otro cliente reserva un slot mientras el usuario está en la pantalla, ese slot se deshabilita automáticamente (Realtime).
@@ -751,6 +757,7 @@ Auth operativa (Sprint 2)
 * [X] Si no hay disponibilidad en el mes actual, se sugiere navegar al mes siguiente.
 
 **Implementación:** `lib/features/calendar/calendar_screen.dart` (migrado a feature-first, con `table_calendar`, validado sin errores)lot se deshabilita automáticamente (Realtime).
+
 * [ ] El calendario carga en menos de 2 segundos en conexión normal.
 * [ ] Si no hay disponibilidad en el mes actual, se sugiere navegar al mes siguiente.
 
@@ -789,6 +796,7 @@ Auth operativa (Sprint 2)
 * Validación de conflicto de reservas a nivel de DB (constraint o trigger).
 
 **CX] El flujo en pasos tiene navegación "Atrás" sin perder los datos seleccionados.
+
 * [X] No es posible avanzar al siguiente paso sin completar el actual.
 * [X] Si el slot se ocupa entre que el usuario lo seleccionó y lo confirmó, se muestra error y se regresa al calendario.
 * [X] La cita se crea con estado `en_espera` en la tabla `appointments`.
@@ -796,6 +804,7 @@ Auth operativa (Sprint 2)
 * [X] La validación de conflicto existe tanto en la app (UX) como en la base de datos (integridad).
 
 **Implementación:** Integrado en `lib/features/calendar/calendar_screen.dart`, con flujo `CalendarController`, validado sin errores
+
 * [ ] El cliente recibe confirmación visual inmediata (pantalla de éxito).
 * [ ] La validación de conflicto existe tanto en la app (UX) como en la base de datos (integridad).
 
@@ -828,7 +837,9 @@ Auth operativa (Sprint 2)
 * [X] El botón "Inicio" navega al home limpiando el stack de navegación.
 
 **Implementación:** `lib/features/appointments/appointment_confirm_screen.dart` (migrado a feature-first, refactorizado con widgets de soporte, validado sin errores)
+
 * [~] El botón "Ver mis citas" navega al historial filtrando por esta cita. (Implementar con US-13)
+
 * [X] El botón "Inicio" navega al home limpiando el stack de navegación.
 
 | Campo        | Valor            |
@@ -1398,24 +1409,24 @@ en_espera
 
 | TASK ID   | Tarea                           | Descripción técnica                                                                                               | Horas | HU    | Estado |
 | --------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----- | ----- | ------ |
-| TASK-05   | Integrar supabase_flutter       | Añadir dependencia, inicializar cliente con URL y anon key en `main.dart`, crear singleton `SupabaseService`   | 2h    | US-02 | ✅ |
-| TASK-06P1 | Pantalla de registro            | Widget `RegisterScreen`,`TextFormField`con validadores, llamada a `supabase.auth.signUp()`, manejo de errores | 5h    | US-01 | ✅ |
-| TASK-06P2 | Pantalla de login               | Widget `LoginScreen`,`signInWithPassword`, persistencia con `flutter_secure_storage`, redirect por rol        | 4h    | US-02 | ✅ |
-| TASK-06P3 | Recuperación de contraseña    | Widget `ForgotPasswordScreen`,`resetPasswordForEmail`, deep link con `app_links`                              | 3h    | US-03 | ✅ |
-| TASK-07   | Navegación por rol (Go Router) | Configurar `GoRouter`con guards de autenticación, rutas protegidas por rol, redirección automática             | 4h    | US-02 | ✅ |
-| TASK-04P1 | RLS para auth y users           | Policies:`users can read own row`,`users can update own row`, función `get_user_role()`                      | 2h    | US-01 | ✅ |
+| TASK-05   | Integrar supabase_flutter       | Añadir dependencia, inicializar cliente con URL y anon key en `main.dart`, crear singleton `SupabaseService`   | 2h    | US-02 | ✅     |
+| TASK-06P1 | Pantalla de registro            | Widget `RegisterScreen`,`TextFormField`con validadores, llamada a `supabase.auth.signUp()`, manejo de errores | 5h    | US-01 | ✅     |
+| TASK-06P2 | Pantalla de login               | Widget `LoginScreen`,`signInWithPassword`, persistencia con `flutter_secure_storage`, redirect por rol        | 4h    | US-02 | ✅     |
+| TASK-06P3 | Recuperación de contraseña    | Widget `ForgotPasswordScreen`,`resetPasswordForEmail`, deep link con `app_links`                              | 3h    | US-03 | ✅     |
+| TASK-07   | Navegación por rol (Go Router) | Configurar `GoRouter`con guards de autenticación, rutas protegidas por rol, redirección automática             | 4h    | US-02 | ✅     |
+| TASK-04P1 | RLS para auth y users           | Policies:`users can read own row`,`users can update own row`, función `get_user_role()`                      | 2h    | US-01 | ✅     |
 
 #### Luis Carlos Pedraza — Supabase + Mascotas (20h)
 
 | TASK ID   | Tarea                        | Descripción técnica                                                                                                                             | Horas | HU    | Estado |
 | --------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ----- | ------ |
-| TASK-02P1 | Configurar proyecto Supabase | Crear proyecto, habilitar Auth, Storage bucket `pet-photos`, activar Realtime en tablas necesarias                                              | 3h    | —    | ✅ |
-| TASK-03   | Esquema de BD y migraciones  | Crear tablas:`users`,`pets`,`services`,`availability`,`appointments`,`appointment_history`. Ejecutar migrations en Supabase Dashboard | 6h    | —    | ✅ |
-| TASK-04P2 | RLS para pets y citas        | Policies: clientes leen/modifican solo sus pets, profesionales leen citas asignadas, admin lee todo                                               | 4h    | US-06 | ✅ |
-| TASK-08P1 | Pantalla crear mascota       | `AddPetScreen`, formulario con `DropdownButton`para especie,`image_picker`para foto,`DatePicker`para nacimiento                           | 3h    | US-06 | ✅ |
-| TASK-08P2 | Pantalla listar mascotas     | `PetListScreen`,`ListView.builder`con `PetCard`, query con última cita vía JOIN, estado vacío                                            | 2h    | US-07 | ✅ |
-| TASK-08P3 | Pantalla editar mascota      | `EditPetScreen`, formulario prellenado, actualizar foto en Storage (delete antigua + upload nueva)                                              | 1h    | US-08 | ✅ |
-| TASK-08P4 | Eliminar mascota             | `AlertDialog`de confirmación, verificar citas activas antes de eliminar, delete de Storage                                                     | 1h    | US-09 | ✅ |
+| TASK-02P1 | Configurar proyecto Supabase | Crear proyecto, habilitar Auth, Storage bucket `pet-photos`, activar Realtime en tablas necesarias                                              | 3h    | —    | ✅     |
+| TASK-03   | Esquema de BD y migraciones  | Crear tablas:`users`,`pets`,`services`,`availability`,`appointments`,`appointment_history`. Ejecutar migrations en Supabase Dashboard | 6h    | —    | ✅     |
+| TASK-04P2 | RLS para pets y citas        | Policies: clientes leen/modifican solo sus pets, profesionales leen citas asignadas, admin lee todo                                               | 4h    | US-06 | ✅     |
+| TASK-08P1 | Pantalla crear mascota       | `AddPetScreen`, formulario con `DropdownButton`para especie,`image_picker`para foto,`DatePicker`para nacimiento                           | 3h    | US-06 | ✅     |
+| TASK-08P2 | Pantalla listar mascotas     | `PetListScreen`,`ListView.builder`con `PetCard`, query con última cita vía JOIN, estado vacío                                            | 2h    | US-07 | ✅     |
+| TASK-08P3 | Pantalla editar mascota      | `EditPetScreen`, formulario prellenado, actualizar foto en Storage (delete antigua + upload nueva)                                              | 1h    | US-08 | ✅     |
+| TASK-08P4 | Eliminar mascota             | `AlertDialog`de confirmación, verificar citas activas antes de eliminar, delete de Storage                                                     | 1h    | US-09 | ✅     |
 
 ---
 
@@ -1425,11 +1436,11 @@ en_espera
 
 | TASK ID   | Tarea                   | Descripción técnica                                                                                                             | Horas | HU    | Estado |
 | --------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----- | ----- | ------ |
-| TASK-09   | Integrar table_calendar | Añadir `table_calendar`, configurar `CalendarFormat`, marcar días disponibles desde query, highlight de días seleccionados | 8h    | US-10 | ✅ |
-| TASK-10P1 | Lógica de reserva      | `AppointmentRepository.createAppointment()`, validación de conflictos (app + trigger DB), flujo stepper en 6 pasos             | 6h    | US-11 | ✅ |
-| TASK-10P2 | Pantalla confirmación  | `AppointmentConfirmScreen`, resumen de datos, notificación local de confirmación, navegación post-confirmación              | 3h    | US-12 | ✅ |
-| TASK-14   | Notificaciones locales  | Integrar `flutter_local_notifications`, crear `NotificationService`, configurar canales Android/iOS                           | 2h    | US-20 | ✅ |
-| TASK-11P1 | Realtime para slots     | `SupabaseClient.channel('slots').onPostgresChanges(...)`, actualizar estado del calendario en tiempo real                       | 3h    | US-10 | ✅ |
+| TASK-09   | Integrar table_calendar | Añadir `table_calendar`, configurar `CalendarFormat`, marcar días disponibles desde query, highlight de días seleccionados | 8h    | US-10 | ✅     |
+| TASK-10P1 | Lógica de reserva      | `AppointmentRepository.createAppointment()`, validación de conflictos (app + trigger DB), flujo stepper en 6 pasos             | 6h    | US-11 | ✅     |
+| TASK-10P2 | Pantalla confirmación  | `AppointmentConfirmScreen`, resumen de datos, notificación local de confirmación, navegación post-confirmación              | 3h    | US-12 | ✅     |
+| TASK-14   | Notificaciones locales  | Integrar `flutter_local_notifications`, crear `NotificationService`, configurar canales Android/iOS                           | 2h    | US-20 | ✅     |
+| TASK-11P1 | Realtime para slots     | `SupabaseClient.channel('slots').onPostgresChanges(...)`, actualizar estado del calendario en tiempo real                       | 3h    | US-10 | ✅     |
 
 Estado actual de estas tareas:
 
@@ -1442,11 +1453,11 @@ Estado actual de estas tareas:
 
 | TASK ID   | Tarea                          | Descripción técnica                                                                                       | Horas | HU    | Estado |
 | --------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------- | ----- | ----- | ------ |
-| TASK-12P1 | Panel profesional - agenda     | `ProfessionalHomeScreen`,`TabBar`para vista diaria/semanal,`AppointmentTile`con datos cliente+mascota | 6h    | US-16 | ✅ |
-| TASK-12P2 | Confirmar cita pendiente       | Botón condicional por estado,`AppointmentRepository.updateStatus()`, trigger notificación al cliente    | 3h    | US-17 | ✅ |
-| TASK-13P1 | Cambio de estado con historial | `StatusSelector`con transiciones válidas, insert en `appointment_history`por cada cambio, RT sync      | 6h    | US-18 | ✅ |
-| TASK-19P1 | GitHub Actions tests           | Workflow `.github/workflows/test.yml`,`flutter test`en cada PR a `develop`                            | 2h    | ✅    | ⏳ |
-| TASK-13P2 | Pruebas unitarias CRUD pets    | Tests para `PetRepository`: crear, leer, actualizar, eliminar con mocks de Supabase                       | 1h    | ✅    | ⏳ |
+| TASK-12P1 | Panel profesional - agenda     | `ProfessionalHomeScreen`,`TabBar`para vista diaria/semanal,`AppointmentTile`con datos cliente+mascota | 6h    | US-16 | ✅     |
+| TASK-12P2 | Confirmar cita pendiente       | Botón condicional por estado,`AppointmentRepository.updateStatus()`, trigger notificación al cliente    | 3h    | US-17 | ✅     |
+| TASK-13P1 | Cambio de estado con historial | `StatusSelector`con transiciones válidas, insert en `appointment_history`por cada cambio, RT sync      | 6h    | US-18 | ✅     |
+| TASK-19P1 | GitHub Actions tests           | Workflow `.github/workflows/test.yml`,`flutter test`en cada PR a `develop`                            | 2h    | ✅    | ⏳     |
+| TASK-13P2 | Pruebas unitarias CRUD pets    | Tests para `PetRepository`: crear, leer, actualizar, eliminar con mocks de Supabase                       | 1h    | ✅    | ⏳     |
 
 ---
 
@@ -1460,21 +1471,21 @@ Estado actual de estas tareas:
 | TASK-17P2 | Admin - gestión de usuarios  | `UsersManagementScreen`, tabla paginada, selector de rol, soft delete                                                  | 4h    | US-27 |
 | TASK-17P3 | Admin - reportes              | `ReportsScreen`, contadores por estado, filtros de fecha con `DateRangePicker`, lista paginada                       | 4h    | US-24 |
 | TASK-15   | Edge Function recordatorios   | Supabase Edge Function `send-reminders`, cron diario, query citas del día siguiente,`schedule()`notificación local | 4h    | US-21 |
-| TASK-23   | Home del cliente funcional    | Refactor de `AuthenticatedHomeScreen`, integración con próximas citas y accesos rápidos                               | 5h    | US-25 |
-| TASK-24   | Perfil de usuario funcional   | Completar `ProfileScreen` con datos reales y navegación a edición                                                     | 3h    | US-26 |
-| TASK-26   | Admin shell y guard de acceso | Implementar `AdminShell`, tabs base y guard por rol en rutas                                                          | 3h    | US-29 |
+| TASK-23   | Home del cliente funcional    | Refactor de `AuthenticatedHomeScreen`, integración con próximas citas y accesos rápidos                             | 5h    | US-25 |
+| TASK-24   | Perfil de usuario funcional   | Completar `ProfileScreen` con datos reales y navegación a edición                                                    | 3h    | US-26 |
+| TASK-26   | Admin shell y guard de acceso | Implementar `AdminShell`, tabs base y guard por rol en rutas                                                           | 3h    | US-29 |
 
 #### Nicolas Gonzalez — CI/CD y Release (20h)
 
-| TASK ID   | Tarea                      | Descripción técnica                                                                                           | Horas | HU    |
-| --------- | -------------------------- | --------------------------------------------------------------------------------------------------------------- | ----- | ----- |
-| TASK-11P2 | Realtime citas             | Suscripción al canal de `appointments`para cliente y profesional, dispatch de notificaciones locales         | 5h    | US-20 |
-| TASK-25   | Selector de profesional en cita | Agregar selector de profesional, estado en controller y filtrado de slots por profesional                         | 5h    | US-28 |
-| TASK-18   | GitHub Actions APK         | Workflow `build-apk.yml`,`flutter build apk --release`, upload artifact, triggers en push a `main`        | 4h    | —    |
-| TASK-19P2 | GitHub Actions CI completo | `flutter analyze`,`flutter test`, badge de estado en README                                                 | 3h    | —    |
-| TASK-20   | Pruebas unitarias y widget | Tests para `AppointmentRepository`,`AuthService`,`PetRepository`, widget tests para formularios críticos | 5h    | —    |
-| TASK-21   | Keystore y firma APK       | Generar keystore, configurar `key.properties`, firmar APK con `--release`, documentar proceso               | 2h    | —    |
-| TASK-22   | Documentación final       | Actualizar README con instrucciones de setup, documentar variables de entorno, DartDoc en clases públicas      | 1h    | —    |
+| TASK ID   | Tarea                           | Descripción técnica                                                                                           | Horas | HU    |
+| --------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------- | ----- | ----- |
+| TASK-11P2 | Realtime citas                  | Suscripción al canal de `appointments`para cliente y profesional, dispatch de notificaciones locales         | 5h    | US-20 |
+| TASK-25   | Selector de profesional en cita | Agregar selector de profesional, estado en controller y filtrado de slots por profesional                       | 5h    | US-28 |
+| TASK-18   | GitHub Actions APK              | Workflow `build-apk.yml`,`flutter build apk --release`, upload artifact, triggers en push a `main`        | 4h    | —    |
+| TASK-19P2 | GitHub Actions CI completo      | `flutter analyze`,`flutter test`, badge de estado en README                                                 | 3h    | —    |
+| TASK-20   | Pruebas unitarias y widget      | Tests para `AppointmentRepository`,`AuthService`,`PetRepository`, widget tests para formularios críticos | 5h    | —    |
+| TASK-21   | Keystore y firma APK            | Generar keystore, configurar `key.properties`, firmar APK con `--release`, documentar proceso               | 2h    | —    |
+| TASK-22   | Documentación final            | Actualizar README con instrucciones de setup, documentar variables de entorno, DartDoc en clases públicas      | 1h    | —    |
 
 ---
 
@@ -1536,9 +1547,9 @@ Epic
 | Story           | Home del usuario terminado                 | EP-05  | Luis Carlos Pedraza | Alta      | 5  |
 | Story           | Perfil del usuario terminado               | EP-05  | Nicolas Gonzalez    | Alta      | 3  |
 | Epic            | Panel de administración                   | —     | Equipo              | Media     | — |
-| Story           | Asignar roles a los usuarios (Admin)      | EP-06  | Luis Carlos Pedraza | Alta      | 5  |
+| Story           | Asignar roles a los usuarios (Admin)       | EP-06  | Luis Carlos Pedraza | Alta      | 5  |
 | Story           | Seleccionar profesional al crear cita      | EP-06  | Nicolas Gonzalez    | Alta      | 5  |
-| Story           | Acceso y navegación del panel admin        | EP-06  | Luis Carlos Pedraza | Alta      | 3  |
+| Story           | Acceso y navegación del panel admin       | EP-06  | Luis Carlos Pedraza | Alta      | 3  |
 | Story           | Gestionar catálogo de servicios           | EP-06  | Luis Carlos Pedraza | Alta      | 5  |
 | Story           | Ver reportes de citas                      | EP-06  | Luis Carlos Pedraza | Media     | 8  |
 | Story           | Gestionar usuarios y roles                 | EP-06  | Luis Carlos Pedraza | Media     | 5  |

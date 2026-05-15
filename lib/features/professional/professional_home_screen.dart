@@ -97,31 +97,168 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
       ),
       body: Consumer<ProfessionalAgendaController>(
         builder: (context, controller, _) {
+          final todayAppointments = controller.appointmentsForDay(
+            DateTime.now(),
+          );
+          final upcomingCount = controller.appointments.length;
+
+          Widget body;
+
           if (controller.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            body = const Center(child: CircularProgressIndicator());
+          } else if (controller.appointments.isEmpty) {
+            body = const ProfessionalHomeEmptyState();
+          } else {
+            body = TabBarView(
+              controller: _tabController,
+              children: [
+                ProfessionalHomeDailyView(
+                  controller: controller,
+                  onAppointmentTap: _openAppointmentDetail,
+                  onConfirmAppointment: _confirmAppointment,
+                ),
+                ProfessionalHomeWeeklyView(
+                  controller: controller,
+                  weekStart: _currentWeekStart,
+                  onAppointmentTap: _openAppointmentDetail,
+                  onConfirmAppointment: _confirmAppointment,
+                ),
+              ],
+            );
           }
 
-          if (controller.appointments.isEmpty) {
-            return const ProfessionalHomeEmptyState();
-          }
-
-          return TabBarView(
-            controller: _tabController,
+          return Column(
             children: [
-              ProfessionalHomeDailyView(
-                controller: controller,
-                onAppointmentTap: _openAppointmentDetail,
-                onConfirmAppointment: _confirmAppointment,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: _AgendaOverviewCard(
+                  totalAppointments: upcomingCount,
+                  todayAppointments: todayAppointments.length,
+                ),
               ),
-              ProfessionalHomeWeeklyView(
-                controller: controller,
-                weekStart: _currentWeekStart,
-                onAppointmentTap: _openAppointmentDetail,
-                onConfirmAppointment: _confirmAppointment,
-              ),
+              Expanded(child: body),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _AgendaOverviewCard extends StatelessWidget {
+  const _AgendaOverviewCard({
+    required this.totalAppointments,
+    required this.todayAppointments,
+  });
+
+  final int totalAppointments;
+  final int todayAppointments;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      color: Colors.blue.shade50,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                color: Colors.blue.shade100,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(Icons.event_available, color: Colors.blue),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Agenda profesional',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    totalAppointments == 0
+                        ? 'Sin citas todavía, pero la disponibilidad ya está lista para la demo.'
+                        : 'Tienes $totalAppointments citas cargadas, con $todayAppointments para hoy.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.blueGrey.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _MetricPill(
+                        icon: Icons.today,
+                        label: 'Hoy',
+                        value: '$todayAppointments',
+                      ),
+                      _MetricPill(
+                        icon: Icons.calendar_month,
+                        label: 'Total',
+                        value: '$totalAppointments',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MetricPill extends StatelessWidget {
+  const _MetricPill({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.blue.shade100),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: Colors.blue.shade700),
+          const SizedBox(width: 6),
+          Text(
+            '$label: ',
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(color: Colors.blueGrey.shade700),
+          ),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: Colors.blue.shade800,
+            ),
+          ),
+        ],
       ),
     );
   }

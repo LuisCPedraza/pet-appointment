@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/controllers/calendar_controller.dart';
 import 'package:pet_appointment/services/appointment_notification_service.dart';
+import 'package:pet_appointment/widgets/card_container.dart';
 import 'package:pet_appointment/widgets/calendar/booking_heading.dart';
 import 'package:pet_appointment/widgets/calendar/calendar_card.dart';
 import 'package:pet_appointment/widgets/calendar/confirm_button.dart';
@@ -60,22 +61,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
       return;
     }
     try {
-      final appointment = await _controller.confirm(notes: _notesController.text);
-      
+      final appointment = await _controller.confirm(
+        notes: _notesController.text,
+      );
+
       if (mounted) {
         _notesController.clear();
-        
+
         // Mostrar notificación local de confirmación
         if (appointment != null) {
           final notificationService = AppointmentNotificationService();
-          await notificationService.showAppointmentConfirmationNotification(appointment);
-          
+          await notificationService.showAppointmentConfirmationNotification(
+            appointment,
+          );
+
           // Navegar a la pantalla de confirmación
           if (mounted) {
-            Navigator.of(context).pushNamed(
-              '/confirm',
-              arguments: appointment,
-            );
+            Navigator.of(context).pushNamed('/confirm', arguments: appointment);
           }
         }
       }
@@ -104,6 +106,59 @@ class _CalendarScreenState extends State<CalendarScreen> {
         child: CustomScrollView(
           slivers: [
             const SliverToBoxAdapter(child: BookingHeading()),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: CardContainer(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Resumen de reserva',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _SummaryChip(
+                            label: 'Mascotas',
+                            value: '${_controller.pets.length}',
+                            icon: Icons.pets,
+                          ),
+                          _SummaryChip(
+                            label: 'Servicios',
+                            value: '${_controller.services.length}',
+                            icon: Icons.medical_services,
+                          ),
+                          _SummaryChip(
+                            label: 'Slots',
+                            value: '${_controller.slotsByDay.length}',
+                            icon: Icons.schedule,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        _controller.selectedServiceId == null
+                            ? 'Selecciona un servicio para mostrar el calendario y los horarios disponibles.'
+                            : _controller.selectedDay == null
+                            ? 'Ya puedes elegir una fecha y continuar con la hora disponible.'
+                            : 'Selecciona una hora y completa la nota si quieres dejar un comentario para la cita.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
             if (_controller.pets.isNotEmpty)
               SliverToBoxAdapter(
                 child: PetSelectorCard(controller: _controller),
@@ -115,17 +170,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
             if (_controller.selectedServiceId == null)
               const SliverToBoxAdapter(child: ServiceRequiredHint())
             else ...[
-              SliverToBoxAdapter(
-                child: CalendarCard(controller: _controller),
-              ),
+              SliverToBoxAdapter(child: CalendarCard(controller: _controller)),
               if (_controller.selectedDay != null)
                 SliverToBoxAdapter(
                   child: TimeSlotsCard(controller: _controller),
                 ),
             ],
-            SliverToBoxAdapter(
-              child: NotesCard(controller: _notesController),
-            ),
+            SliverToBoxAdapter(child: NotesCard(controller: _notesController)),
             SliverToBoxAdapter(
               child: ConfirmAppointmentButton(
                 controller: _controller,
@@ -135,6 +186,57 @@ class _CalendarScreenState extends State<CalendarScreen> {
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SummaryChip extends StatelessWidget {
+  const _SummaryChip({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  final String label;
+  final String value;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.outline.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: AppColors.primary),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
