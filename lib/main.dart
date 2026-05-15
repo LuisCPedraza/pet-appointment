@@ -8,6 +8,7 @@ import 'package:pet_appointment/features/features.dart';
 import 'package:pet_appointment/widgets/widgets.dart';
 import 'package:pet_appointment/config/config.dart';
 import 'package:pet_appointment/controllers/professional_agenda_controller.dart';
+import 'package:pet_appointment/screens/login_callback_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,8 +32,27 @@ Future<void> _initializeSupabase() async {
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Escuchar cambios de autenticación
+    Supabase.instance.client.auth.onAuthStateChange.listen((event) {
+      if (event.event == AuthChangeEvent.signedIn) {
+        // Navegar al home reemplazando la ruta actual
+        _navigatorKey.currentState?.pushReplacementNamed('/home');
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +61,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ProfessionalAgendaController()),
       ],
       child: MaterialApp(
+        navigatorKey: _navigatorKey,
         title: 'PetAppointment',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
@@ -63,6 +84,7 @@ class MyApp extends StatelessWidget {
           '/professional-home': (_) => const ProfessionalHomeScreen(),
           '/professional-availability': (_) =>
               const ProfessionalAvailabilityScreen(),
+          '/login-callback': (_) => const LoginCallbackScreen(),
         },
         onGenerateRoute: _generateRoute,
       ),
@@ -85,10 +107,8 @@ class MyApp extends StatelessWidget {
           builder: (context) => const ProfessionalAvailabilityScreen(),
         );
       default:
-        return MaterialPageRoute(
-          builder: (context) =>
-              const Scaffold(body: Center(child: Text('Ruta no encontrada'))),
-        );
+        // Redirigir a home en lugar de mostrar "ruta no encontrada"
+        return MaterialPageRoute(builder: (context) => const AppShell());
     }
   }
 }

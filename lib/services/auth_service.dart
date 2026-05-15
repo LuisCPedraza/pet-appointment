@@ -142,13 +142,85 @@ class AuthService {
 
   /// Inicia sesión usando Google a través de Supabase OAuth.
   /// En móviles usará el flujo de navegador/ deep link configurado en Supabase.
+  /// 
+  /// Requiere:
+  /// - Google Cloud Console: OAuth 2.0 credentials configuradas
+  /// - Supabase: Google OAuth habilitado con Client ID y Secret
+  /// - Redirect URI: Debe coincidir en Google Cloud, Supabase y deeplink del código
+  ///
+  /// Lanza [AuthException] si hay problemas con:
+  /// - Configuración de OAuth (Client ID/Secret inválidos)
+  /// - Redirect URI mismatch
+  /// - Conectividad de red
+  /// - Usuario cancela el login
   Future<void> signInWithGoogle({String? redirectTo}) async {
-    // redirectTo es opcional; en Android/iOS configurar el scheme en Google Cloud
-    // y en Supabase. Ej: 'io.supabase.flutter://login-callback/'
-    await _client.auth.signInWithOAuth(
-      OAuthProvider.google,
-      redirectTo: redirectTo,
-    );
+    try {
+      debugPrint('🔐 Iniciando login con Google...');
+
+      // Platform-specific redirect URI si no se proporciona.
+      // En web debe ser la URL actual de la app; en móvil, el deep link.
+      final finalRedirectTo = redirectTo ?? _getDefaultRedirectUri();
+      debugPrint('📍 Redirect URI final: $finalRedirectTo');
+
+      debugPrint('🔄 Enviando solicitud OAuth a Supabase...');
+      await _client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: finalRedirectTo,
+        authScreenLaunchMode: LaunchMode.externalApplication,
+        queryParams: {
+          'prompt': 'select_account',
+        },
+      );
+
+      debugPrint('✅ Login con Google completado exitosamente');
+    } on AuthException catch (e) {
+      debugPrint('❌ Error de autenticación: ${e.message}');
+      rethrow;
+    } catch (e) {
+      debugPrint('❌ Error inesperado en Google Sign In: $e');
+      throw AuthException('Error al iniciar sesión con Google. Intenta de nuevo.');
+    }
+  }
+
+  /// Inicia sesión usando GitHub a través de Supabase OAuth.
+  /// Requiere que GitHub OAuth esté habilitado en Supabase y que el redirect URI
+  /// esté registrado como petappointment://login-callback/ en GitHub y Supabase.
+  Future<void> signInWithGithub({String? redirectTo}) async {
+    try {
+      debugPrint('🔐 Iniciando login con GitHub...');
+
+      final finalRedirectTo = redirectTo ?? _getDefaultRedirectUri();
+      debugPrint('📍 Redirect URI final: $finalRedirectTo');
+
+      debugPrint('🔄 Enviando solicitud OAuth a Supabase...');
+      await _client.auth.signInWithOAuth(
+        OAuthProvider.github,
+        redirectTo: finalRedirectTo,
+        authScreenLaunchMode: LaunchMode.externalApplication,
+        queryParams: {
+          'prompt': 'consent',
+        },
+      );
+
+      debugPrint('✅ Login con GitHub completado exitosamente');
+    } on AuthException catch (e) {
+      debugPrint('❌ Error de autenticación: ${e.message}');
+      rethrow;
+    } catch (e) {
+      debugPrint('❌ Error inesperado en GitHub Sign In: $e');
+      throw AuthException('Error al iniciar sesión con GitHub. Intenta de nuevo.');
+    }
+  }
+
+  /// Obtiene el redirect URI por defecto según la plataforma.
+  static String _getDefaultRedirectUri() {
+    // En desarrollo, Flutter usará el scheme registrado en:
+    // Android: AndroidManifest.xml
+    // iOS: Info.plist CFBundleURLSchemes
+    if (kIsWeb) {
+      return Uri.base.origin;
+    }
+    return 'petappointment://login-callback/';
   }
 
   /// Envía un correo de recuperación con un código OTP de 8 dígitos.
