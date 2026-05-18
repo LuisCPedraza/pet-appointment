@@ -29,6 +29,7 @@ class CalendarController extends ChangeNotifier {
 
   RealtimeChannel? _appointmentsChannel;
   RealtimeChannel? _slotsChannel;
+  RealtimeChannel? _servicesChannel;
 
   // ─── Inicialización ───────────────────────────────────────────────────────
 
@@ -56,14 +57,14 @@ class CalendarController extends ChangeNotifier {
     _appointmentsChannel = _service.subscribeToAllAppointments(
       onChanged: refreshBookedIds,
     );
-    _slotsChannel = _service.subscribeToAllSlots(
-      onChanged: refreshSlots,
-    );
+    _slotsChannel = _service.subscribeToAllSlots(onChanged: refreshSlots);
+    _servicesChannel = _service.subscribeToServices(onChanged: refreshServices);
   }
 
   void unsubscribe() {
     _appointmentsChannel?.unsubscribe();
     _slotsChannel?.unsubscribe();
+    _servicesChannel?.unsubscribe();
   }
 
   // ─── Carga de datos ───────────────────────────────────────────────────────
@@ -126,6 +127,28 @@ class CalendarController extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('refreshSlots error: $e');
+    }
+  }
+
+  Future<void> refreshServices() async {
+    try {
+      final updatedServices = await _service.fetchServices();
+      services = updatedServices;
+
+      final selectedExists = selectedServiceId == null
+          ? true
+          : updatedServices.any((svc) => svc.id == selectedServiceId);
+
+      if (!selectedExists) {
+        selectedServiceId = null;
+        selectedSlot = null;
+        selectedDay = null;
+        slotsByDay = {};
+      }
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('refreshServices error: $e');
     }
   }
 
