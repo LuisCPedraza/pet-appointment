@@ -8,7 +8,11 @@ import 'package:pet_appointment/features/features.dart';
 import 'package:pet_appointment/widgets/widgets.dart';
 import 'package:pet_appointment/config/config.dart';
 import 'package:pet_appointment/controllers/professional_agenda_controller.dart';
+import 'package:pet_appointment/screens/admin_dashboard_screen.dart';
 import 'package:pet_appointment/screens/login_callback_screen.dart';
+import 'package:pet_appointment/screens/admin_users_screen.dart';
+import 'package:pet_appointment/screens/admin_services_screen.dart';
+import 'package:pet_appointment/screens/admin_reports_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -75,6 +79,10 @@ class _MyAppState extends State<MyApp> {
         locale: const Locale('es', 'ES'),
         routes: {
           '/home': (_) => const AppShell(),
+          '/admin': (_) => const AdminDashboardScreen(),
+          '/admin/users': (_) => const AdminUsersScreen(),
+          '/admin/services': (_) => const AdminServicesScreen(),
+          '/admin/reports': (_) => const AdminReportsScreen(),
           '/login': (_) => const LoginScreen(),
           '/register': (_) => const RegisterScreen(),
           '/forgot-password': (_) => const ForgotPasswordScreen(),
