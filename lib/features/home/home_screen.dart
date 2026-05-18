@@ -49,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return const ProfessionalHomeScreen();
         }
 
-        return AuthenticatedHomeScreen(name: _authService.currentUserName);
+        return const AuthenticatedHomeScreen();
       },
     );
   }
