@@ -517,12 +517,12 @@ Auth operativa (Sprint 2)
 
 **Criterios de aceptación:**
 
-* [ ] Solo usuarios con rol `admin` pueden acceder a esta pantalla.
-* [ ] La tabla muestra: nombre, correo, rol, fecha de registro, estado (activo/inactivo).
-* [ ] El admin puede cambiar el rol de `cliente` a `profesional` y viceversa.
-* [ ] El admin puede desactivar una cuenta sin eliminarla (soft delete).
-* [ ] Un usuario desactivado no puede iniciar sesión.
-* [ ] Los cambios se reflejan en tiempo real sin recargar la lista.
+* [X] Solo usuarios con rol `admin` pueden acceder a esta pantalla.
+* [X] La tabla muestra: nombre, correo, rol, fecha de registro, estado (activo/inactivo).
+* [X] El admin puede cambiar el rol de `cliente` a `profesional` y viceversa.
+* [X] El admin puede desactivar una cuenta sin eliminarla (soft delete).
+* [X] Un usuario desactivado no puede iniciar sesión.
+* [X] Los cambios se reflejan en tiempo real sin recargar la lista.
 
 | Campo        | Valor               |
 | ------------ | ------------------- |
@@ -1203,11 +1203,11 @@ en_espera
 
 **Criterios de aceptación:**
 
-* [ ] Muestra saludo personalizado con nombre del usuario.
-* [ ] Muestra próxima cita (mascota, servicio, profesional, fecha/hora, estado).
-* [ ] Si no hay citas futuras, muestra CTA para "Agendar cita".
-* [ ] Incluye accesos rápidos a "Nueva cita" y "Mis mascotas".
-* [ ] Al volver a la pestaña home, los datos se refrescan.
+* [X] Muestra saludo personalizado con nombre del usuario.
+* [X] Muestra próxima cita (mascota, servicio, profesional, fecha/hora, estado).
+* [X] Si no hay citas futuras, muestra CTA para "Agendar cita".
+* [X] Incluye accesos rápidos a "Nueva cita" y "Mis mascotas".
+* [X] Al volver a la pestaña home, los datos se refrescan.
 
 | Campo        | Valor               |
 | ------------ | ------------------- |
@@ -1234,18 +1234,18 @@ en_espera
 
 **Criterios de aceptación:**
 
-* [ ] Muestra foto/avatar, nombre, correo y teléfono.
-* [ ] Muestra rol del usuario cuando aplique (ej. profesional).
-* [ ] El botón "Editar perfil" navega a `EditProfileScreen` con datos prellenados.
-* [ ] El botón "Cerrar sesión" invalida la sesión y redirige al login.
-* [ ] Al regresar desde edición, los datos se actualizan en pantalla.
+* [X] Muestra foto/avatar, nombre, correo y teléfono.
+* [X] Muestra rol del usuario cuando aplique (ej. profesional).
+* [X] El botón "Editar perfil" navega a `EditProfileScreen` con datos prellenados.
+* [X] El botón "Cerrar sesión" invalida la sesión y redirige al login.
+* [X] Al regresar desde edición, los datos se actualizan en pantalla.
 
-| Campo        | Valor            |
-| ------------ | ---------------- |
-| Story Points | 3                |
-| Sprint       | 4                |
-| Responsable  | Nicolas Gonzalez |
-| Prioridad    | Alta             |
+| Campo        | Valor                        |
+| ------------ | ---------------------------- |
+| Story Points | 3                            |
+| Sprint       | 4                            |
+| Responsable  | Luis Carlos Pedraza Corredor |
+| Prioridad    | Alta                         |
 
 ---
 
@@ -1265,10 +1265,10 @@ en_espera
 
 **Criterios de aceptación:**
 
-* [ ] El admin puede crear, editar y desactivar servicios.
-* [ ] Los servicios desactivados no aparecen en el flujo de reserva del cliente.
-* [ ] No es posible eliminar un servicio que tiene citas asociadas (solo desactivar).
-* [ ] Los cambios se reflejan de inmediato en el catálogo visible al cliente.
+* [X] El admin puede crear, editar y desactivar servicios.
+* [X] Los servicios desactivados no aparecen en el flujo de reserva del cliente.
+* [X] No es posible eliminar un servicio que tiene citas asociadas (solo desactivar).
+* [X] Los cambios se reflejan de inmediato en el catálogo visible al cliente.
 
 | Campo        | Valor               |
 | ------------ | ------------------- |
@@ -1296,11 +1296,11 @@ en_espera
 
 **Criterios de aceptación:**
 
-* [ ] El reporte puede filtrarse por rango de fechas.
-* [ ] Muestra contadores por estado con representación visual (barras o números).
-* [ ] Se puede filtrar por profesional o servicio.
-* [ ] La lista detallada es paginada (máximo 20 registros por página).
-* [ ] Hay un indicador de "citas de hoy" en el dashboard principal del admin.
+* [X] El reporte puede filtrarse por rango de fechas.
+* [X] Muestra contadores por estado con representación visual (barras o números).
+* [X] Se puede filtrar por profesional o servicio.
+* [X] La lista detallada es paginada (máximo 20 registros por página).
+* [X] Hay un indicador de "citas de hoy" en el dashboard principal del admin.
 
 | Campo        | Valor               |
 | ------------ | ------------------- |
@@ -1327,10 +1327,10 @@ en_espera
 
 **Criterios de aceptación:**
 
-* [ ] Solo usuarios `admin` pueden cambiar roles.
-* [ ] El admin puede cambiar de `client` a `professional` y viceversa.
-* [ ] Los cambios se reflejan en la UI sin recargar manualmente.
-* [ ] Se registra error claro cuando el cambio falla por permisos.
+* [X] Solo usuarios `admin` pueden cambiar roles.
+* [X] El admin puede cambiar de `client` a `professional` y viceversa.
+* [X] Los cambios se reflejan en la UI sin recargar manualmente.
+* [X] Se registra error claro cuando el cambio falla por permisos.
 
 | Campo        | Valor               |
 | ------------ | ------------------- |
@@ -1357,17 +1357,17 @@ en_espera
 
 **Criterios de aceptación:**
 
-* [ ] El selector de profesional aparece dentro del flujo de reserva.
-* [ ] El calendario muestra slots del profesional seleccionado.
-* [ ] Al cambiar profesional, se limpia el slot seleccionado y se recarga disponibilidad.
-* [ ] La cita se guarda con `professional_id` correcto.
+* [X] El selector de profesional aparece dentro del flujo de reserva.
+* [X] El calendario muestra slots del profesional seleccionado.
+* [X] Al cambiar profesional, se limpia el slot seleccionado y se recarga disponibilidad.
+* [X] La cita se guarda con `professional_id` correcto.
 
-| Campo        | Valor            |
-| ------------ | ---------------- |
-| Story Points | 5                |
-| Sprint       | 4                |
-| Responsable  | Nicolas Gonzalez |
-| Prioridad    | Alta             |
+| Campo        | Valor                        |
+| ------------ | ---------------------------- |
+| Story Points | 5                            |
+| Sprint       | 4                            |
+| Responsable  | Luis Carlos Pedraza Corredor |
+| Prioridad    | Alta                         |
 
 ---
 
@@ -1387,10 +1387,10 @@ en_espera
 
 **Criterios de aceptación:**
 
-* [ ] Un usuario admin entra al shell admin automáticamente.
-* [ ] Un usuario no admin no puede abrir rutas admin.
-* [ ] El panel muestra navegación con las secciones definidas.
-* [ ] El cierre de sesión funciona desde el panel.
+* [X] Un usuario admin entra al shell admin automáticamente.
+* [X] Un usuario no admin no puede abrir rutas admin.
+* [X] El panel muestra navegación con las secciones definidas.
+* [X] El cierre de sesión funciona desde el panel.
 
 | Campo        | Valor               |
 | ------------ | ------------------- |
@@ -1465,22 +1465,22 @@ Estado actual de estas tareas:
 
 #### Luis Carlos Pedraza — Admin y Notificaciones (20h)
 
-| TASK ID   | Tarea                         | Descripción técnica                                                                                                    | Horas | HU    |
-| --------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----- | ----- |
-| TASK-17P1 | Admin - gestión de servicios | `ServicesManagementScreen`, CRUD con `DataTable`, activar/desactivar sin eliminar                                    | 8h    | US-23 |
-| TASK-17P2 | Admin - gestión de usuarios  | `UsersManagementScreen`, tabla paginada, selector de rol, soft delete                                                  | 4h    | US-27 |
-| TASK-17P3 | Admin - reportes              | `ReportsScreen`, contadores por estado, filtros de fecha con `DateRangePicker`, lista paginada                       | 4h    | US-24 |
-| TASK-15   | Edge Function recordatorios   | Supabase Edge Function `send-reminders`, cron diario, query citas del día siguiente,`schedule()`notificación local | 4h    | US-21 |
-| TASK-23   | Home del cliente funcional    | Refactor de `AuthenticatedHomeScreen`, integración con próximas citas y accesos rápidos                             | 5h    | US-25 |
-| TASK-24   | Perfil de usuario funcional   | Completar `ProfileScreen` con datos reales y navegación a edición                                                    | 3h    | US-26 |
-| TASK-26   | Admin shell y guard de acceso | Implementar `AdminShell`, tabs base y guard por rol en rutas                                                           | 3h    | US-29 |
+| TASK ID      | Tarea                         | Descripción técnica                                                                                                    | Horas | HU    |
+| ------------ | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----- | ----- |
+| TASK-17P1 ✅ | Admin - gestión de servicios | `ServicesManagementScreen`, CRUD con `DataTable`, activar/desactivar sin eliminar                                    | 8h    | US-23 |
+| TASK-17P2 ✅ | Admin - gestión de usuarios  | `UsersManagementScreen`, tabla paginada, selector de rol, soft delete                                                  | 4h    | US-27 |
+| TASK-17P3 ✅ | Admin - reportes              | `ReportsScreen`, contadores por estado, filtros de fecha con `DateRangePicker`, lista paginada                       | 4h    | US-24 |
+| TASK-15      | Edge Function recordatorios   | Supabase Edge Function `send-reminders`, cron diario, query citas del día siguiente,`schedule()`notificación local | 4h    | US-21 |
+| TASK-23 ✅   | Home del cliente funcional    | Refactor de `AuthenticatedHomeScreen`, integración con próximas citas y accesos rápidos                             | 5h    | US-25 |
+| TASK-24 ✅   | Perfil de usuario funcional   | Completar `ProfileScreen` con datos reales y navegación a edición                                                    | 3h    | US-26 |
+| TASK-26 ✅   | Admin shell y guard de acceso | Implementar `AdminShell`, tabs base y guard por rol en rutas                                                           | 3h    | US-29 |
+| TASK-25 ✅ | Selector de profesional en cita | Agregar selector de profesional, estado en controller y filtrado de slots por profesional                       | 5h    | US-28 |
 
 #### Nicolas Gonzalez — CI/CD y Release (20h)
 
 | TASK ID   | Tarea                           | Descripción técnica                                                                                           | Horas | HU    |
 | --------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------- | ----- | ----- |
 | TASK-11P2 | Realtime citas                  | Suscripción al canal de `appointments`para cliente y profesional, dispatch de notificaciones locales         | 5h    | US-20 |
-| TASK-25   | Selector de profesional en cita | Agregar selector de profesional, estado en controller y filtrado de slots por profesional                       | 5h    | US-28 |
 | TASK-18   | GitHub Actions APK              | Workflow `build-apk.yml`,`flutter build apk --release`, upload artifact, triggers en push a `main`        | 4h    | —    |
 | TASK-19P2 | GitHub Actions CI completo      | `flutter analyze`,`flutter test`, badge de estado en README                                                 | 3h    | —    |
 | TASK-20   | Pruebas unitarias y widget      | Tests para `AppointmentRepository`,`AuthService`,`PetRepository`, widget tests para formularios críticos | 5h    | —    |

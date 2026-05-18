@@ -128,8 +128,9 @@ class _AdminServicesScreenState extends State<AdminServicesScreen> {
                                   ),
                                   validator: (value) {
                                     final parsed = int.tryParse(value ?? '');
-                                    if (parsed == null || parsed <= 0)
+                                    if (parsed == null || parsed <= 0) {
                                       return 'Minutos válidos';
+                                    }
                                     return null;
                                   },
                                 ),
@@ -150,8 +151,9 @@ class _AdminServicesScreenState extends State<AdminServicesScreen> {
                                     final parsed = double.tryParse(
                                       (value ?? '').replaceAll(',', '.'),
                                     );
-                                    if (parsed == null || parsed < 0)
+                                    if (parsed == null || parsed < 0) {
                                       return 'Precio válido';
+                                    }
                                     return null;
                                   },
                                 ),
@@ -178,8 +180,9 @@ class _AdminServicesScreenState extends State<AdminServicesScreen> {
                   ),
                   FilledButton(
                     onPressed: () {
-                      if (formKey.currentState?.validate() ?? false)
+                      if (formKey.currentState?.validate() ?? false) {
                         Navigator.of(dialogContext).pop(true);
+                      }
                     },
                     child: const Text('Guardar'),
                   ),
@@ -217,7 +220,7 @@ class _AdminServicesScreenState extends State<AdminServicesScreen> {
             );
 
       if (ok) {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -227,12 +230,14 @@ class _AdminServicesScreenState extends State<AdminServicesScreen> {
               ),
             ),
           );
+        }
         await _load();
       } else {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('No se pudo guardar el servicio.')),
           );
+        }
       }
     } finally {
       nameController.dispose();
@@ -281,16 +286,18 @@ class _AdminServicesScreenState extends State<AdminServicesScreen> {
 
     try {
       await _service.deleteService(serviceId: service.id);
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Servicio eliminado')));
+      }
       await _load();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
         );
+      }
     }
   }
 

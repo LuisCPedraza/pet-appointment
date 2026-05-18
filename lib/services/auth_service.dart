@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/foundation.dart';
+import 'package:pet_appointment/models/user_profile_model.dart';
 
 /// Maneja toda la comunicación con Supabase Auth.
 /// La pantalla no sabe cómo funciona Supabase, solo llama métodos de aquí.
@@ -388,6 +389,41 @@ class AuthService {
   /// Teléfono del usuario autenticado (del metadata de registro).
   String get currentUserPhone =>
       _client.auth.currentUser?.userMetadata?['phone'] as String? ?? '';
+
+  /// Obtiene el perfil completo del usuario autenticado desde `users`.
+  Future<UserProfileModel> getCurrentUserProfile() async {
+    final user = _client.auth.currentUser;
+    if (user == null) {
+      throw Exception('No hay sesión activa');
+    }
+
+    try {
+      final row = await _client
+          .from('users')
+          .select(
+            'id, full_name, email, phone, photo_url, role, is_active, created_at',
+          )
+          .eq('id', user.id)
+          .maybeSingle();
+
+      if (row != null) {
+        return UserProfileModel.fromJson(row);
+      }
+    } catch (e) {
+      debugPrint('Error obteniendo perfil de usuario: $e');
+    }
+
+    final role = await getCurrentUserRole();
+    return UserProfileModel.fallback(
+      id: user.id,
+      name: currentUserName,
+      email: currentUserEmail,
+      phone: currentUserPhone,
+      role: role,
+      photoUrl: currentUserPhotoUrl.isEmpty ? null : currentUserPhotoUrl,
+      isActive: true,
+    );
+  }
 
   /// Sube la imagen de perfil a Supabase Storage y retorna su URL pública.
   Future<String> uploadProfilePhoto({

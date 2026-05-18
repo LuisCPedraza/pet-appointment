@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pet_appointment/config/theme.dart';
+import 'package:pet_appointment/screens/admin_shell_controller.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -142,24 +143,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       title: 'Usuarios',
                       subtitle: 'Roles y estado de cuentas.',
                       color: AppColors.primary,
-                      onTap: () =>
-                          Navigator.of(context).pushNamed('/admin/users'),
+                      onTap: () => AdminShellController.selectTab(1),
                     ),
                     _ActionCard(
                       icon: Icons.medical_services_outlined,
                       title: 'Servicios',
                       subtitle: 'Catálogo, precio, duración y activación.',
                       color: AppColors.secondary,
-                      onTap: () =>
-                          Navigator.of(context).pushNamed('/admin/services'),
+                      onTap: () => AdminShellController.selectTab(2),
                     ),
                     _ActionCard(
                       icon: Icons.bar_chart_rounded,
                       title: 'Reportes',
                       subtitle: 'Citas por estado, profesional y servicio.',
                       color: AppColors.tertiary,
-                      onTap: () =>
-                          Navigator.of(context).pushNamed('/admin/reports'),
+                      onTap: () => AdminShellController.selectTab(3),
                     ),
                   ],
                 );

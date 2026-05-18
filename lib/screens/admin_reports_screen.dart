@@ -189,7 +189,8 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                 }
                 return ListView.separated(
                   itemCount: list.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  separatorBuilder: (context, index) =>
+                      const Divider(height: 1),
                   itemBuilder: (context, idx) {
                     final ap = list[idx];
                     return ListTile(
