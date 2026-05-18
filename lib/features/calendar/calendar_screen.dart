@@ -7,6 +7,7 @@ import 'package:pet_appointment/widgets/calendar/booking_heading.dart';
 import 'package:pet_appointment/widgets/calendar/calendar_card.dart';
 import 'package:pet_appointment/widgets/calendar/confirm_button.dart';
 import 'package:pet_appointment/widgets/calendar/notes_card.dart';
+import 'package:pet_appointment/widgets/calendar/professional_selector_card.dart';
 import 'package:pet_appointment/widgets/calendar/pet_selector_card.dart';
 import 'package:pet_appointment/widgets/calendar/service_selector_card.dart';
 import 'package:pet_appointment/widgets/calendar/time_slots_card.dart';
@@ -136,16 +137,34 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             icon: Icons.medical_services,
                           ),
                           _SummaryChip(
+                            label: 'Profesionales',
+                            value: '${_controller.professionals.length}',
+                            icon: Icons.person_search,
+                          ),
+                          _SummaryChip(
                             label: 'Slots',
                             value: '${_controller.slotsByDay.length}',
                             icon: Icons.schedule,
                           ),
                         ],
                       ),
+                      if (_controller.selectedProfessionalName != null) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          'Profesional seleccionado: ${_controller.selectedProfessionalName}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 12),
                       Text(
                         _controller.selectedServiceId == null
                             ? 'Selecciona un servicio para mostrar el calendario y los horarios disponibles.'
+                            : _controller.selectedProfessionalId == null
+                            ? 'Selecciona un profesional para cargar su disponibilidad.'
                             : _controller.selectedDay == null
                             ? 'Ya puedes elegir una fecha y continuar con la hora disponible.'
                             : 'Selecciona una hora y completa la nota si quieres dejar un comentario para la cita.',
@@ -167,8 +186,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
               SliverToBoxAdapter(
                 child: ServiceSelectorCard(controller: _controller),
               ),
+            if (_controller.selectedServiceId != null &&
+                _controller.professionals.isNotEmpty)
+              SliverToBoxAdapter(
+                child: ProfessionalSelectorCard(controller: _controller),
+              ),
             if (_controller.selectedServiceId == null)
               const SliverToBoxAdapter(child: ServiceRequiredHint())
+            else if (_controller.selectedProfessionalId == null)
+              const SliverToBoxAdapter(child: ProfessionalRequiredHint())
             else ...[
               SliverToBoxAdapter(child: CalendarCard(controller: _controller)),
               if (_controller.selectedDay != null)
@@ -235,6 +261,31 @@ class _SummaryChip extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ProfessionalRequiredHint extends StatelessWidget {
+  const ProfessionalRequiredHint({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline_rounded,
+            size: 16,
+            color: AppColors.onSurfaceVariant,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Selecciona un profesional para ver su disponibilidad.',
+            style: TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
           ),
         ],
       ),

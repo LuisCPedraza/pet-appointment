@@ -10,8 +10,10 @@ class CalendarController extends ChangeNotifier {
 
   List<Map<String, dynamic>> pets = [];
   List<ServiceModel> services = [];
+  List<Map<String, String>> professionals = [];
   String? selectedPetId;
   String? selectedServiceId;
+  String? selectedProfessionalId;
 
   DateTime focusedDay = DateTime.now();
   DateTime? selectedDay;
@@ -25,7 +27,20 @@ class CalendarController extends ChangeNotifier {
   bool get canSubmit =>
       selectedPetId != null &&
       selectedServiceId != null &&
+      selectedProfessionalId != null &&
       selectedSlot != null;
+
+  String? get selectedProfessionalName {
+    final id = selectedProfessionalId;
+    if (id == null) return null;
+    try {
+      return professionals.firstWhere(
+        (professional) => professional['id'] == id,
+      )['full_name'];
+    } catch (_) {
+      return null;
+    }
+  }
 
   RealtimeChannel? _appointmentsChannel;
   RealtimeChannel? _slotsChannel;
@@ -40,10 +55,15 @@ class CalendarController extends ChangeNotifier {
       final results = await Future.wait([
         _service.fetchUserPets(),
         _service.fetchServices(),
+        _service.fetchProfessionals(),
       ]);
       pets = results[0] as List<Map<String, dynamic>>;
       services = results[1] as List<ServiceModel>;
+      professionals = results[2] as List<Map<String, String>>;
       if (pets.isNotEmpty) selectedPetId = pets.first['id'] as String;
+      if (professionals.isNotEmpty) {
+        selectedProfessionalId ??= professionals.first['id'];
+      }
     } catch (e) {
       debugPrint('loadInitialData error: $e');
       rethrow;
@@ -70,6 +90,13 @@ class CalendarController extends ChangeNotifier {
   // ─── Carga de datos ───────────────────────────────────────────────────────
 
   Future<void> loadMonth(DateTime month) async {
+    if (selectedProfessionalId == null) {
+      slotsByDay = {};
+      bookedIds = {};
+      notifyListeners();
+      return;
+    }
+
     final from = DateTime(month.year, month.month, 1);
     final to = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
     try {
@@ -77,8 +104,13 @@ class CalendarController extends ChangeNotifier {
         from: from,
         to: to,
         serviceId: selectedServiceId,
+        professionalId: selectedProfessionalId,
       );
-      final booked = await _service.fetchAllBookedSlotIds(from: from, to: to);
+      final booked = await _service.fetchAllBookedSlotIds(
+        from: from,
+        to: to,
+        professionalId: selectedProfessionalId,
+      );
       final Map<DateTime, List<AvailabilitySlot>> grouped = {};
       for (final s in slots) {
         final key = DateTime(s.start.year, s.start.month, s.start.day);
@@ -93,11 +125,17 @@ class CalendarController extends ChangeNotifier {
   }
 
   Future<void> refreshBookedIds() async {
+    if (selectedProfessionalId == null) return;
+
     final month = focusedDay;
     final from = DateTime(month.year, month.month, 1);
     final to = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
     try {
-      final booked = await _service.fetchAllBookedSlotIds(from: from, to: to);
+      final booked = await _service.fetchAllBookedSlotIds(
+        from: from,
+        to: to,
+        professionalId: selectedProfessionalId,
+      );
       bookedIds = booked;
       if (selectedSlot != null && booked.contains(selectedSlot!.id)) {
         selectedSlot = null;
@@ -109,6 +147,8 @@ class CalendarController extends ChangeNotifier {
   }
 
   Future<void> refreshSlots() async {
+    if (selectedProfessionalId == null) return;
+
     final month = focusedDay;
     final from = DateTime(month.year, month.month, 1);
     final to = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
@@ -117,6 +157,7 @@ class CalendarController extends ChangeNotifier {
         from: from,
         to: to,
         serviceId: selectedServiceId,
+        professionalId: selectedProfessionalId,
       );
       final Map<DateTime, List<AvailabilitySlot>> grouped = {};
       for (final s in slots) {
@@ -184,13 +225,28 @@ class CalendarController extends ChangeNotifier {
     await loadMonth(focusedDay);
   }
 
+  Future<void> changeProfessional(String? professionalId) async {
+    selectedProfessionalId = professionalId;
+    selectedSlot = null;
+    selectedDay = null;
+    if (professionalId == null) {
+      slotsByDay = {};
+      bookedIds = {};
+      notifyListeners();
+      return;
+    }
+
+    notifyListeners();
+    await loadMonth(focusedDay);
+  }
+
   Future<AppointmentModel?> confirm({required String notes}) async {
     isSubmitting = true;
     notifyListeners();
     try {
       final appointment = await _service.createAppointment(
         petId: selectedPetId!,
-        professionalId: selectedSlot!.professionalId,
+        professionalId: selectedProfessionalId ?? selectedSlot!.professionalId,
         serviceId: selectedServiceId ?? selectedSlot!.serviceId,
         availabilityId: selectedSlot!.id,
         notes: notes.trim().isEmpty ? null : notes.trim(),

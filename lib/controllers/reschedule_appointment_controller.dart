@@ -27,6 +27,9 @@ class RescheduleAppointmentController extends CalendarController {
       selectedServiceId = appointment.serviceId.isNotEmpty
           ? appointment.serviceId
           : null;
+      selectedProfessionalId = appointment.professionalId.isNotEmpty
+          ? appointment.professionalId
+          : null;
       selectedPetId = appointment.petId;
       focusedDay = appointment.scheduledAt ?? DateTime.now();
       selectedDay = appointment.scheduledAt != null
@@ -163,10 +166,27 @@ class RescheduleAppointmentController extends CalendarController {
     await loadMonth(focusedDay);
   }
 
+  @override
+  Future<void> changeProfessional(String? professionalId) async {
+    selectedProfessionalId = professionalId;
+    selectedSlot = null;
+    selectedDay = null;
+    if (professionalId == null) {
+      slotsByDay = {};
+      bookedIds = {};
+      notifyListeners();
+      return;
+    }
+
+    notifyListeners();
+    await loadMonth(focusedDay);
+  }
+
   /// Reprograma la cita actualizando el slot, mascota, servicio y notas existentes.
   Future<bool> rescheduleAppointment(String notes) async {
     if (!['En espera', 'Confirmada'].contains(originalAppointment.status)) {
-      errorMessage = 'Solo se pueden reprogramar citas en espera o confirmadas.';
+      errorMessage =
+          'Solo se pueden reprogramar citas en espera o confirmadas.';
       notifyListeners();
       return false;
     }

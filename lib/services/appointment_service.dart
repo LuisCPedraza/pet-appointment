@@ -9,6 +9,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AppointmentService {
   final _client = Supabase.instance.client;
+  static const List<String> _activeUpcomingStatuses = [
+    'En espera',
+    'Confirmada',
+  ];
 
   /// Obtiene todos los slots habilitados de un profesional en un rango de fechas.
   /// Si se pasa [serviceId], filtra por ese servicio o slots sin servicio asignado.
@@ -195,12 +199,18 @@ class AppointmentService {
 
   /// Devuelve la lista de usuarios con rol [professional].
   /// Cada elemento tiene: `id`, `full_name`, `email`.
-  Future<List<Map<String, String>>> fetchProfessionals() async {
-    final rows = await _client
+  Future<List<Map<String, String>>> fetchProfessionals({
+    bool activeOnly = true,
+  }) async {
+    var query = _client
         .from('users')
         .select('id, full_name, email')
-        .eq('role', 'professional')
-        .order('full_name');
+        .eq('role', 'professional');
+    if (activeOnly) {
+      query = query.eq('is_active', true);
+    }
+
+    final rows = await query.order('full_name');
 
     return (rows as List).map((row) {
       return {
@@ -214,6 +224,51 @@ class AppointmentService {
   /// Devuelve los servicios activos disponibles para agendar.
   Future<List<ServiceModel>> fetchServices() async {
     return fetchAllServices(activeOnly: true);
+  }
+
+  /// Devuelve las próximas citas activas del usuario autenticado.
+  Future<List<AppointmentModel>> fetchUpcomingAppointments({
+    int limit = 5,
+  }) async {
+    final clientId = _client.auth.currentUser?.id;
+    if (clientId == null) return [];
+
+    try {
+      final nowIso = DateTime.now().toUtc().toIso8601String();
+      final rows = await _client
+          .from('appointments')
+          .select(
+            'id, professional_id, status, notes, created_at, '
+            'client_id, pet_id, service_id, availability_id, '
+            'users!appointments_client_id_fkey(id, full_name, email), '
+            'users!appointments_professional_id_fkey(full_name), '
+            'pets(id, name, species), '
+            'services(id, name), '
+            'availability(slot_start, slot_end)',
+          )
+          .eq('client_id', clientId)
+          .inFilter('status', _activeUpcomingStatuses)
+          .gte('availability.slot_start', nowIso)
+          .order('created_at', ascending: false)
+          .range(0, limit - 1);
+
+      final appointments = (rows as List)
+          .map((row) => AppointmentModel.fromJson(row as Map<String, dynamic>))
+          .toList();
+
+      appointments.sort((left, right) {
+        final leftDate =
+            left.scheduledAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final rightDate =
+            right.scheduledAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return leftDate.compareTo(rightDate);
+      });
+
+      return appointments;
+    } catch (e) {
+      debugPrint('fetchUpcomingAppointments error: $e');
+      return [];
+    }
   }
 
   /// Devuelve todos los servicios para administración.
@@ -356,11 +411,18 @@ class AppointmentService {
   Future<Set<String>> fetchAllBookedSlotIds({
     required DateTime from,
     required DateTime to,
+    String? professionalId,
   }) async {
-    final rows = await _client
-        .from('appointments')
-        .select('availability_id')
-        .inFilter('status', ['En espera', 'Confirmada', 'En progreso']);
+    var query = _client.from('appointments').select('availability_id').inFilter(
+      'status',
+      ['En espera', 'Confirmada', 'En progreso'],
+    );
+
+    if (professionalId != null) {
+      query = query.eq('professional_id', professionalId);
+    }
+
+    final rows = await query;
 
     return (rows as List)
         .map((row) => row['availability_id'] as String?)
