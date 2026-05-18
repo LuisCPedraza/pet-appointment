@@ -280,8 +280,110 @@ class AuthService {
     await _client.auth.updateUser(UserAttributes(password: newPassword));
   }
 
+  /// Retorna true si el usuario actual tiene rol `admin`.
+  Future<bool> isCurrentUserAdmin() async {
+    final email = _client.auth.currentUser?.email;
+    if (email == null) return false;
+    try {
+      final res = await _client
+          .from('users')
+          .select('role')
+          .eq('email', email)
+          .single();
+      final role = res['role'] as String? ?? '';
+      return role == 'admin';
+    } catch (e) {
+      debugPrint('Error comprobando rol admin: $e');
+      return false;
+    }
+  }
+
+  /// Recupera usuarios paginados con filtros simples.
+  Future<List<Map<String, dynamic>>> fetchUsers({
+    required int limit,
+    required int offset,
+    String? roleFilter,
+    String? search,
+  }) async {
+    try {
+      var query = _client
+          .from('users')
+          .select('id, full_name, email, role, created_at, is_active');
+      if (roleFilter != null && roleFilter.isNotEmpty) {
+        query = query.eq('role', roleFilter);
+      }
+      if (search != null && search.isNotEmpty) {
+        // Buscar por nombre o correo con un solo filtro OR.
+        query = query.or('full_name.ilike.%$search%,email.ilike.%$search%');
+      }
+      final data =
+          await query
+                  .order('created_at', ascending: false)
+                  .range(offset, offset + limit - 1)
+              as List<dynamic>;
+      return data.cast<Map<String, dynamic>>();
+    } catch (e) {
+      debugPrint('fetchUsers error: $e');
+      rethrow;
+    }
+  }
+
+  /// Cambia el rol de un usuario; intenta usar RPC seguro y hace fallback a update.
+  Future<bool> changeUserRole({
+    required String userId,
+    required String newRole,
+  }) async {
+    try {
+      // Intentar función RPC (recomendada): admin_update_user_role(user_id, new_role)
+      await _client.rpc(
+        'admin_update_user_role',
+        params: {'user_id': userId, 'new_role': newRole},
+      );
+      return true;
+    } catch (e) {
+      debugPrint('RPC changeUserRole error: $e');
+      // Fallback: update tabla (depende de RLS)
+      try {
+        await _client.from('users').update({'role': newRole}).eq('id', userId);
+        return true;
+      } catch (fallbackError) {
+        debugPrint('Fallback changeUserRole error: $fallbackError');
+        return false;
+      }
+    }
+  }
+
+  /// Activa/desactiva usuario (soft delete) usando RPC o update.
+  Future<bool> setUserActive({
+    required String userId,
+    required bool active,
+  }) async {
+    try {
+      await _client.rpc(
+        'admin_set_user_active',
+        params: {'user_id': userId, 'active': active},
+      );
+      return true;
+    } catch (e) {
+      debugPrint('RPC setUserActive error: $e');
+      try {
+        await _client
+            .from('users')
+            .update({'is_active': active})
+            .eq('id', userId);
+        return true;
+      } catch (fallbackError) {
+        debugPrint('Fallback setUserActive error: $fallbackError');
+        return false;
+      }
+    }
+  }
+
   /// Correo del usuario autenticado.
   String get currentUserEmail => _client.auth.currentUser?.email ?? '';
+
+  /// Id del usuario autenticado.
+  String? get currentUserId => _client.auth.currentUser?.id;
 
   /// Teléfono del usuario autenticado (del metadata de registro).
   String get currentUserPhone =>
