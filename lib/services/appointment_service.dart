@@ -213,15 +213,103 @@ class AppointmentService {
 
   /// Devuelve los servicios activos disponibles para agendar.
   Future<List<ServiceModel>> fetchServices() async {
-    final rows = await _client
+    return fetchAllServices(activeOnly: true);
+  }
+
+  /// Devuelve todos los servicios para administración.
+  Future<List<ServiceModel>> fetchAllServices({bool activeOnly = false}) async {
+    var query = _client
         .from('services')
-        .select('id, name, description, duration_minutes, price')
-        .eq('is_active', true)
-        .order('name');
+        .select(
+          'id, name, description, duration_minutes, price, is_active, created_at',
+        );
+
+    if (activeOnly) {
+      query = query.eq('is_active', true);
+    }
+
+    final rows = await query.order('name');
 
     return (rows as List)
         .map((row) => ServiceModel.fromJson(row as Map<String, dynamic>))
         .toList();
+  }
+
+  /// Crea un servicio nuevo.
+  Future<bool> createService({
+    required String name,
+    String? description,
+    required int durationMinutes,
+    required double price,
+    bool isActive = true,
+  }) async {
+    try {
+      await _client.from('services').insert({
+        'name': name.trim(),
+        'description': description?.trim().isEmpty == true
+            ? null
+            : description?.trim(),
+        'duration_minutes': durationMinutes,
+        'price': price,
+        'is_active': isActive,
+      });
+      return true;
+    } catch (e) {
+      debugPrint('createService error: $e');
+      return false;
+    }
+  }
+
+  /// Actualiza un servicio existente.
+  Future<bool> updateService({
+    required String serviceId,
+    required String name,
+    String? description,
+    required int durationMinutes,
+    required double price,
+    bool? isActive,
+  }) async {
+    try {
+      final payload = <String, dynamic>{
+        'name': name.trim(),
+        'description': description?.trim().isEmpty == true
+            ? null
+            : description?.trim(),
+        'duration_minutes': durationMinutes,
+        'price': price,
+      };
+      if (isActive != null) {
+        payload['is_active'] = isActive;
+      }
+
+      await _client.from('services').update(payload).eq('id', serviceId);
+      return true;
+    } catch (e) {
+      debugPrint('updateService error: $e');
+      return false;
+    }
+  }
+
+  /// Activa o desactiva un servicio.
+  Future<bool> setServiceActive({
+    required String serviceId,
+    required bool active,
+  }) async {
+    try {
+      await _client
+          .from('services')
+          .update({'is_active': active})
+          .eq('id', serviceId);
+      return true;
+    } catch (e) {
+      debugPrint('setServiceActive error: $e');
+      return false;
+    }
+  }
+
+  /// Elimina un servicio. La base de datos impide borrar servicios con citas asociadas.
+  Future<void> deleteService({required String serviceId}) async {
+    await _client.from('services').delete().eq('id', serviceId);
   }
 
   /// Devuelve las mascotas del usuario autenticado actual.
@@ -279,6 +367,26 @@ class AppointmentService {
         .whereType<String>()
         .where((id) => id.isNotEmpty)
         .toSet();
+  }
+
+  /// Suscribe a cambios en la tabla de servicios para refrescar el catálogo.
+  RealtimeChannel subscribeToServices({required void Function() onChanged}) {
+    final channel = _client
+        .channel('services:catalog')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'services',
+          callback: (_) => onChanged(),
+        );
+
+    channel.subscribe((status, error) {
+      debugPrint(
+        '🔌 Realtime services: $status${error != null ? ' — $error' : ''}',
+      );
+    });
+
+    return channel;
   }
 
   /// Suscribe a cambios en [appointments] sin filtro de profesional.
@@ -465,7 +573,7 @@ class AppointmentService {
           var appointment = AppointmentModel.fromJson(
             row as Map<String, dynamic>,
           );
-          
+
           // Cargar nombre del profesional si está vacío
           if (appointment.professionalName.isEmpty) {
             try {
@@ -474,13 +582,16 @@ class AppointmentService {
                   .select('full_name')
                   .eq('id', appointment.professionalId)
                   .single();
-              final professionalName = professionalRow['full_name'] as String? ?? '';
-              appointment = appointment.copyWith(professionalName: professionalName);
+              final professionalName =
+                  professionalRow['full_name'] as String? ?? '';
+              appointment = appointment.copyWith(
+                professionalName: professionalName,
+              );
             } catch (e) {
               debugPrint('No se pudo cargar el nombre del profesional: $e');
             }
           }
-          
+
           appointments.add(appointment);
         } catch (e) {
           debugPrint('Error parsing client appointment: $e');
@@ -556,6 +667,102 @@ class AppointmentService {
     });
 
     return channel;
+  }
+
+  /// Devuelve citas administrativas filtradas por rango de fechas y opcionales.
+  Future<List<AppointmentModel>> fetchAdminAppointments({
+    required DateTime from,
+    required DateTime to,
+    String? professionalId,
+    String? serviceId,
+    required int limit,
+    required int offset,
+  }) async {
+    try {
+      var query = _client
+          .from('appointments')
+          .select(
+            'id, professional_id, status, notes, created_at, '
+            'client_id, pet_id, service_id, availability_id, '
+            'users!appointments_client_id_fkey(id, full_name, email), '
+            'users!appointments_professional_id_fkey(full_name), '
+            'pets(id, name, species), '
+            'services(id, name), '
+            'availability(slot_start, slot_end)',
+          )
+          .gte('availability.slot_start', from.toUtc().toIso8601String())
+          .lte('availability.slot_start', to.toUtc().toIso8601String());
+
+      if (professionalId != null && professionalId.isNotEmpty) {
+        query = query.eq('professional_id', professionalId);
+      }
+      if (serviceId != null && serviceId.isNotEmpty) {
+        query = query.eq('service_id', serviceId);
+      }
+
+      final rows = await query
+          .order('created_at', ascending: false)
+          .range(offset, offset + limit - 1);
+
+      return (rows as List)
+          .map((row) => AppointmentModel.fromJson(row as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      debugPrint('fetchAdminAppointments error: $e');
+      return [];
+    }
+  }
+
+  /// Devuelve contadores del reporte de citas para un rango y filtros opcionales.
+  Future<Map<String, int>> fetchAppointmentReportSummary({
+    required DateTime from,
+    required DateTime to,
+    String? professionalId,
+    String? serviceId,
+  }) async {
+    try {
+      final response = await _client.rpc(
+        'admin_appointments_report_summary',
+        params: {
+          'p_from': from.toUtc().toIso8601String(),
+          'p_to': to.toUtc().toIso8601String(),
+          'p_professional_id': professionalId,
+          'p_service_id': serviceId,
+        },
+      );
+
+      final rows = response as List<dynamic>;
+      if (rows.isEmpty) {
+        return {
+          'total': 0,
+          'En espera': 0,
+          'Confirmada': 0,
+          'En progreso': 0,
+          'Atendida': 0,
+          'Cancelada': 0,
+        };
+      }
+
+      final row = rows.first as Map<String, dynamic>;
+      return {
+        'total': (row['total_count'] as num?)?.toInt() ?? 0,
+        'En espera': (row['waiting_count'] as num?)?.toInt() ?? 0,
+        'Confirmada': (row['confirmed_count'] as num?)?.toInt() ?? 0,
+        'En progreso': (row['in_progress_count'] as num?)?.toInt() ?? 0,
+        'Atendida': (row['attended_count'] as num?)?.toInt() ?? 0,
+        'Cancelada': (row['cancelled_count'] as num?)?.toInt() ?? 0,
+      };
+    } catch (e) {
+      debugPrint('fetchAppointmentReportSummary error: $e');
+      return {
+        'total': 0,
+        'En espera': 0,
+        'Confirmada': 0,
+        'En progreso': 0,
+        'Atendida': 0,
+        'Cancelada': 0,
+      };
+    }
   }
 
   /// Actualiza el estado de una cita y registra el cambio en `appointment_history`.
