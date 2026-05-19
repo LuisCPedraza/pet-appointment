@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_appointment/controllers/professional_agenda_controller.dart';
 import 'package:pet_appointment/models/appointment_model.dart';
+import 'package:pet_appointment/utils/app_globals.dart';
 import 'package:pet_appointment/features/appointments/appointment_detail_screen.dart';
 import 'package:pet_appointment/screens/professional_home/professional_home.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +21,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late DateTime _currentWeekStart;
+  ProfessionalAgendaController? _agendaController;
 
   @override
   void initState() {
@@ -33,6 +35,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
     // Cargar citas al inicializar
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final controller = context.read<ProfessionalAgendaController>();
+      _agendaController = controller;
       controller.loadAppointments().then((_) {
         controller.subscribeRealtime();
       });
@@ -41,8 +44,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
 
   @override
   void dispose() {
-    final controller = context.read<ProfessionalAgendaController>();
-    controller.unsubscribe();
+    _agendaController?.unsubscribe();
     _tabController.dispose();
     super.dispose();
   }
@@ -61,14 +63,14 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
     try {
       await controller.confirmAppointment(appointment.id);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Cita confirmada')));
+      appScaffoldMessengerKey.currentState?.showSnackBar(
+        const SnackBar(content: Text('Cita confirmada')),
+      );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+      appScaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
     }
   }
 

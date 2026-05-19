@@ -234,26 +234,18 @@ class AppointmentService {
     if (clientId == null) return [];
 
     try {
-      final nowIso = DateTime.now().toUtc().toIso8601String();
-      final rows = await _client
-          .from('appointments')
-          .select(
-            'id, professional_id, status, notes, created_at, '
-            'client_id, pet_id, service_id, availability_id, '
-            'users!appointments_client_id_fkey(id, full_name, email), '
-            'users!appointments_professional_id_fkey(full_name), '
-            'pets(id, name, species), '
-            'services(id, name), '
-            'availability(slot_start, slot_end)',
-          )
-          .eq('client_id', clientId)
-          .inFilter('status', _activeUpcomingStatuses)
-          .gte('availability.slot_start', nowIso)
-          .order('created_at', ascending: false)
-          .range(0, limit - 1);
-
-      final appointments = (rows as List)
-          .map((row) => AppointmentModel.fromJson(row as Map<String, dynamic>))
+      final rows = await _fetchAppointmentsDetailsRows();
+      final now = DateTime.now();
+      final appointments = rows
+          .where((row) {
+            if (row['client_id'] != clientId) return false;
+            final appointment = AppointmentModel.fromJson(row);
+            final scheduledAt = appointment.scheduledAt;
+            return scheduledAt != null &&
+                scheduledAt.isAfter(now) &&
+                _activeUpcomingStatuses.contains(appointment.status);
+          })
+          .map(AppointmentModel.fromJson)
           .toList();
 
       appointments.sort((left, right) {
@@ -264,7 +256,7 @@ class AppointmentService {
         return leftDate.compareTo(rightDate);
       });
 
-      return appointments;
+      return appointments.take(limit).toList();
     } catch (e) {
       debugPrint('fetchUpcomingAppointments error: $e');
       return [];
@@ -515,95 +507,56 @@ class AppointmentService {
         .single();
 
     final appointmentId = insertResponse['id'] as String;
-
-    final rows = await _client
-        .from('appointments')
-        .select(
-          'id, professional_id, status, notes, created_at, '
-          'client_id, pet_id, service_id, availability_id, '
-          'pets(id, name, species), '
-          'services(id, name), '
-          'availability(slot_start, slot_end)',
-        )
-        .eq('id', appointmentId)
-        .single();
-
-    var appointment = AppointmentModel.fromJson(rows);
-    return await _hydrateAppointmentUserNames(appointment);
+    return _fetchAppointmentById(appointmentId);
   }
 
-  Future<AppointmentModel> _hydrateAppointmentUserNames(
-    AppointmentModel appointment,
-  ) async {
-    var result = appointment;
+  Future<List<Map<String, dynamic>>> _fetchAppointmentsDetailsRows() async {
+    final response = await _client.rpc('get_my_appointments_with_details');
 
-    if ((result.clientName.isEmpty || result.clientEmail.isEmpty == true) &&
-        result.clientId.isNotEmpty) {
-      try {
-        final clientRow = await _client
-            .from('users')
-            .select('full_name, email')
-            .eq('id', result.clientId)
-            .single();
-        result = result.copyWith(
-          clientName: clientRow['full_name'] as String? ?? '',
-          clientEmail: clientRow['email'] as String? ?? '',
-        );
-      } catch (e) {
-        debugPrint('No se pudo cargar los datos del cliente: $e');
-      }
+    if (response is List) {
+      return response
+          .whereType<Map>()
+          .map((row) => row.cast<String, dynamic>())
+          .toList();
     }
 
-    if (result.professionalName.isEmpty && result.professionalId.isNotEmpty) {
-      try {
-        final professionalRow = await _client
-            .from('users')
-            .select('full_name')
-            .eq('id', result.professionalId)
-            .single();
-        result = result.copyWith(
-          professionalName: professionalRow['full_name'] as String? ?? '',
-        );
-      } catch (e) {
-        debugPrint('No se pudo cargar el nombre del profesional: $e');
-      }
+    if (response is Map<String, dynamic>) {
+      return [response];
     }
 
-    return result;
+    return [];
+  }
+
+  Future<AppointmentModel> _fetchAppointmentById(String appointmentId) async {
+    final rows = await _fetchAppointmentsDetailsRows();
+    final row = rows.cast<Map<String, dynamic>?>().firstWhere(
+      (item) => item?['id'] == appointmentId,
+      orElse: () => null,
+    );
+
+    if (row == null) {
+      throw Exception('No se pudo cargar el detalle de la cita');
+    }
+
+    return AppointmentModel.fromJson(row);
   }
 
   /// Obtiene todas las citas del profesional autenticado actual con detalles de cliente, mascota y servicio.
   Future<List<AppointmentModel>> fetchProfessionalAppointments() async {
-    final professionalId = _client.auth.currentUser?.id;
-    if (professionalId == null) return [];
-
     try {
-      final rows = await _client
-          .from('appointments')
-          .select(
-            'id, professional_id, status, notes, created_at, '
-            'client_id, pet_id, service_id, availability_id, '
-            'users!appointments_client_id_fkey(id, full_name, email), '
-            'pets(id, name, species), '
-            'services(id, name), '
-            'availability(slot_start, slot_end)',
-          )
-          .eq('professional_id', professionalId)
-          .order('created_at', ascending: false);
+      final professionalId = _client.auth.currentUser?.id;
+      if (professionalId == null) return [];
 
-      final appointments = <AppointmentModel>[];
-      for (final row in (rows as List)) {
-        try {
-          final appointment = AppointmentModel.fromJson(
-            row as Map<String, dynamic>,
-          );
-          appointments.add(appointment);
-        } catch (e) {
-          debugPrint('Error parsing appointment: $e');
-          continue;
-        }
-      }
-      return appointments;
+      final rows = await _fetchAppointmentsDetailsRows();
+      return rows
+          .where((row) => row['professional_id'] == professionalId)
+          .map(AppointmentModel.fromJson)
+          .toList()
+        ..sort((a, b) {
+          final aDate = a.scheduledAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+          final bDate = b.scheduledAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+          return bDate.compareTo(aDate);
+        });
     } catch (e) {
       debugPrint('Error fetching professional appointments: $e');
       return [];
@@ -612,55 +565,20 @@ class AppointmentService {
 
   /// Obtiene las citas del cliente autenticado actual con detalles de cliente, mascota y servicio.
   Future<List<AppointmentModel>> fetchClientAppointments() async {
-    final clientId = _client.auth.currentUser?.id;
-    if (clientId == null) return [];
-
     try {
-      final rows = await _client
-          .from('appointments')
-          .select(
-            'id, professional_id, status, notes, created_at, '
-            'client_id, pet_id, service_id, availability_id, '
-            'users!appointments_client_id_fkey(id, full_name, email), '
-            'pets(id, name, species), '
-            'services(id, name), '
-            'availability(slot_start, slot_end)',
-          )
-          .eq('client_id', clientId)
-          .order('created_at', ascending: false);
+      final clientId = _client.auth.currentUser?.id;
+      if (clientId == null) return [];
 
-      final appointments = <AppointmentModel>[];
-      for (final row in (rows as List)) {
-        try {
-          var appointment = AppointmentModel.fromJson(
-            row as Map<String, dynamic>,
-          );
-
-          // Cargar nombre del profesional si está vacío
-          if (appointment.professionalName.isEmpty) {
-            try {
-              final professionalRow = await _client
-                  .from('users')
-                  .select('full_name')
-                  .eq('id', appointment.professionalId)
-                  .single();
-              final professionalName =
-                  professionalRow['full_name'] as String? ?? '';
-              appointment = appointment.copyWith(
-                professionalName: professionalName,
-              );
-            } catch (e) {
-              debugPrint('No se pudo cargar el nombre del profesional: $e');
-            }
-          }
-
-          appointments.add(appointment);
-        } catch (e) {
-          debugPrint('Error parsing client appointment: $e');
-          continue;
-        }
-      }
-      return appointments;
+      final rows = await _fetchAppointmentsDetailsRows();
+      return rows
+          .where((row) => row['client_id'] == clientId)
+          .map(AppointmentModel.fromJson)
+          .toList()
+        ..sort((a, b) {
+          final aDate = a.scheduledAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+          final bDate = b.scheduledAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+          return bDate.compareTo(aDate);
+        });
     } catch (e) {
       debugPrint('Error fetching client appointments: $e');
       return [];
@@ -986,20 +904,6 @@ class AppointmentService {
         .eq('id', appointmentId)
         .eq('client_id', clientId);
 
-    // Obtener la cita actualizada con todos sus detalles
-    final rows = await _client
-        .from('appointments')
-        .select(
-          'id, professional_id, status, notes, created_at, '
-          'client_id, pet_id, service_id, availability_id, '
-          'pets(id, name, species), '
-          'services(id, name), '
-          'availability(slot_start, slot_end)',
-        )
-        .eq('id', appointmentId)
-        .single();
-
-    var appointment = AppointmentModel.fromJson(rows);
-    return await _hydrateAppointmentUserNames(appointment);
+    return _fetchAppointmentById(appointmentId);
   }
 }

@@ -39,119 +39,117 @@ class AppointmentModel {
 
   /// Mapea desde un JSON de Supabase (con joins)
   factory AppointmentModel.fromJson(Map<String, dynamic> json) {
-    // Extrae datos del cliente (puede venir como Map o lista)
-    var clientData = json['users'];
-    String clientId = '';
-    String clientName = '';
-    String clientEmail = '';
-
-    if (clientData != null) {
-      if (clientData is Map) {
-        clientId = clientData['id'] as String? ?? '';
-        clientName = clientData['full_name'] as String? ?? '';
-        clientEmail = clientData['email'] as String? ?? '';
-      } else if (clientData is List && clientData.isNotEmpty) {
-        final client = clientData[0] as Map<String, dynamic>?;
-        if (client != null) {
-          clientId = client['id'] as String? ?? '';
-          clientName = client['full_name'] as String? ?? '';
-          clientEmail = client['email'] as String? ?? '';
+    String readString(List<String> keys) {
+      for (final key in keys) {
+        final value = json[key];
+        if (value is String && value.isNotEmpty) {
+          return value;
         }
       }
+      return '';
     }
 
-    // Extrae datos del profesional desde el alias de relación
-    String professionalName = '';
-    final professionalKey = 'users!appointments_professional_id_fkey';
-    if (json.containsKey(professionalKey)) {
-      var professionalData = json[professionalKey];
-      if (professionalData != null) {
-        if (professionalData is Map) {
-          professionalName = professionalData['full_name'] as String? ?? '';
-        } else if (professionalData is List && professionalData.isNotEmpty) {
-          final prof = professionalData[0] as Map<String, dynamic>?;
-          if (prof != null) {
-            professionalName = prof['full_name'] as String? ?? '';
+    Map<String, dynamic>? readMap(List<String> keys) {
+      for (final key in keys) {
+        final value = json[key];
+        if (value is Map<String, dynamic>) {
+          return value;
+        }
+        if (value is Map) {
+          return value.cast<String, dynamic>();
+        }
+        if (value is List && value.isNotEmpty) {
+          final first = value.first;
+          if (first is Map<String, dynamic>) {
+            return first;
+          }
+          if (first is Map) {
+            return first.cast<String, dynamic>();
           }
         }
       }
+      return null;
     }
 
-    // Extrae datos de la mascota
-    var petData = json['pets'];
-    String petId = '';
-    String petName = '';
-    String petSpecies = '';
-
-    if (petData != null) {
-      if (petData is Map) {
-        petId = petData['id'] as String? ?? '';
-        petName = petData['name'] as String? ?? '';
-        petSpecies = petData['species'] as String? ?? '';
-      } else if (petData is List && petData.isNotEmpty) {
-        final pet = petData[0] as Map<String, dynamic>?;
-        if (pet != null) {
-          petId = pet['id'] as String? ?? '';
-          petName = pet['name'] as String? ?? '';
-          petSpecies = pet['species'] as String? ?? '';
+    DateTime? readDateTime(List<String> keys) {
+      for (final key in keys) {
+        final value = json[key];
+        if (value is String && value.isNotEmpty) {
+          return DateTime.tryParse(value)?.toLocal();
+        }
+        if (value is Map<String, dynamic>) {
+          final nested = value['slot_start'] ?? value['scheduled_at'];
+          if (nested is String && nested.isNotEmpty) {
+            return DateTime.tryParse(nested)?.toLocal();
+          }
+        }
+        if (value is Map) {
+          final nested = value['slot_start'] ?? value['scheduled_at'];
+          if (nested is String && nested.isNotEmpty) {
+            return DateTime.tryParse(nested)?.toLocal();
+          }
         }
       }
+      return null;
     }
 
-    // Extrae datos del servicio
-    var serviceData = json['services'];
-    String serviceId = '';
-    String serviceName = '';
+    final clientData = readMap([
+      'users',
+      'client',
+      'client_user',
+      'appointments_client',
+    ]);
+    final professionalData = readMap([
+      'users!appointments_professional_id_fkey',
+      'professional',
+      'professional_user',
+      'appointments_professional',
+    ]);
+    final petData = readMap(['pets', 'pet']);
+    final serviceData = readMap(['services', 'service']);
+    final clientId = readString(['client_id']).isNotEmpty
+        ? readString(['client_id'])
+        : clientData?['id'] as String? ?? '';
+    final clientName =
+        clientData?['full_name'] as String? ?? readString(['client_name']);
+    final clientEmail =
+        clientData?['email'] as String? ?? readString(['client_email']);
 
-    if (serviceData != null) {
-      if (serviceData is Map) {
-        serviceId = serviceData['id'] as String? ?? '';
-        serviceName = serviceData['name'] as String? ?? '';
-      } else if (serviceData is List && serviceData.isNotEmpty) {
-        final service = serviceData[0] as Map<String, dynamic>?;
-        if (service != null) {
-          serviceId = service['id'] as String? ?? '';
-          serviceName = service['name'] as String? ?? '';
-        }
-      }
-    }
+    final professionalId = readString(['professional_id']);
+    final professionalName =
+        professionalData?['full_name'] as String? ??
+        readString(['professional_name']);
 
-    // Extrae la hora del slot de availability
-    var availabilityData = json['availability'];
-    DateTime? scheduledAt;
+    final petId = readString(['pet_id']).isNotEmpty
+        ? readString(['pet_id'])
+        : petData?['id'] as String? ?? '';
+    final petName = petData?['name'] as String? ?? readString(['pet_name']);
+    final petSpecies =
+        petData?['species'] as String? ?? readString(['pet_species']);
 
-    if (availabilityData != null) {
-      if (availabilityData is Map && availabilityData['slot_start'] != null) {
-        scheduledAt = DateTime.tryParse(
-          availabilityData['slot_start'] as String,
-        )?.toLocal();
-      } else if (availabilityData is List &&
-          availabilityData.isNotEmpty &&
-          availabilityData[0] is Map) {
-        final avail = availabilityData[0] as Map<String, dynamic>;
-        if (avail['slot_start'] != null) {
-          scheduledAt = DateTime.tryParse(
-            avail['slot_start'] as String,
-          )?.toLocal();
-        }
-      }
-    }
+    final serviceId = readString(['service_id']).isNotEmpty
+        ? readString(['service_id'])
+        : serviceData?['id'] as String? ?? '';
+    final serviceName =
+        serviceData?['name'] as String? ?? readString(['service_name']);
+
+    final scheduledAt = readDateTime([
+      'availability',
+      'scheduled_at',
+      'slot_start',
+    ]);
 
     return AppointmentModel(
       id: json['id'] as String,
-      clientId: clientId.isNotEmpty
-          ? clientId
-          : (json['client_id'] as String? ?? ''),
+      clientId: clientId,
       clientName: clientName,
       clientEmail: clientEmail,
-      petId: petId.isNotEmpty ? petId : (json['pet_id'] as String? ?? ''),
+      petId: petId,
       petName: petName,
       petSpecies: petSpecies,
-      professionalId: json['professional_id'] as String,
+      professionalId: professionalId,
       professionalName: professionalName,
-      serviceId: serviceId.isNotEmpty
-          ? serviceId
-          : (json['service_id'] as String? ?? ''),
+      serviceId: serviceId,
       serviceName: serviceName,
       scheduledAt: scheduledAt,
       status: json['status'] as String? ?? 'En espera',

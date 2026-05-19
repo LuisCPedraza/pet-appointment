@@ -14,8 +14,8 @@ class StatusSelector extends StatefulWidget {
   /// Estado actual de la cita
   final String currentStatus;
 
-  /// Callback cuando se selecciona un nuevo estado
-  final void Function(String newStatus) onStatusChanged;
+  /// Callback cuando se selecciona un nuevo estado. Puede ser async.
+  final Future<void> Function(String newStatus) onStatusChanged;
 
   /// Si es false, el selector se deshabilita
   final bool enabled;
@@ -99,8 +99,8 @@ class _StatusSelectorState extends State<StatusSelector> {
                         padding: const EdgeInsets.only(right: 8),
                         child: ElevatedButton.icon(
                           onPressed: widget.enabled
-                              ? () {
-                                  widget.onStatusChanged(status.label);
+                              ? () async {
+                                  await widget.onStatusChanged(status.label);
                                 }
                               : null,
                           icon: Icon(_getStatusIcon(status)),

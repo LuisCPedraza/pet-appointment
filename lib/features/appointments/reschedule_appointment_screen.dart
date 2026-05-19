@@ -9,6 +9,7 @@ import 'package:pet_appointment/widgets/calendar/notes_card.dart';
 import 'package:pet_appointment/widgets/calendar/pet_selector_card.dart';
 import 'package:pet_appointment/widgets/calendar/service_selector_card.dart';
 import 'package:pet_appointment/widgets/calendar/time_slots_card.dart';
+import 'package:pet_appointment/utils/app_globals.dart';
 
 /// Pantalla de reprogramación de citas.
 /// Permite al cliente cambiar la mascota, el servicio y el horario
@@ -16,10 +17,7 @@ import 'package:pet_appointment/widgets/calendar/time_slots_card.dart';
 class RescheduleAppointmentScreen extends StatefulWidget {
   final AppointmentModel appointment;
 
-  const RescheduleAppointmentScreen({
-    super.key,
-    required this.appointment,
-  });
+  const RescheduleAppointmentScreen({super.key, required this.appointment});
 
   @override
   State<RescheduleAppointmentScreen> createState() =>
@@ -48,11 +46,13 @@ class _RescheduleAppointmentScreenState
   }
 
   Future<void> _handleReschedule() async {
-    final success = await _controller.rescheduleAppointment(_notesController.text);
+    final success = await _controller.rescheduleAppointment(
+      _notesController.text,
+    );
     if (!mounted) return;
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      appScaffoldMessengerKey.currentState?.showSnackBar(
         const SnackBar(
           content: Text('Cita reprogramada exitosamente'),
           backgroundColor: Colors.green,
@@ -60,7 +60,7 @@ class _RescheduleAppointmentScreenState
       );
       Navigator.of(context).pop(true);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+      appScaffoldMessengerKey.currentState?.showSnackBar(
         SnackBar(
           content: Text(_controller.errorMessage ?? 'Error desconocido'),
           backgroundColor: Colors.red,
@@ -209,11 +209,7 @@ class _RescheduleAppointmentScreenState
             const SizedBox(height: 12),
             Row(
               children: [
-                Icon(
-                  Icons.pets,
-                  color: AppColors.primary,
-                  size: 20,
-                ),
+                Icon(Icons.pets, color: AppColors.primary, size: 20),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -228,21 +224,17 @@ class _RescheduleAppointmentScreenState
             const SizedBox(height: 12),
             Row(
               children: [
-                Icon(
-                  Icons.calendar_today,
-                  color: AppColors.primary,
-                  size: 20,
-                ),
+                Icon(Icons.calendar_today, color: AppColors.primary, size: 20),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     appointment.scheduledAt != null
                         ? dateFormatter
-                            .format(appointment.scheduledAt!)
-                            .replaceFirstMapped(
-                              RegExp(r'^[a-z]'),
-                              (m) => m.group(0)!.toUpperCase(),
-                            )
+                              .format(appointment.scheduledAt!)
+                              .replaceFirstMapped(
+                                RegExp(r'^[a-z]'),
+                                (m) => m.group(0)!.toUpperCase(),
+                              )
                         : 'Fecha no disponible',
                     style: const TextStyle(fontSize: 14),
                   ),
@@ -263,10 +255,7 @@ class _RescheduleAppointmentScreenState
         color: Colors.grey.shade100,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(
-        message,
-        style: const TextStyle(color: Colors.grey),
-      ),
+      child: Text(message, style: const TextStyle(color: Colors.grey)),
     );
   }
 }

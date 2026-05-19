@@ -7,6 +7,7 @@ import 'package:pet_appointment/screens/appointment_history/appointment_history.
 import 'package:pet_appointment/features/appointments/reschedule_appointment_screen.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
 import 'package:pet_appointment/widgets/app_shell.dart';
+import 'package:pet_appointment/utils/app_globals.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AppointmentHistoryScreen extends StatefulWidget {
@@ -246,7 +247,7 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
         );
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          appScaffoldMessengerKey.currentState?.showSnackBar(
             const SnackBar(
               content: Text('Cita cancelada correctamente'),
               backgroundColor: Colors.green,
@@ -256,7 +257,7 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          appScaffoldMessengerKey.currentState?.showSnackBar(
             SnackBar(
               content: Text('Error al cancelar la cita: ${e.toString()}'),
               backgroundColor: Colors.red,

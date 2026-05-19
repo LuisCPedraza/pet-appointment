@@ -11,6 +11,7 @@ import 'package:pet_appointment/widgets/calendar/professional_selector_card.dart
 import 'package:pet_appointment/widgets/calendar/pet_selector_card.dart';
 import 'package:pet_appointment/widgets/calendar/service_selector_card.dart';
 import 'package:pet_appointment/widgets/calendar/time_slots_card.dart';
+import 'package:pet_appointment/utils/app_globals.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -88,7 +89,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   void _showSnack(String msg, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
+    appScaffoldMessengerKey.currentState?.showSnackBar(
       SnackBar(
         content: Text(msg),
         backgroundColor: isError ? AppColors.error : AppColors.secondary,

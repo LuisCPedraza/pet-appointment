@@ -39,21 +39,24 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
 
   /// Maneja el cambio de estado
   Future<void> _handleStatusChange(String newStatus) async {
-    // Mostrar confirmación
+    if (!mounted) return;
+
+    // Mostrar confirmación. Usar el context del diálogo (dialogContext)
+    // para evitar buscar ancestros del widget principal si este se desactiva.
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Confirmar cambio de estado'),
         content: Text(
           'Cambiar estado de "${_appointment.status}" a "$newStatus"?',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             child: const Text('Confirmar'),
           ),
         ],
@@ -78,23 +81,12 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
         setState(() {
           _appointment = _appointment.copyWith(status: newStatus);
         });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Estado actualizado a: $newStatus'),
-            backgroundColor: Colors.green,
-          ),
-        );
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _errorMessage = 'Error: ${e.toString()}';
         });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_errorMessage!), backgroundColor: Colors.red),
-        );
       }
     } finally {
       if (mounted) {

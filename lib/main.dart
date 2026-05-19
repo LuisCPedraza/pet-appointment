@@ -10,6 +10,7 @@ import 'package:pet_appointment/config/config.dart';
 import 'package:pet_appointment/controllers/professional_agenda_controller.dart';
 import 'package:pet_appointment/screens/login_callback_screen.dart';
 import 'package:pet_appointment/screens/admin_shell.dart';
+import 'package:pet_appointment/utils/app_globals.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,6 +63,7 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (_) => ProfessionalAgendaController()),
       ],
       child: MaterialApp(
+        scaffoldMessengerKey: appScaffoldMessengerKey,
         navigatorKey: _navigatorKey,
         title: 'PetAppointment',
         debugShowCheckedModeBanner: false,
