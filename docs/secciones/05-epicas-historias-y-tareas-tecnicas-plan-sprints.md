@@ -1118,12 +1118,12 @@ en_espera
 
 **Criterios de aceptación:**
 
-* [x] El cliente recibe notificación cuando la cita pasa de `en_espera` a `confirmada`.
-* [x] El cliente recibe notificación cuando la cita pasa a `en_proceso`.
-* [x] El cliente recibe notificación cuando la cita pasa a `completada`.
-* [x] El cliente recibe notificación si la cita es cancelada por el profesional.
+* [x] El cliente recibe notificación local cuando la cita pasa de `en_espera` a `confirmada`.
+* [x] El cliente recibe notificación local cuando la cita pasa a `en_proceso`.
+* [x] El cliente recibe notificación local cuando la cita pasa a `completada`.
+* [x] El cliente recibe notificación local si la cita es cancelada por el profesional.
 * [x] Al pulsar la notificación, la app abre directamente la pantalla de detalle de esa cita.
-* [x] Las notificaciones funcionan con la app en segundo plano.
+* [x] Las notificaciones se generan mediante la suscripción Realtime mientras la app está activa.
 
 | Campo        | Valor            |
 | ------------ | ---------------- |
@@ -1144,16 +1144,17 @@ en_espera
 
 **Implementación técnica:**
 
-* Edge Function de Supabase ejecutada con un cron job diario.
-* La función consulta citas confirmadas para el día siguiente y dispara notificaciones locales programadas.
+* Notificaciones locales programadas con `flutter_local_notifications`.
+* Al confirmar la cita, la app agenda un recordatorio para 24 horas antes.
+* Si la cita se cancela, la notificación programada se elimina.
 
 **Criterios de aceptación:**
 
-* [ ] El recordatorio se programa automáticamente al confirmar la cita.
-* [ ] Se envía 24 horas antes de la hora de la cita.
-* [ ] El recordatorio incluye: nombre de la mascota, servicio, profesional y hora.
-* [ ] Si la cita se cancela antes del recordatorio, este se cancela también.
-* [ ] El usuario puede deshabilitar recordatorios desde configuración.
+* [x] El recordatorio se programa automáticamente al confirmar la cita.
+* [x] Se envía 24 horas antes de la hora de la cita.
+* [x] El recordatorio incluye: nombre de la mascota, servicio, profesional y hora.
+* [x] Si la cita se cancela antes del recordatorio, este se cancela también.
+* [x] El usuario puede deshabilitar recordatorios desde configuración.
 
 | Campo        | Valor            |
 | ------------ | ---------------- |
@@ -1174,9 +1175,9 @@ en_espera
 
 **Criterios de aceptación:**
 
-* [ ] El profesional recibe notificación al instante cuando se crea una nueva cita asignada a él.
-* [ ] La notificación incluye: nombre del cliente, mascota, servicio, fecha y hora.
-* [ ] Al pulsar la notificación, se abre el detalle de la cita en su agenda.
+* [x] El profesional recibe notificación al instante cuando se crea una nueva cita asignada a él.
+* [x] La notificación incluye: nombre del cliente, mascota, servicio, fecha y hora.
+* [x] Al pulsar la notificación, se abre el detalle de la cita en su agenda.
 
 | Campo        | Valor            |
 | ------------ | ---------------- |
@@ -1470,7 +1471,7 @@ Estado actual de estas tareas:
 | TASK-17P1 ✅ | Admin - gestión de servicios | `ServicesManagementScreen`, CRUD con `DataTable`, activar/desactivar sin eliminar                                    | 8h    | US-23 |
 | TASK-17P2 ✅ | Admin - gestión de usuarios  | `UsersManagementScreen`, tabla paginada, selector de rol, soft delete                                                  | 4h    | US-27 |
 | TASK-17P3 ✅ | Admin - reportes              | `ReportsScreen`, contadores por estado, filtros de fecha con `DateRangePicker`, lista paginada                       | 4h    | US-24 |
-| TASK-15      | Edge Function recordatorios   | Supabase Edge Function `send-reminders`, cron diario, query citas del día siguiente,`schedule()`notificación local | 4h    | US-21 |
+| TASK-15 ✅   | Recordatorios locales         | Programar recordatorios con `flutter_local_notifications`, cancelar alertas si la cita se anula | 4h    | US-21 |
 | TASK-23 ✅   | Home del cliente funcional    | Refactor de `AuthenticatedHomeScreen`, integración con próximas citas y accesos rápidos                             | 5h    | US-25 |
 | TASK-24 ✅   | Perfil de usuario funcional   | Completar `ProfileScreen` con datos reales y navegación a edición                                                    | 3h    | US-26 |
 | TASK-26 ✅   | Admin shell y guard de acceso | Implementar `AdminShell`, tabs base y guard por rol en rutas                                                           | 3h    | US-29 |

@@ -1,7 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 import 'package:pet_appointment/models/appointment_model.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
 import 'package:pet_appointment/services/auth_service.dart';
@@ -18,6 +21,9 @@ class AppointmentNotificationService {
     AppointmentService? appointmentService,
     this.onNotificationTap,
   }) : _appointmentService = appointmentService ?? AppointmentService();
+
+  static const _remindersEnabledKey = 'reminders_enabled';
+  static final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   final AppointmentService _appointmentService;
   final FlutterLocalNotificationsPlugin _notifications =
@@ -55,6 +61,50 @@ class AppointmentNotificationService {
     }
 
     _initialized = true;
+  }
+
+  static Future<bool> areRemindersEnabled() async {
+    final value = await _secureStorage.read(key: _remindersEnabledKey);
+    return value != 'false';
+  }
+
+  static Future<void> setRemindersEnabled(bool enabled) async {
+    await _secureStorage.write(
+      key: _remindersEnabledKey,
+      value: enabled ? 'true' : 'false',
+    );
+
+    if (!enabled) {
+      await _cancelAllScheduledReminders();
+    }
+  }
+
+  static Future<void> _cancelAllScheduledReminders() async {
+    final authService = AuthService();
+    final role = await authService.getCurrentUserRole();
+    if (role != 'client') return;
+
+    final appointmentService = AppointmentService();
+    final upcomingAppointments = await appointmentService.fetchUpcomingAppointments(
+      limit: 100,
+    );
+
+    final notifications = FlutterLocalNotificationsPlugin();
+    for (final appointment in upcomingAppointments) {
+      final id = appointment.id.hashCode & 0x7fffffff;
+      await notifications.cancel(id);
+    }
+  }
+
+  Future<void> scheduleAppointmentReminder(AppointmentModel appointment) async {
+    if (!await areRemindersEnabled()) return;
+    await _initializePlugin();
+    await _scheduleAppointmentReminder(appointment);
+  }
+
+  Future<void> cancelAppointmentReminder(String appointmentId) async {
+    await _initializePlugin();
+    await _notifications.cancel(_notificationId(appointmentId));
   }
 
   Future<void> stop() async {
@@ -95,6 +145,8 @@ class AppointmentNotificationService {
           IOSFlutterLocalNotificationsPlugin
         >();
     await iosImpl?.requestPermissions(alert: true, badge: true, sound: true);
+
+    tz.initializeTimeZones();
   }
 
   void _handleNotificationResponse(NotificationResponse response) {
@@ -139,16 +191,53 @@ class AppointmentNotificationService {
 
       if (previousStatus == currentStatus) continue;
 
-      if (currentStatus == 'Confirmada' && previousStatus != null) {
+      if (previousStatus == null && _isClient == false &&
+          (currentStatus == 'Confirmada' || currentStatus == 'En espera')) {
+        await _showProfessionalNewAppointmentNotification(appointment);
+      } else if (currentStatus == 'Confirmada' && previousStatus != null) {
         await _showAppointmentConfirmedNotification(appointment);
+        if (_isClient == true) {
+          await scheduleAppointmentReminder(appointment);
+        }
       } else if (currentStatus == 'En progreso' && previousStatus != null) {
         await _showAppointmentStartedNotification(appointment);
+        await cancelAppointmentReminder(appointment.id);
       } else if (currentStatus == 'Atendida' && previousStatus != null) {
         await _showAppointmentCompletedNotification(appointment);
+        await cancelAppointmentReminder(appointment.id);
       } else if (currentStatus == 'Cancelada' && previousStatus != null) {
         await _showAppointmentCancelledNotification(appointment);
+        await cancelAppointmentReminder(appointment.id);
       }
     }
+  }
+
+  Future<void> _showProfessionalNewAppointmentNotification(
+    AppointmentModel appointment,
+  ) async {
+    final timeFormatter = DateFormat('d MMM · HH:mm', 'es_ES');
+    final scheduledAt = appointment.scheduledAt != null
+        ? timeFormatter.format(appointment.scheduledAt!)
+        : 'pronto';
+
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'appointment_updates',
+        'Actualizaciones de citas',
+        channelDescription: 'Notificaciones sobre cambios de estado de citas',
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+      iOS: DarwinNotificationDetails(),
+    );
+
+    await _notifications.show(
+      _notificationId(appointment.id),
+      'Nueva cita agendada',
+      '${appointment.clientName} reservó a ${appointment.petName} para ${appointment.serviceName} el $scheduledAt',
+      details,
+      payload: appointment.id,
+    );
   }
 
   Future<void> _showAppointmentConfirmedNotification(
@@ -171,7 +260,7 @@ class AppointmentNotificationService {
     );
 
     await _notifications.show(
-      appointment.id.hashCode,
+      _notificationId(appointment.id),
       'Tu cita fue confirmada',
       '${appointment.serviceName.isNotEmpty ? appointment.serviceName : 'Cita'} para ${appointment.petName} el $scheduledAt',
       details,
@@ -195,7 +284,7 @@ class AppointmentNotificationService {
     );
 
     await _notifications.show(
-      appointment.id.hashCode,
+      _notificationId(appointment.id),
       'Cita en progreso',
       'La cita de ${appointment.petName} con ${appointment.professionalName} ha comenzado',
       details,
@@ -219,7 +308,7 @@ class AppointmentNotificationService {
     );
 
     await _notifications.show(
-      appointment.id.hashCode,
+      _notificationId(appointment.id),
       'Cita completada',
       'La cita de ${appointment.petName} ha sido completada',
       details,
@@ -243,11 +332,54 @@ class AppointmentNotificationService {
     );
 
     await _notifications.show(
-      appointment.id.hashCode,
+      _notificationId(appointment.id),
       'Cita cancelada',
       'La cita de ${appointment.petName} ha sido cancelada',
       details,
       payload: appointment.id,
     );
   }
+
+  int _notificationId(String appointmentId) {
+    return appointmentId.hashCode & 0x7fffffff;
+  }
+
+  Future<void> _scheduleAppointmentReminder(AppointmentModel appointment) async {
+    final scheduledAt = appointment.scheduledAt;
+    if (scheduledAt == null) return;
+
+    final reminderTime = scheduledAt.subtract(const Duration(hours: 24));
+    final targetTime = reminderTime.isAfter(DateTime.now())
+        ? reminderTime
+        : (scheduledAt.isAfter(DateTime.now())
+            ? DateTime.now().add(const Duration(seconds: 5))
+            : null);
+
+    if (targetTime == null) return;
+
+    final timeFormatter = DateFormat('d MMM · HH:mm', 'es_ES');
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'appointment_reminders',
+        'Recordatorios de citas',
+        channelDescription: 'Recordatorios 24 horas antes de la cita',
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+      iOS: DarwinNotificationDetails(),
+    );
+
+    await _notifications.zonedSchedule(
+      _notificationId(appointment.id),
+      'Recordatorio de cita',
+      'Recordatorio: ${appointment.petName} - ${appointment.serviceName} con ${appointment.professionalName} el ${timeFormatter.format(scheduledAt)}',
+      tz.TZDateTime.from(targetTime.toUtc(), tz.UTC),
+      details,
+      payload: appointment.id,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
+  }
 }
+
