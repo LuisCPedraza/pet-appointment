@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pet_appointment/features/profile/edit_profile_screen.dart';
 import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/models/user_profile_model.dart';
+import 'package:pet_appointment/services/appointment_notification_service.dart';
 import 'package:pet_appointment/services/auth_service.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -14,15 +15,26 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _authService = AuthService();
   late Future<UserProfileModel> _profileFuture;
+  bool _remindersEnabled = true;
 
   @override
   void initState() {
     super.initState();
     _profileFuture = _loadProfile();
+    _loadRemindersEnabled();
   }
 
   Future<UserProfileModel> _loadProfile() async {
     return _authService.getCurrentUserProfile();
+  }
+
+  Future<void> _loadRemindersEnabled() async {
+    final enabled = await AppointmentNotificationService.areRemindersEnabled();
+    if (mounted) {
+      setState(() {
+        _remindersEnabled = enabled;
+      });
+    }
   }
 
   Future<void> _editProfile() async {
@@ -33,6 +45,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (changed == true && mounted) {
       setState(() {
         _profileFuture = _loadProfile();
+      });
+    }
+  }
+
+  Future<void> _toggleRemindersEnabled(bool value) async {
+    await AppointmentNotificationService.setRemindersEnabled(value);
+    if (mounted) {
+      setState(() {
+        _remindersEnabled = value;
       });
     }
   }
@@ -196,6 +217,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         _ProfileLine(label: 'Correo', value: profile.email),
                         _ProfileLine(label: 'Rol', value: profile.role),
+                        const Divider(height: 32),
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('Recordatorios de citas'),
+                          subtitle: const Text(
+                            'Recibe un aviso 24 horas antes de tus citas confirmadas.',
+                          ),
+                          value: _remindersEnabled,
+                          onChanged: _toggleRemindersEnabled,
+                        ),
                       ],
                     ),
                   ),
