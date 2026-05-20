@@ -541,6 +541,16 @@ class AppointmentService {
     return AppointmentModel.fromJson(row);
   }
 
+  /// Obtiene una cita por su id con todos los detalles asociados.
+  Future<AppointmentModel?> fetchAppointmentById(String appointmentId) async {
+    try {
+      return await _fetchAppointmentById(appointmentId);
+    } catch (e) {
+      debugPrint('Error fetching appointment by id: $e');
+      return null;
+    }
+  }
+
   /// Obtiene todas las citas del profesional autenticado actual con detalles de cliente, mascota y servicio.
   Future<List<AppointmentModel>> fetchProfessionalAppointments() async {
     try {

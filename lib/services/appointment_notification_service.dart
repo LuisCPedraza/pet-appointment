@@ -7,13 +7,22 @@ import 'package:pet_appointment/services/appointment_service.dart';
 import 'package:pet_appointment/services/auth_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+@pragma('vm:entry-point')
+void notificationTapBackground(NotificationResponse response) {
+  // El callback de fondo debe ser una función de nivel superior.
+  // Aquí solo se recibe el evento de tap cuando la app está en segundo plano.
+}
+
 class AppointmentNotificationService {
-  AppointmentNotificationService({AppointmentService? appointmentService})
-    : _appointmentService = appointmentService ?? AppointmentService();
+  AppointmentNotificationService({
+    AppointmentService? appointmentService,
+    this.onNotificationTap,
+  }) : _appointmentService = appointmentService ?? AppointmentService();
 
   final AppointmentService _appointmentService;
   final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
+  final void Function(String appointmentId)? onNotificationTap;
 
   RealtimeChannel? _channel;
   final Map<String, String> _lastStatuses = {};
@@ -71,6 +80,8 @@ class AppointmentNotificationService {
 
     await _notifications.initialize(
       const InitializationSettings(android: androidSettings, iOS: iosSettings),
+      onDidReceiveNotificationResponse: _handleNotificationResponse,
+      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
 
     final androidImpl = _notifications
@@ -84,6 +95,13 @@ class AppointmentNotificationService {
           IOSFlutterLocalNotificationsPlugin
         >();
     await iosImpl?.requestPermissions(alert: true, badge: true, sound: true);
+  }
+
+  void _handleNotificationResponse(NotificationResponse response) {
+    final appointmentId = response.payload;
+    if (appointmentId?.isNotEmpty == true) {
+      onNotificationTap?.call(appointmentId!);
+    }
   }
 
   Future<void> _primeLastStatuses({required bool isClient}) async {
