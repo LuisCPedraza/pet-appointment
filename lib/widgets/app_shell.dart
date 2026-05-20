@@ -8,9 +8,10 @@ import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/widgets/booking_flow_navigator.dart';
 
 class AppShell extends StatefulWidget {
-  const AppShell({super.key, this.initialIndex = 0});
+  const AppShell({super.key, this.initialIndex = 0, this.onNotificationTap});
 
   final int initialIndex;
+  final void Function(String appointmentId)? onNotificationTap;
   static final ValueNotifier<int> tabIndexNotifier = ValueNotifier<int>(0);
 
   static void selectTab(int index) => tabIndexNotifier.value = index;
@@ -44,7 +45,9 @@ class _AppShellState extends State<AppShell> {
       _currentIndex = widget.initialIndex;
       AppShell.tabIndexNotifier.value = widget.initialIndex;
     }
-    _notificationService = AppointmentNotificationService();
+    _notificationService = AppointmentNotificationService(
+      onNotificationTap: widget.onNotificationTap,
+    );
     unawaited(_notificationService.start());
     AppShell.tabIndexNotifier.addListener(_onExternalTabSelected);
   }

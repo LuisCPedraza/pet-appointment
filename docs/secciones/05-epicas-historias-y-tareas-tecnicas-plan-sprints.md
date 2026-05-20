@@ -1118,12 +1118,12 @@ en_espera
 
 **Criterios de aceptación:**
 
-* [ ] El cliente recibe notificación cuando la cita pasa de `en_espera` a `confirmada`.
-* [ ] El cliente recibe notificación cuando la cita pasa a `en_proceso`.
-* [ ] El cliente recibe notificación cuando la cita pasa a `completada`.
-* [ ] El cliente recibe notificación si la cita es cancelada por el profesional.
-* [ ] Al pulsar la notificación, la app abre directamente la pantalla de detalle de esa cita.
-* [ ] Las notificaciones funcionan con la app en segundo plano.
+* [x] El cliente recibe notificación cuando la cita pasa de `en_espera` a `confirmada`.
+* [x] El cliente recibe notificación cuando la cita pasa a `en_proceso`.
+* [x] El cliente recibe notificación cuando la cita pasa a `completada`.
+* [x] El cliente recibe notificación si la cita es cancelada por el profesional.
+* [x] Al pulsar la notificación, la app abre directamente la pantalla de detalle de esa cita.
+* [x] Las notificaciones funcionan con la app en segundo plano.
 
 | Campo        | Valor            |
 | ------------ | ---------------- |
@@ -1480,7 +1480,7 @@ Estado actual de estas tareas:
 
 | TASK ID   | Tarea                           | Descripción técnica                                                                                           | Horas | HU    |
 | --------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------- | ----- | ----- |
-| TASK-11P2 | Realtime citas                  | Suscripción al canal de `appointments`para cliente y profesional, dispatch de notificaciones locales         | 5h    | US-20 |
+| TASK-11P2 | Realtime citas                  | Suscripción al canal de `appointments`para cliente y profesional, dispatch de notificaciones locales         | 5h    | US-20 ✅ |
 | TASK-18   | GitHub Actions APK              | Workflow `build-apk.yml`,`flutter build apk --release`, upload artifact, triggers en push a `main`        | 4h    | —    |
 | TASK-19P2 | GitHub Actions CI completo      | `flutter analyze`,`flutter test`, badge de estado en README                                                 | 3h    | —    |
 | TASK-20   | Pruebas unitarias y widget      | Tests para `AppointmentRepository`,`AuthService`,`PetRepository`, widget tests para formularios críticos | 5h    | —    |
