@@ -27,6 +27,22 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Prepare .env file
+        shell: bash
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_ANON_KEY" ]; then
+            cat > .env <<EOF
+            SUPABASE_URL=$SUPABASE_URL
+            SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+            EOF
+          else
+            cp .env.example .env
+            echo "::warning::Usando .env.example porque faltan secrets de Supabase"
+          fi
+
       - name: Validate required secrets
         shell: bash
         env:
