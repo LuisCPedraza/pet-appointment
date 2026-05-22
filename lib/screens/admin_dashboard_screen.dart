@@ -74,48 +74,81 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   vertical: 12,
                   horizontal: 14,
                 ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.dashboard_customize,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Panel principal del admin',
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w800),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Gestiona usuarios, servicios y reportes desde un solo lugar.',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    if (_loading)
-                      const SizedBox(
-                        width: 48,
-                        height: 48,
-                        child: Center(child: CircularProgressIndicator()),
-                      )
-                    else
-                      _TodayMetric(count: _todayAppointments),
-                  ],
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final compact = constraints.maxWidth < 560;
+                    final metric = _loading
+                        ? const SizedBox(
+                            width: 48,
+                            height: 48,
+                            child: Center(child: CircularProgressIndicator()),
+                          )
+                        : _TodayMetric(count: _todayAppointments);
+
+                    final headerContent = Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryContainer,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.dashboard_customize,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Panel principal del admin',
+                                    maxLines: 2,
+                                    softWrap: true,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.w800),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Gestiona usuarios, servicios y reportes desde un solo lugar.',
+                                    maxLines: 3,
+                                    softWrap: true,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        metric,
+                      ],
+                    );
+
+                    if (compact) {
+                      return headerContent;
+                    }
+
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: headerContent),
+                        const SizedBox(width: 12),
+                        metric,
+                      ],
+                    );
+                  },
                 ),
               ),
             ),

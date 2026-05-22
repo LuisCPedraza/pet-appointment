@@ -1,6 +1,7 @@
 # PetAppointment
 
 ![Estado](https://img.shields.io/badge/Estado-En%20desarrollo-orange?style=for-the-badge)
+![CI](https://img.shields.io/github/actions/workflow/status/LuisCPedraza/pet-appointment/test.yml?branch=develop&style=for-the-badge)
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter&logoColor=white)
 ![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?style=for-the-badge&logo=dart&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
@@ -47,6 +48,33 @@ Para análisis estático y pruebas:
 flutter analyze
 flutter test
 ```
+
+### Variables de entorno
+Configura un archivo `.env` en la raíz con al menos:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+
+### Icono de la app
+El icono de Android e iOS se genera desde [lib/images/Logo2.png](lib/images/Logo2.png) usando `flutter_launcher_icons`.
+
+### Firma APK release
+Para compilar un APK firmado, crea `android/key.properties` a partir de [android/key.properties.example](android/key.properties.example) y coloca el keystore en `android/app/upload-keystore.jks`.
+
+Para firmar en GitHub Actions (workflow [build-apk.yml](.github/workflows/build-apk.yml)), configura estos secretos del repositorio:
+
+- `ANDROID_KEYSTORE_BASE64`: contenido del archivo `.jks` en base64.
+- `ANDROID_STORE_PASSWORD`: contraseña del keystore.
+- `ANDROID_KEY_PASSWORD`: contraseña de la key.
+- `ANDROID_KEY_ALIAS`: alias de la key (por ejemplo, `pet_appointment`).
+
+En Windows PowerShell puedes generar el base64 así:
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("android/app/upload-keystore.jks"))
+```
+
+El workflow ahora valida secrets y falla con mensaje explícito si falta alguno. Además, genera y publica dos artifacts firmados: APK y AAB.
 
 ## Requisitos
 - Flutter SDK 3.x

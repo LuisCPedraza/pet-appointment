@@ -1,5 +1,8 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:pet_appointment/models/availability_slot.dart';
+
 // theme not required in these widgets; styling uses defaults or values from context
 
 class ProfessionalAvailabilityWeekdays extends StatelessWidget {
@@ -75,35 +78,78 @@ class ProfessionalAvailabilityControls extends StatelessWidget {
     super.key,
     required this.slotMinutes,
     required this.onSlotMinutesChanged,
+    required this.weeksToGenerate,
+    required this.onWeeksToGenerateChanged,
     required this.loading,
     required this.onGenerate,
   });
 
   final int slotMinutes;
   final void Function(int) onSlotMinutesChanged;
+  final int weeksToGenerate;
+  final void Function(int) onWeeksToGenerateChanged;
   final bool loading;
   final VoidCallback onGenerate;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Text('Duración:'),
-        const SizedBox(width: 8),
-        DropdownButton<int>(
-          value: slotMinutes,
-          items: const [15, 30, 45, 60]
-              .map((m) => DropdownMenuItem(value: m, child: Text('$m min')))
-              .toList(),
-          onChanged: (v) => onSlotMinutesChanged(v ?? 30),
-        ),
-        const Spacer(),
-        ElevatedButton.icon(
-          onPressed: loading ? null : onGenerate,
-          icon: const Icon(Icons.playlist_add),
-          label: const Text('Generar 4 semanas'),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 420;
+        final controlWidth = compact
+            ? ((constraints.maxWidth - 12).clamp(220.0, 400.0) / 2)
+            : 170.0;
+
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            SizedBox(
+              width: controlWidth,
+              child: DropdownButtonFormField<int>(
+                initialValue: slotMinutes,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Duración',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [15, 30, 45, 60]
+                    .map(
+                      (m) => DropdownMenuItem(value: m, child: Text('$m min')),
+                    )
+                    .toList(),
+                onChanged: (v) => onSlotMinutesChanged(v ?? 30),
+              ),
+            ),
+            SizedBox(
+              width: controlWidth,
+              child: DropdownButtonFormField<int>(
+                initialValue: weeksToGenerate,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Semanas',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [1, 2, 3, 4, 6, 8]
+                    .map(
+                      (w) => DropdownMenuItem(
+                        value: w,
+                        child: Text('$w sem${w == 1 ? '' : 's'}'),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (v) => onWeeksToGenerateChanged(v ?? 4),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: loading ? null : onGenerate,
+              icon: const Icon(Icons.sync_alt_rounded),
+              label: Text('Aplicar ($weeksToGenerate sem)'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -121,25 +167,168 @@ class ProfessionalAvailabilitySlotList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (slots.isEmpty) return const SizedBox.shrink();
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: slots.length,
-      separatorBuilder: (_, i) => const Divider(),
-      itemBuilder: (context, i) {
-        final s = slots[i];
-        return ListTile(
-          title: Text('${s.start.toLocal()} - ${s.end.toLocal()}'),
-          subtitle: Text(s.isAvailable ? 'Disponible' : 'Ocupado/Blocked'),
-          trailing: Switch(
-            value: s.isAvailable,
-            onChanged: (v) async {
-              await updateSlotAvailability(s.id, v);
-            },
-          ),
-        );
-      },
+    if (slots.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(child: Text('Todavía no hay slots para mostrar.')),
+      );
+    }
+
+    final groupedSlots = SplayTreeMap<DateTime, List<AvailabilitySlot>>();
+    final sortedSlots = [...slots]
+      ..sort((left, right) => left.start.compareTo(right.start));
+
+    for (final slot in sortedSlots) {
+      final dayKey = DateTime(
+        slot.start.year,
+        slot.start.month,
+        slot.start.day,
+      );
+      groupedSlots.putIfAbsent(dayKey, () => <AvailabilitySlot>[]).add(slot);
+    }
+
+    return Column(
+      children: groupedSlots.entries
+          .map(
+            (entry) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _SlotDayCard(
+                dayLabel: _formatDay(entry.key),
+                slots: entry.value,
+                updateSlotAvailability: updateSlotAvailability,
+              ),
+            ),
+          )
+          .toList(),
     );
+  }
+
+  String _formatDay(DateTime day) {
+    const monthNames = [
+      'enero',
+      'febrero',
+      'marzo',
+      'abril',
+      'mayo',
+      'junio',
+      'julio',
+      'agosto',
+      'septiembre',
+      'octubre',
+      'noviembre',
+      'diciembre',
+    ];
+    return '${day.day} de ${monthNames[day.month - 1]} de ${day.year}';
+  }
+}
+
+class _SlotDayCard extends StatelessWidget {
+  const _SlotDayCard({
+    required this.dayLabel,
+    required this.slots,
+    required this.updateSlotAvailability,
+  });
+
+  final String dayLabel;
+  final List<AvailabilitySlot> slots;
+  final Future<void> Function(String slotId, bool available)
+  updateSlotAvailability;
+
+  @override
+  Widget build(BuildContext context) {
+    final availableCount = slots.where((slot) => slot.isAvailable).length;
+    final disabledCount = slots.length - availableCount;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(
+                    Icons.event_available,
+                    color: Colors.blue.shade700,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        dayLabel,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$availableCount disponibles · $disabledCount ocupados',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.blueGrey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: slots.map((slot) {
+                final label =
+                    '${_formatTime(slot.start)} - ${_formatTime(slot.end)}';
+                final available = slot.isAvailable;
+                return FilterChip(
+                  label: Text(label),
+                  selected: available,
+                  avatar: Icon(
+                    available
+                        ? Icons.check_circle_outline
+                        : Icons.block_outlined,
+                    size: 18,
+                    color: available
+                        ? Colors.green.shade700
+                        : Colors.red.shade700,
+                  ),
+                  showCheckmark: false,
+                  selectedColor: Colors.green.shade50,
+                  backgroundColor: Colors.grey.shade100,
+                  labelStyle: TextStyle(
+                    color: available
+                        ? Colors.green.shade900
+                        : Colors.grey.shade800,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  onSelected: (_) async {
+                    await updateSlotAvailability(slot.id, !available);
+                  },
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatTime(DateTime value) {
+    final hour = value.hour.toString().padLeft(2, '0');
+    final minute = value.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
   }
 }

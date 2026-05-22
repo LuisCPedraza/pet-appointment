@@ -8,7 +8,6 @@ import 'package:pet_appointment/features/features.dart';
 import 'package:pet_appointment/widgets/widgets.dart';
 import 'package:pet_appointment/config/config.dart';
 import 'package:pet_appointment/controllers/professional_agenda_controller.dart';
-import 'package:pet_appointment/features/appointments/appointment_detail_screen.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
 import 'package:pet_appointment/screens/login_callback_screen.dart';
 import 'package:pet_appointment/screens/admin_shell.dart';
@@ -58,8 +57,12 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  Future<void> _openAppointmentDetailFromNotification(String appointmentId) async {
-    final appointment = await AppointmentService().fetchAppointmentById(appointmentId);
+  Future<void> _openAppointmentDetailFromNotification(
+    String appointmentId,
+  ) async {
+    final appointment = await AppointmentService().fetchAppointmentById(
+      appointmentId,
+    );
     if (appointment == null) return;
 
     if (!mounted || _navigatorKey.currentState == null) return;
@@ -82,7 +85,9 @@ class _MyAppState extends State<MyApp> {
         title: 'PetAppointment',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
-        home: AppShell(onNotificationTap: _openAppointmentDetailFromNotification),
+        home: AppShell(
+          onNotificationTap: _openAppointmentDetailFromNotification,
+        ),
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
@@ -91,7 +96,9 @@ class _MyAppState extends State<MyApp> {
         supportedLocales: const [Locale('es', 'ES'), Locale('en', 'US')],
         locale: const Locale('es', 'ES'),
         routes: {
-          '/home': (_) => AppShell(onNotificationTap: _openAppointmentDetailFromNotification),
+          '/home': (_) => AppShell(
+            onNotificationTap: _openAppointmentDetailFromNotification,
+          ),
           '/admin': (_) => const AdminAccessGate(initialIndex: 0),
           '/admin/users': (_) => const AdminAccessGate(initialIndex: 1),
           '/admin/services': (_) => const AdminAccessGate(initialIndex: 2),
@@ -102,9 +109,9 @@ class _MyAppState extends State<MyApp> {
           '/forgot-password': (_) => const ForgotPasswordScreen(),
           '/reset-password': (_) => const ResetPasswordScreen(),
           '/calendar': (_) => AppShell(
-                initialIndex: 2,
-                onNotificationTap: _openAppointmentDetailFromNotification,
-              ),
+            initialIndex: 2,
+            onNotificationTap: _openAppointmentDetailFromNotification,
+          ),
           '/appointments-history': (_) => const AppointmentHistoryScreen(),
           '/professional-home': (_) => const ProfessionalHomeScreen(),
           '/professional-availability': (_) =>

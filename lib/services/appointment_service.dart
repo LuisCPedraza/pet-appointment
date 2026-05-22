@@ -97,6 +97,46 @@ class AppointmentService {
     }
   }
 
+  /// Elimina slots en un rango para volver a generar configuración.
+  ///
+  /// Conserva slots que ya estén asociados a una cita para evitar conflictos.
+  Future<int> deleteSlotsBetween({
+    required String professionalId,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    final rows = await _client
+        .from('availability')
+        .select('id')
+        .eq('professional_id', professionalId)
+        .gte('slot_start', from.toUtc().toIso8601String())
+        .lte('slot_start', to.toUtc().toIso8601String());
+
+    final slotIds = (rows as List)
+        .map((row) => row['id'] as String?)
+        .whereType<String>()
+        .toList();
+    if (slotIds.isEmpty) return 0;
+
+    final linkedRows = await _client
+        .from('appointments')
+        .select('availability_id')
+        .inFilter('availability_id', slotIds);
+
+    final linkedIds = (linkedRows as List)
+        .map((row) => row['availability_id'] as String?)
+        .whereType<String>()
+        .toSet();
+
+    final deletableIds = slotIds
+        .where((id) => !linkedIds.contains(id))
+        .toList();
+    if (deletableIds.isEmpty) return 0;
+
+    await _client.from('availability').delete().inFilter('id', deletableIds);
+    return deletableIds.length;
+  }
+
   /// Actualiza el flag `is_available` de un slot por su id.
   Future<void> updateSlotAvailability({
     required String slotId,

@@ -92,11 +92,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // initial state: slots created by fake are shown
-    expect(find.byType(ListTile), findsWidgets);
+    // initial state: slots created by fake are shown as selectable chips
+    expect(find.byType(FilterChip), findsWidgets);
+    expect(find.textContaining('-'), findsWidgets);
     expect(
-      find.textContaining('Slots creados:'),
+      find.textContaining('Todavía no hay slots para mostrar.'),
       findsNothing,
-    ); // snack bar may or may not be visible depending on timing
+    );
   });
 }
