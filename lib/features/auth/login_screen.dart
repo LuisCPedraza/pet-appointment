@@ -39,10 +39,6 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
-
-      if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/home', (_) => false);
-      }
     } on AuthException catch (e) {
       if (mounted) showAppSnackBar(context, e.message, color: AppColors.error);
     } catch (_) {
@@ -63,8 +59,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       await _authService.signInWithGoogle();
-      if (!mounted) return;
-      Navigator.of(context).pushNamedAndRemoveUntil('/home', (_) => false);
     } on AuthException catch (e) {
       if (!mounted) return;
       showAppSnackBar(context, e.message, color: AppColors.error);
@@ -85,8 +79,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       await _authService.signInWithGithub();
-      if (!mounted) return;
-      Navigator.of(context).pushNamedAndRemoveUntil('/home', (_) => false);
     } on AuthException catch (e) {
       if (!mounted) return;
       showAppSnackBar(context, e.message, color: AppColors.error);
@@ -107,8 +99,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       await _authService.signInWithApple();
-      if (!mounted) return;
-      Navigator.of(context).pushNamedAndRemoveUntil('/home', (_) => false);
     } on AuthException catch (e) {
       if (!mounted) return;
       showAppSnackBar(context, e.message, color: AppColors.error);

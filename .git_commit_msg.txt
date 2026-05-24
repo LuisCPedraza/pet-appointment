@@ -1,0 +1,9 @@
+chore(release/ci): añadir workflow de firma, iconos y mejoras UI disponibilidad
+
+- Añade .github/workflows/build-apk.yml para build signed APK/AAB usando secrets en GitHub Actions.
+- Genera launcher icons desde lib/images/Logo2.png y actualiza assets nativos.
+- Mejora UI "Mi Disponibilidad": tarjetas por día, FilterChips, filtro por fecha, selector de semanas, regeneración de slots al cambiar duración.
+- Implementa regeneración segura en AppointmentService (no borra slots con citas).
+- Ajustes responsive en admin dashboard.
+- Documentación: README actualizado con pasos para generar el keystore base64 y secrets necesarios.
+- Tests y `flutter analyze` arreglados.

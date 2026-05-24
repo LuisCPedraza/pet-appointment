@@ -283,16 +283,8 @@ class AuthService {
 
   /// Retorna true si el usuario actual tiene rol `admin`.
   Future<bool> isCurrentUserAdmin() async {
-    final email = _client.auth.currentUser?.email;
-    if (email == null) return false;
     try {
-      final res = await _client
-          .from('users')
-          .select('role')
-          .eq('email', email)
-          .single();
-      final role = res['role'] as String? ?? '';
-      return role == 'admin';
+      return await getCurrentUserRole() == 'admin';
     } catch (e) {
       debugPrint('Error comprobando rol admin: $e');
       return false;

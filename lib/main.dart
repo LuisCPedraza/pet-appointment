@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:pet_appointment/services/fcm_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:pet_appointment/features/features.dart';
@@ -9,6 +13,7 @@ import 'package:pet_appointment/widgets/widgets.dart';
 import 'package:pet_appointment/config/config.dart';
 import 'package:pet_appointment/controllers/professional_agenda_controller.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
+import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/screens/login_callback_screen.dart';
 import 'package:pet_appointment/screens/admin_shell.dart';
 import 'package:pet_appointment/utils/app_globals.dart';
@@ -16,6 +21,7 @@ import 'package:pet_appointment/utils/app_globals.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
+  await Firebase.initializeApp();
   await _initializeSupabase();
   await initializeDateFormatting('es_ES', null);
   runApp(const MyApp());
@@ -48,13 +54,29 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    // Inicializar FCM y registrar token en Supabase
+    FcmService().init(onOpenApp: (appointmentId) async {
+      await _openAppointmentDetailFromNotification(appointmentId);
+    });
     // Escuchar cambios de autenticación
     Supabase.instance.client.auth.onAuthStateChange.listen((event) {
       if (event.event == AuthChangeEvent.signedIn) {
-        // Navegar al home reemplazando la ruta actual
-        _navigatorKey.currentState?.pushReplacementNamed('/home');
+        unawaited(_routeAfterSignIn());
       }
     });
+  }
+
+  Future<void> _routeAfterSignIn() async {
+    final role = await AuthService().getCurrentUserRole();
+    if (!mounted || _navigatorKey.currentState == null) return;
+
+    final route = switch (role) {
+      'admin' => '/admin',
+      'professional' => '/professional-home',
+      _ => '/home',
+    };
+
+    _navigatorKey.currentState?.pushNamedAndRemoveUntil(route, (_) => false);
   }
 
   Future<void> _openAppointmentDetailFromNotification(
@@ -126,6 +148,7 @@ class _MyAppState extends State<MyApp> {
   /// Generador de rutas dinámicas para pasar argumentos a las pantallas.
   Route<dynamic> _generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case '/confirm':
       case '/appointment-confirm':
         final appointment = settings.arguments;
         return MaterialPageRoute(

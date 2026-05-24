@@ -38,6 +38,7 @@ class _ProfessionalAvailabilityScreenState
   List<AvailabilitySlot> _slots = [];
   DateTime? _selectedSlotDate;
   bool _loading = false;
+  String? _loadError;
   dynamic _channel;
 
   @override
@@ -65,34 +66,82 @@ class _ProfessionalAvailabilityScreenState
   }
 
   Future<void> _loadSlots() async {
-    setState(() => _loading = true);
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _loadError = null;
+      });
+    }
     final profId =
         widget.professionalId ?? Supabase.instance.client.auth.currentUser?.id;
     if (profId == null) {
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
       return;
     }
-    final from = DateTime.now();
-    final to = from.add(Duration(days: _weeksToGenerate * 7));
-    final slots = await _service.fetchSlots(
-      professionalId: profId,
-      from: from,
-      to: to,
-    );
+    try {
+      final from = DateTime.now();
+      final to = from.add(Duration(days: _weeksToGenerate * 7));
+      List<AvailabilitySlot> slots;
+      try {
+        slots = await _service.fetchSlots(
+          professionalId: profId,
+          from: from,
+          to: to,
+          includeInactive: true,
+        );
+      } catch (e) {
+        debugPrint('fallback slots activos: $e');
+        slots = await _service.fetchSlots(
+          professionalId: profId,
+          from: from,
+          to: to,
+          includeInactive: false,
+        );
+      }
 
-    final availableDays = _extractAvailableDays(slots);
-    final selectedDay = _selectedSlotDate;
-    final hasSelectedDay =
-        selectedDay != null &&
-        availableDays.any((day) => _isSameDay(day, selectedDay));
+      Set<String> bookedIds = {};
+      try {
+        bookedIds = await _service.fetchBookedSlotIds(
+          professionalId: profId,
+          from: from,
+          to: to,
+        );
+      } catch (e) {
+        debugPrint('no se pudieron cargar bookedIds: $e');
+      }
 
-    setState(() {
-      _slots = slots;
-      _selectedSlotDate = hasSelectedDay
-          ? selectedDay
-          : (availableDays.isNotEmpty ? availableDays.first : null);
-      _loading = false;
-    });
+      final enrichedSlots = slots
+          .map((slot) => slot.copyWith(isBooked: bookedIds.contains(slot.id)))
+          .toList();
+
+      final availableDays = _extractAvailableDays(enrichedSlots);
+      final selectedDay = _selectedSlotDate;
+      final hasSelectedDay =
+          selectedDay != null &&
+          availableDays.any((day) => _isSameDay(day, selectedDay));
+
+      if (!mounted) return;
+      setState(() {
+        _slots = enrichedSlots;
+        _selectedSlotDate = hasSelectedDay
+            ? selectedDay
+            : (availableDays.isNotEmpty ? availableDays.first : null);
+      });
+    } catch (e) {
+      debugPrint('Error cargando slots del profesional: $e');
+      if (!mounted) return;
+      setState(() {
+        _slots = [];
+        _selectedSlotDate = null;
+        _loadError = 'No se pudieron cargar los slots. Intenta de nuevo.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
   }
 
   Future<void> _applyConfiguration() async {
@@ -228,6 +277,13 @@ class _ProfessionalAvailabilityScreenState
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
+            if (_loadError != null) ...[
+              Text(
+                _loadError!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+              const SizedBox(height: 12),
+            ],
             ProfessionalAvailabilityWeekdays(
               weekdayEnabled: _weekdayEnabled,
               onToggle: (day, v) => setState(() => _weekdayEnabled[day] = v),

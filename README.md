@@ -29,7 +29,7 @@ PetAppointment es una aplicación multiplataforma (Flutter) para gestionar citas
 - Gestión de mascotas y servicios.
 - Reserva, reprogramación y cancelación de citas.
 - Agenda profesional (vistas diarias/semanales).
-- Notificaciones (pendiente integración).
+- Notificaciones locales activas, registro remoto de tokens y cola de eventos en preparación de envío remoto.
 
 ## Estado del proyecto
 El proyecto está en desarrollo activo. Las ramas oficiales son `main`, `develop` y `staging`.

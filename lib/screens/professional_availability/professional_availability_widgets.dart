@@ -114,7 +114,7 @@ class ProfessionalAvailabilityControls extends StatelessWidget {
                   labelText: 'Duración',
                   border: OutlineInputBorder(),
                 ),
-                items: const [15, 30, 45, 60]
+                items: const [30, 60, 90, 120]
                     .map(
                       (m) => DropdownMenuItem(value: m, child: Text('$m min')),
                     )
@@ -236,8 +236,9 @@ class _SlotDayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final availableCount = slots.where((slot) => slot.isAvailable).length;
-    final disabledCount = slots.length - availableCount;
+    final activeCount = slots.where((slot) => slot.isEnabled).length;
+    final inactiveCount = slots.length - activeCount;
+    final bookedCount = slots.where((slot) => slot.isBooked).length;
 
     return Card(
       margin: EdgeInsets.zero,
@@ -275,7 +276,7 @@ class _SlotDayCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '$availableCount disponibles · $disabledCount ocupados',
+                        '$activeCount activos · $inactiveCount inactivos · $bookedCount reservados',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.blueGrey.shade600,
                         ),
@@ -292,31 +293,44 @@ class _SlotDayCard extends StatelessWidget {
               children: slots.map((slot) {
                 final label =
                     '${_formatTime(slot.start)} - ${_formatTime(slot.end)}';
-                final available = slot.isAvailable;
+                final enabled = slot.isEnabled;
+                final canToggle = !slot.isBooked && !slot.isPast;
+                final MaterialColor chipColor = slot.isBooked
+                    ? Colors.amber
+                    : enabled
+                    ? Colors.green
+                    : Colors.red;
+                final selectedColor = slot.isBooked
+                    ? Colors.amber.shade100
+                    : Colors.green.shade50;
                 return FilterChip(
                   label: Text(label),
-                  selected: available,
+                  selected: enabled,
                   avatar: Icon(
-                    available
+                    slot.isBooked
+                        ? Icons.event_busy_outlined
+                        : enabled
                         ? Icons.check_circle_outline
                         : Icons.block_outlined,
                     size: 18,
-                    color: available
-                        ? Colors.green.shade700
-                        : Colors.red.shade700,
+                    color: chipColor.shade700,
                   ),
                   showCheckmark: false,
-                  selectedColor: Colors.green.shade50,
+                  selectedColor: selectedColor,
                   backgroundColor: Colors.grey.shade100,
                   labelStyle: TextStyle(
-                    color: available
+                    color: slot.isBooked
+                        ? Colors.amber.shade900
+                        : enabled
                         ? Colors.green.shade900
                         : Colors.grey.shade800,
                     fontWeight: FontWeight.w600,
                   ),
-                  onSelected: (_) async {
-                    await updateSlotAvailability(slot.id, !available);
-                  },
+                  onSelected: canToggle
+                      ? (_) async {
+                          await updateSlotAvailability(slot.id, !enabled);
+                        }
+                      : null,
                 );
               }).toList(),
             ),

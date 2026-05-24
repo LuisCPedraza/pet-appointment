@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_appointment/models/appointment_model.dart';
+import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
 import 'package:pet_appointment/widgets/status_selector.dart';
 import 'package:pet_appointment/screens/appointment_detail/appointment_detail.dart';
@@ -21,15 +22,18 @@ class AppointmentDetailScreen extends StatefulWidget {
 
 class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
   final _appointmentService = AppointmentService();
+  final _authService = AuthService();
 
   late AppointmentModel _appointment;
   bool _statusChanging = false;
   String? _errorMessage;
+  bool _canManageStatus = false;
 
   @override
   void initState() {
     super.initState();
     _appointment = widget.appointment;
+    _resolveStatusPermission();
   }
 
   @override
@@ -95,10 +99,20 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
     }
   }
 
-  /// Verifica si el usuario actual es el profesional asignado
-  bool get _canChangeStatus {
+  Future<void> _resolveStatusPermission() async {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
-    return currentUserId == _appointment.professionalId && !_statusChanging;
+    final isAdmin = await _authService.isCurrentUserAdmin();
+
+    if (!mounted) return;
+    setState(() {
+      _canManageStatus =
+          isAdmin || currentUserId == _appointment.professionalId;
+    });
+  }
+
+  /// Verifica si el usuario actual puede gestionar el estado
+  bool get _canChangeStatus {
+    return _canManageStatus && !_statusChanging;
   }
 
   /// Retorna el color del badge del estado.

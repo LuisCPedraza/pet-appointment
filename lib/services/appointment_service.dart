@@ -4,6 +4,8 @@ import 'package:pet_appointment/models/appointment_model.dart';
 import 'package:pet_appointment/models/appointment_status.dart';
 import 'package:pet_appointment/models/availability_slot.dart';
 import 'package:pet_appointment/models/service_model.dart';
+import 'package:pet_appointment/services/auth_service.dart';
+import 'package:pet_appointment/utils/appointment_rules.dart';
 import 'package:pet_appointment/utils/slot_generation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -13,6 +15,11 @@ class AppointmentService {
     'En espera',
     'Confirmada',
   ];
+  static const List<String> _blockingAppointmentStatuses = [
+    'En espera',
+    'Confirmada',
+    'En progreso',
+  ];
 
   /// Obtiene todos los slots habilitados de un profesional en un rango de fechas.
   /// Si se pasa [serviceId], filtra por ese servicio o slots sin servicio asignado.
@@ -21,14 +28,18 @@ class AppointmentService {
     required DateTime from,
     required DateTime to,
     String? serviceId,
+    bool includeInactive = false,
   }) async {
     var query = _client
         .from('availability')
         .select()
         .eq('professional_id', professionalId)
-        .eq('is_available', true)
         .gte('slot_start', from.toUtc().toIso8601String())
         .lte('slot_start', to.toUtc().toIso8601String());
+
+    if (!includeInactive) {
+      query = query.eq('is_available', true);
+    }
 
     // Slots del servicio seleccionado O slots sin servicio asignado (genéricos)
     if (serviceId != null) {
@@ -532,22 +543,35 @@ class AppointmentService {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) throw Exception('No hay sesión activa');
 
-    final insertResponse = await _client
-        .from('appointments')
-        .insert({
-          'client_id': userId,
-          'pet_id': petId,
-          'professional_id': professionalId,
-          'service_id': serviceId,
-          'availability_id': availabilityId,
-          'status': 'En espera',
-          'notes': notes?.isNotEmpty == true ? notes : null,
-        })
-        .select('id')
-        .single();
+    await _assertSlotIsBookable(
+      availabilityId: availabilityId,
+      professionalId: professionalId,
+      serviceId: serviceId,
+    );
 
-    final appointmentId = insertResponse['id'] as String;
-    return _fetchAppointmentById(appointmentId);
+    try {
+      final insertResponse = await _client
+          .from('appointments')
+          .insert({
+            'client_id': userId,
+            'pet_id': petId,
+            'professional_id': professionalId,
+            'service_id': serviceId,
+            'availability_id': availabilityId,
+            'status': 'En espera',
+            'notes': notes?.isNotEmpty == true ? notes : null,
+          })
+          .select('id')
+          .single();
+
+      final appointmentId = insertResponse['id'] as String;
+      return _fetchAppointmentById(appointmentId);
+    } catch (e) {
+      if (_isSlotConflictError(e)) {
+        throw Exception('Ese horario ya no está disponible. Elige otro.');
+      }
+      rethrow;
+    }
   }
 
   Future<List<Map<String, dynamic>>> _fetchAppointmentsDetailsRows() async {
@@ -801,8 +825,13 @@ class AppointmentService {
     required String appointmentId,
     required String newStatus,
   }) async {
-    final professionalId = _client.auth.currentUser?.id;
-    if (professionalId == null) throw Exception('No hay sesión activa');
+    final currentUserId = _client.auth.currentUser?.id;
+    if (currentUserId == null) throw Exception('No hay sesión activa');
+
+    final role = await AuthService().getCurrentUserRole();
+    if (role != 'professional' && role != 'admin') {
+      throw Exception('No autorizado para actualizar esta cita');
+    }
 
     // Obtener estado actual y profesional asignado
     final selectRows = await _client
@@ -816,8 +845,19 @@ class AppointmentService {
     final previousStatus = current['status'] as String? ?? '';
     final assignedProfessional = current['professional_id'] as String? ?? '';
 
-    if (assignedProfessional != professionalId) {
+    if (role == 'professional' && assignedProfessional != currentUserId) {
       throw Exception('No autorizado para confirmar esta cita');
+    }
+
+    if (role == 'admin') {
+      if (!canAdminUpdateAppointmentStatus(previousStatus, newStatus)) {
+        throw Exception('Transición de estado no permitida');
+      }
+    } else if (!canProfessionalUpdateAppointmentStatus(
+      previousStatus,
+      newStatus,
+    )) {
+      throw Exception('Transición de estado no permitida');
     }
 
     // Actualizar estado
@@ -828,14 +868,14 @@ class AppointmentService {
           'updated_at': DateTime.now().toUtc().toIso8601String(),
         })
         .eq('id', appointmentId)
-        .eq('professional_id', professionalId);
+        .eq('professional_id', assignedProfessional);
 
     // Insertar en historial
     await _client.from('appointment_history').insert({
       'appointment_id': appointmentId,
       'previous_status': previousStatus.isNotEmpty ? previousStatus : null,
       'new_status': newStatus,
-      'changed_by': professionalId,
+      'changed_by': currentUserId,
       'changed_at': DateTime.now().toUtc().toIso8601String(),
     });
   }
@@ -847,6 +887,11 @@ class AppointmentService {
   }) async {
     final clientId = _client.auth.currentUser?.id;
     if (clientId == null) throw Exception('No hay sesión activa');
+
+    final role = await AuthService().getCurrentUserRole();
+    if (role != 'client') {
+      throw Exception('No autorizado para cancelar esta cita');
+    }
 
     await _client.rpc(
       'cancel_client_appointment',
@@ -941,19 +986,90 @@ class AppointmentService {
     final clientId = _client.auth.currentUser?.id;
     if (clientId == null) throw Exception('No hay sesión activa');
 
-    // Actualizar la cita
-    await _client
-        .from('appointments')
-        .update({
-          'availability_id': newAvailabilityId,
-          'pet_id': petId,
-          'service_id': serviceId,
-          'notes': notes?.isNotEmpty == true ? notes : null,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        })
-        .eq('id', appointmentId)
-        .eq('client_id', clientId);
+    await _assertSlotIsBookable(
+      availabilityId: newAvailabilityId,
+      serviceId: serviceId,
+      excludeAppointmentId: appointmentId,
+    );
 
-    return _fetchAppointmentById(appointmentId);
+    try {
+      await _client
+          .from('appointments')
+          .update({
+            'availability_id': newAvailabilityId,
+            'pet_id': petId,
+            'service_id': serviceId,
+            'notes': notes?.isNotEmpty == true ? notes : null,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id', appointmentId)
+          .eq('client_id', clientId);
+
+      return _fetchAppointmentById(appointmentId);
+    } catch (e) {
+      if (_isSlotConflictError(e)) {
+        throw Exception('Ese horario ya no está disponible. Elige otro.');
+      }
+      rethrow;
+    }
+  }
+
+  bool _isSlotConflictError(Object error) {
+    return error is PostgrestException &&
+        (error.code == '23505' ||
+            error.message.toLowerCase().contains('availability') ||
+            error.message.toLowerCase().contains('appointments_availability'));
+  }
+
+  Future<void> _assertSlotIsBookable({
+    required String availabilityId,
+    String? professionalId,
+    String? serviceId,
+    String? excludeAppointmentId,
+  }) async {
+    final availabilityRows = await _client
+        .from('availability')
+        .select('id, professional_id, service_id, is_available')
+        .eq('id', availabilityId)
+        .limit(1);
+
+    if (availabilityRows.isEmpty) {
+      throw Exception('El horario seleccionado no existe');
+    }
+
+    final slotRow = availabilityRows.first as Map<String, dynamic>;
+    final slotProfessionalId = slotRow['professional_id'] as String? ?? '';
+    final slotServiceId = slotRow['service_id'] as String?;
+    final slotIsAvailable = slotRow['is_available'] as bool? ?? false;
+
+    if (professionalId != null && slotProfessionalId != professionalId) {
+      throw Exception('El horario no pertenece al profesional seleccionado');
+    }
+
+    if (serviceId != null &&
+        slotServiceId != null &&
+        slotServiceId != serviceId) {
+      throw Exception('El horario no corresponde al servicio seleccionado');
+    }
+
+    if (!slotIsAvailable) {
+      throw Exception('Ese horario ya no está disponible. Elige otro.');
+    }
+
+    final blockedRows = await _client
+        .from('appointments')
+        .select('id')
+        .eq('availability_id', availabilityId)
+        .inFilter('status', _blockingAppointmentStatuses)
+        .limit(1);
+
+    final hasConflict = blockedRows.any((row) {
+      final appointmentRow = row as Map<String, dynamic>;
+      return appointmentRow['id'] != excludeAppointmentId;
+    });
+
+    if (hasConflict) {
+      throw Exception('Ese horario ya no está disponible. Elige otro.');
+    }
   }
 }

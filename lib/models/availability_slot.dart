@@ -11,6 +11,7 @@ class AvailabilitySlot {
     required this.end,
     this.serviceId,
     this.professionalName,
+    this.isEnabled = true,
     this.isBooked = false,
   });
 
@@ -20,6 +21,9 @@ class AvailabilitySlot {
   final DateTime end;
   final String? serviceId;
   final String? professionalName;
+
+  /// `true` si el slot está habilitado en la configuración del profesional.
+  final bool isEnabled;
 
   /// `true` si este slot ya tiene una cita activa asociada.
   /// Se calcula externamente comparando contra los IDs reservados.
@@ -39,11 +43,12 @@ class AvailabilitySlot {
       end: DateTime.parse(json['slot_end'] as String).toLocal(),
       serviceId: json['service_id'] as String?,
       professionalName: userMap?['full_name'] as String?,
+      isEnabled: json['is_available'] as bool? ?? true,
     );
   }
 
   /// Devuelve una copia marcada como reservada o libre.
-  AvailabilitySlot copyWith({bool? isBooked}) {
+  AvailabilitySlot copyWith({bool? isEnabled, bool? isBooked}) {
     return AvailabilitySlot(
       id: id,
       professionalId: professionalId,
@@ -51,6 +56,7 @@ class AvailabilitySlot {
       end: end,
       serviceId: serviceId,
       professionalName: professionalName,
+      isEnabled: isEnabled ?? this.isEnabled,
       isBooked: isBooked ?? this.isBooked,
     );
   }
@@ -59,9 +65,9 @@ class AvailabilitySlot {
   bool get isPast => start.isBefore(DateTime.now());
 
   /// `true` si el slot está disponible para reservar.
-  bool get isAvailable => !isBooked && !isPast;
+  bool get isAvailable => isEnabled && !isBooked && !isPast;
 
   @override
   String toString() =>
-      'AvailabilitySlot(id: $id, start: $start, isBooked: $isBooked)';
+      'AvailabilitySlot(id: $id, start: $start, isEnabled: $isEnabled, isBooked: $isBooked)';
 }
