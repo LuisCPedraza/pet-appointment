@@ -196,6 +196,8 @@ class AppointmentService {
   RealtimeChannel subscribeToAppointments({
     required String professionalId,
     required void Function() onChanged,
+    bool autoSubscribe = true,
+    void Function(String status, Object? error)? onStatus,
   }) {
     final channel = _client
         .channel('appointments:$professionalId')
@@ -217,14 +219,19 @@ class AppointmentService {
       );
     });
     return channel;
-  }
-
-  /// Suscribe a cambios en la tabla [availability] del profesional indicado.
-  /// Llama a [onChanged] cuando se agrega, modifica o elimina un slot.
-  /// Debes guardar el canal devuelto y llamar [channel.unsubscribe()] en dispose().
+    if (autoSubscribe) {
+      channel.subscribe((status, error) {
+        debugPrint(
+          '🔌 Realtime appointments [$professionalId]: $status${error != null ? ' — $error' : ''}',
+        );
+        onStatus?.call(status, error);
+      });
+    }
   RealtimeChannel subscribeToSlots({
     required String professionalId,
     required void Function() onChanged,
+    bool autoSubscribe = true,
+    void Function(String status, Object? error)? onStatus,
   }) {
     final channel = _client
         .channel('slots:$professionalId')
@@ -240,11 +247,14 @@ class AppointmentService {
           callback: (_) => onChanged(),
         );
 
-    channel.subscribe((status, error) {
-      debugPrint(
-        '🔌 Realtime slots [$professionalId]: $status${error != null ? ' — $error' : ''}',
-      );
-    });
+    if (autoSubscribe) {
+      channel.subscribe((status, error) {
+        debugPrint(
+          '🔌 Realtime slots [$professionalId]: $status${error != null ? ' — $error' : ''}',
+        );
+        onStatus?.call(status, error);
+      });
+    }
     return channel;
   }
 
@@ -475,7 +485,11 @@ class AppointmentService {
   }
 
   /// Suscribe a cambios en la tabla de servicios para refrescar el catálogo.
-  RealtimeChannel subscribeToServices({required void Function() onChanged}) {
+  RealtimeChannel subscribeToServices({
+    required void Function() onChanged,
+    bool autoSubscribe = true,
+    void Function(String status, Object? error)? onStatus,
+  }) {
     final channel = _client
         .channel('services:catalog')
         .onPostgresChanges(
@@ -485,11 +499,14 @@ class AppointmentService {
           callback: (_) => onChanged(),
         );
 
-    channel.subscribe((status, error) {
-      debugPrint(
-        '🔌 Realtime services: $status${error != null ? ' — $error' : ''}',
-      );
-    });
+    if (autoSubscribe) {
+      channel.subscribe((status, error) {
+        debugPrint(
+          '🔌 Realtime services: $status${error != null ? ' — $error' : ''}',
+        );
+        onStatus?.call(status, error);
+      });
+    }
 
     return channel;
   }
@@ -497,6 +514,8 @@ class AppointmentService {
   /// Suscribe a cambios en [appointments] sin filtro de profesional.
   RealtimeChannel subscribeToAllAppointments({
     required void Function() onChanged,
+    bool autoSubscribe = true,
+    void Function(String status, Object? error)? onStatus,
   }) {
     final channel = _client
         .channel('appointments:all')
@@ -506,16 +525,23 @@ class AppointmentService {
           table: 'appointments',
           callback: (_) => onChanged(),
         );
-    channel.subscribe((status, error) {
-      debugPrint(
-        '🔌 Realtime all-appointments: $status${error != null ? ' — $error' : ''}',
-      );
-    });
+    if (autoSubscribe) {
+      channel.subscribe((status, error) {
+        debugPrint(
+          '🔌 Realtime all-appointments: $status${error != null ? ' — $error' : ''}',
+        );
+        onStatus?.call(status, error);
+      });
+    }
     return channel;
   }
 
   /// Suscribe a cambios en [availability] sin filtro de profesional.
-  RealtimeChannel subscribeToAllSlots({required void Function() onChanged}) {
+  RealtimeChannel subscribeToAllSlots({
+    required void Function() onChanged,
+    bool autoSubscribe = true,
+    void Function(String status, Object? error)? onStatus,
+  }) {
     final channel = _client
         .channel('slots:all')
         .onPostgresChanges(
@@ -524,11 +550,14 @@ class AppointmentService {
           table: 'availability',
           callback: (_) => onChanged(),
         );
-    channel.subscribe((status, error) {
-      debugPrint(
-        '🔌 Realtime all-slots: $status${error != null ? ' — $error' : ''}',
-      );
-    });
+    if (autoSubscribe) {
+      channel.subscribe((status, error) {
+        debugPrint(
+          '🔌 Realtime all-slots: $status${error != null ? ' — $error' : ''}',
+        );
+        onStatus?.call(status, error);
+      });
+    }
     return channel;
   }
 

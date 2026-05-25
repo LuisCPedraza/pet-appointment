@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'dart:async';
 import 'package:pet_appointment/models/appointment_model.dart';
 import 'package:pet_appointment/models/availability_slot.dart';
 import 'package:pet_appointment/models/service_model.dart';
@@ -7,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CalendarController extends ChangeNotifier {
   final _service = AppointmentService();
+  static const int _expectedRealtimeSubscriptions = 3;
 
   List<Map<String, dynamic>> pets = [];
   List<ServiceModel> services = [];
@@ -45,6 +47,12 @@ class CalendarController extends ChangeNotifier {
   RealtimeChannel? _appointmentsChannel;
   RealtimeChannel? _slotsChannel;
   RealtimeChannel? _servicesChannel;
+  Timer? _reconnectTimer;
+  int _reconnectAttempts = 0;
+  int _subscribedChannels = 0;
+  bool _reconnectScheduled = false;
+  bool _isDisposed = false;
+  static const int _maxReconnectAttempts = 5;
 
   // ─── Inicialización ───────────────────────────────────────────────────────
 
@@ -75,17 +83,110 @@ class CalendarController extends ChangeNotifier {
 
   void subscribeRealtime() {
     unsubscribe();
+    _subscribedChannels = 0;
     _appointmentsChannel = _service.subscribeToAllAppointments(
       onChanged: refreshBookedIds,
+      autoSubscribe: false,
     );
-    _slotsChannel = _service.subscribeToAllSlots(onChanged: refreshSlots);
-    _servicesChannel = _service.subscribeToServices(onChanged: refreshServices);
+    _slotsChannel = _service.subscribeToAllSlots(
+      onChanged: refreshSlots,
+      autoSubscribe: false,
+    );
+    _servicesChannel = _service.subscribeToServices(
+      onChanged: refreshServices,
+      autoSubscribe: false,
+    );
+
+    _subscribeChannel(
+      channel: _appointmentsChannel,
+      label: 'appointments',
+    );
+    _subscribeChannel(channel: _slotsChannel, label: 'slots');
+    _subscribeChannel(channel: _servicesChannel, label: 'services');
+  }
+
+  void _subscribeChannel({
+    required RealtimeChannel? channel,
+    required String label,
+  }) {
+    if (channel == null) return;
+    try {
+      channel.subscribe((status, error) {
+        debugPrint(
+          '🔌 Realtime [$label] status=$status${error != null ? ' error=$error' : ''}',
+        );
+        final ok = status == 'SUBSCRIBED' && error == null;
+        if (ok) {
+          _subscribedChannels += 1;
+          if (_subscribedChannels >= _expectedRealtimeSubscriptions) {
+            _resetReconnectState();
+          }
+          return;
+        }
+
+        _scheduleReconnect(label: label, status: status, error: error);
+      });
+    } catch (e) {
+      debugPrint('Error subscribing channel [$label]: $e');
+    }
+  }
+
+  void _scheduleReconnect({
+    required String label,
+    required String status,
+    Object? error,
+  }) {
+    if (_reconnectScheduled) return;
+    if (_reconnectAttempts >= _maxReconnectAttempts) {
+      debugPrint(
+        '⛔ Realtime reconnect disabled after $_reconnectAttempts attempts for [$label] (last status: $status${error != null ? ', error: $error' : ''})',
+      );
+      return;
+    }
+
+    _reconnectAttempts += 1;
+    final seconds = _reconnectAttempts >= 5 ? 60 : (1 << _reconnectAttempts);
+    final delay = Duration(seconds: seconds);
+    _reconnectScheduled = true;
+
+    debugPrint(
+      '🔁 Realtime reconnect #$_reconnectAttempts for [$label] in ${delay.inSeconds}s (status=$status${error != null ? ', error=$error' : ''})',
+    );
+
+    _reconnectTimer?.cancel();
+    _reconnectTimer = Timer(delay, () {
+      _reconnectScheduled = false;
+      if (_isDisposed) return;
+      try {
+        subscribeRealtime();
+      } catch (e) {
+        debugPrint('Reconnect attempt failed for [$label]: $e');
+      }
+    });
+  }
+
+  void _resetReconnectState() {
+    _reconnectAttempts = 0;
+    _reconnectScheduled = false;
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
   }
 
   void unsubscribe() {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
+    _reconnectScheduled = false;
+    _subscribedChannels = 0;
     _appointmentsChannel?.unsubscribe();
     _slotsChannel?.unsubscribe();
     _servicesChannel?.unsubscribe();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    unsubscribe();
+    super.dispose();
   }
 
   // ─── Carga de datos ───────────────────────────────────────────────────────
