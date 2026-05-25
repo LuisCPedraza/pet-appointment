@@ -46,14 +46,22 @@ Verificar en entorno staging que:
 - Tras reconexión, la agenda vuelve a actualizarse en tiempo real.
 
 ## Resultado (plantilla)
-- Fecha/hora:
-- Entorno:
-- Usuario de prueba:
+- Fecha/hora: 25/05/2026
+- Entorno: Android emulator `sdk gphone64 x86 64`
+- Usuario de prueba: sesión de Supabase activa/inactiva según el escenario
 - Resultado por criterio:
-  - Detección de caída: OK/FAIL
-  - Backoff: OK/FAIL
-  - Límite de reintentos: OK/FAIL
-  - Recuperación de agenda: OK/FAIL
+   - Detección de caída: OK
+   - Backoff: OK
+   - Límite de reintentos: OK
+   - Recuperación de agenda: OK
 - Evidencia:
-  - Capturas o fragmentos de logs:
+   - `Realtime [appointments] status=channelError`
+   - `Realtime reconnect #1 ... in 2s`
+   - `Realtime reconnect #2 ... in 4s`
+   - `Realtime reconnect #3 ... in 8s`
+   - `Realtime reconnect #4 ... in 16s`
+   - `Realtime reconnect #5 ... in 60s`
+   - `Realtime reconnect disabled after 5 attempts ...`
+   - `Realtime [appointments] status=subscribed`
 - Observaciones:
+   - En la prueba también aparecieron errores de lookup a `supabase.co` al cortar red; no hubo crash y el controller reintentó con backoff hasta recuperar la suscripción.
