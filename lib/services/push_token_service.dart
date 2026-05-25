@@ -37,19 +37,14 @@ class PushTokenService {
       throw Exception('Plataforma de push no soportada');
     }
 
-    final payload = <String, dynamic>{
-      'user_id': userId,
-      'token': token.trim(),
-      'platform': normalizedPlatform,
-      'is_active': true,
-      'last_seen_at': DateTime.now().toUtc().toIso8601String(),
-      'updated_at': DateTime.now().toUtc().toIso8601String(),
-    };
-
     try {
-      await _client
-          .from('push_device_tokens')
-          .upsert(payload, onConflict: 'token');
+      await _client.rpc(
+        'register_push_device_token',
+        params: {
+          'p_token': token.trim(),
+          'p_platform': normalizedPlatform,
+        },
+      );
     } catch (e) {
       debugPrint('Error registrando token de push remoto: $e');
       rethrow;
