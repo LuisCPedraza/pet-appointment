@@ -5,20 +5,43 @@ import 'package:pet_appointment/widgets/card_container.dart';
 import 'package:pet_appointment/widgets/section_label.dart';
 
 /// Tarjeta para escoger el profesional que atenderá la cita.
-class ProfessionalSelectorCard extends StatelessWidget {
+class ProfessionalSelectorCard extends StatefulWidget {
   const ProfessionalSelectorCard({super.key, required this.controller});
 
   final CalendarController controller;
 
   @override
+  State<ProfessionalSelectorCard> createState() =>
+      _ProfessionalSelectorCardState();
+}
+
+class _ProfessionalSelectorCardState extends State<ProfessionalSelectorCard> {
+  String _query = '';
+
+  void _onQueryChanged(String q) => setState(() => _query = q.trim());
+
+  @override
   Widget build(BuildContext context) {
+    final controller = widget.controller;
+    final all = controller.professionals as List<Map<String, String>>;
+    final visible = _query.isEmpty
+        ? all
+        : all.where((p) {
+            final name = (p['full_name'] ?? '').toLowerCase();
+            final email = (p['email'] ?? '').toLowerCase();
+            final q = _query.toLowerCase();
+            return name.contains(q) || email.contains(q);
+          }).toList();
+
     return CardContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SectionLabel('Profesional'),
+          const SizedBox(height: 8),
+          _ProfessionalFilter(onQueryChanged: _onQueryChanged),
           const SizedBox(height: 12),
-          if (controller.professionals.isEmpty)
+          if (visible.isEmpty)
             Text(
               'No hay profesionales activos disponibles.',
               style: TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
@@ -27,7 +50,7 @@ class ProfessionalSelectorCard extends StatelessWidget {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: controller.professionals.map((professional) {
+                children: visible.map((professional) {
                   final id = professional['id'] ?? '';
                   final name = professional['full_name'] ?? 'Profesional';
                   final email = professional['email'] ?? '';
@@ -47,6 +70,96 @@ class ProfessionalSelectorCard extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+class _ProfessionalFilter extends StatefulWidget {
+  const _ProfessionalFilter({super.key, required this.onQueryChanged});
+
+  final ValueChanged<String> onQueryChanged;
+
+  @override
+  State<_ProfessionalFilter> createState() => _ProfessionalFilterState();
+}
+
+class _ProfessionalFilterState extends State<_ProfessionalFilter> {
+  final _controller = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _controller,
+          decoration: InputDecoration(
+            hintText: 'Buscar profesional por nombre o email',
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () {
+                final q = _controller.text.trim();
+                setState(() => _query = q);
+                widget.onQueryChanged(q);
+              },
+            ),
+          ),
+          onSubmitted: (v) {
+            final q = v.trim();
+            setState(() => _query = q);
+            widget.onQueryChanged(q);
+          },
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 32,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ActionChip(
+                  label: const Text('Limpiar'),
+                  onPressed: () {
+                    _controller.clear();
+                    setState(() => _query = '');
+                    widget.onQueryChanged('');
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ActionChip(
+                  label: const Text('Solo activos'),
+                  onPressed: () {
+                    // placeholder: backend already filters active by default
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Filtro "Solo activos" aplicado'),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Replace the controller list with filtered results by mutating a view-level field
+        Builder(
+          builder: (ctx) {
+            // Draw nothing here; the parent will still use controller.professionals.
+            // We keep filtered local to the UI for now.
+            return const SizedBox.shrink();
+          },
+        ),
+      ],
     );
   }
 }

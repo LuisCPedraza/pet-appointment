@@ -10,7 +10,7 @@ import 'package:pet_appointment/utils/slot_generation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AppointmentService {
-  final _client = Supabase.instance.client;
+  SupabaseClient get _client => Supabase.instance.client;
   static const List<String> _activeUpcomingStatuses = [
     'En espera',
     'Confirmada',
