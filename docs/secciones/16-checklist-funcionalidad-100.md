@@ -19,6 +19,7 @@
 - [~] Base de registro de tokens remotos en Supabase.
 - [~] Cola de eventos push remotos en Supabase.
 - [~] Edge Function para enviar eventos push.
+- [x] Scheduler programado para invocar `send-push-events` cada 5 minutos.
 - [~] **Slots del profesional**: ahora se pueden activar y desactivar desde la UI, y los slots inactivos siguen visibles.
 - [~] **Edición de perfil**: ya permite conservar la foto actual o elegir galería/cámara.
 
@@ -49,6 +50,7 @@
 - [x] Cancelación con motivo.
 - [ ] Definir si aplica reembolso y cómo se registra.
 - [x] Historial de cambios de estado completamente trazable.
+- [x] Reglas puras de transición y cancelación cubiertas con pruebas unitarias.
 
 ### Perfil de profesional
 
@@ -94,9 +96,10 @@
 
 ### Pruebas
 
-- [~] Ampliar pruebas unitarias.
+- [x] Ampliar pruebas unitarias.
 - [~] Ampliar pruebas de integración.
 - [ ] Cubrir los flujos críticos de cita, rol y disponibilidad.
+- [~] Documentar y validar el flujo de push end-to-end en Android.
 
 ### Plataforma y calidad
 
