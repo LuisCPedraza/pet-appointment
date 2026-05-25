@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/models/appointment_model.dart';
 import 'package:pet_appointment/features/appointments/appointment_detail_screen.dart';
 import 'package:pet_appointment/screens/appointment_history/appointment_history.dart';
+import 'package:pet_appointment/screens/appointment_history/appointment_history_widgets.dart';
 import 'package:pet_appointment/features/appointments/reschedule_appointment_screen.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
 import 'package:pet_appointment/widgets/app_shell.dart';
@@ -32,14 +35,35 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
   String? _errorMessage;
   List<AppointmentModel> _appointments = [];
   RealtimeChannel? _appointmentsChannel;
+  bool _realtimeEnabled = false;
+  StreamSubscription? _authSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadAppointments();
+    _realtimeEnabled = true;
     _appointmentsChannel = _service.subscribeToClientAppointments(
       onChanged: _loadAppointments,
     );
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+      event,
+    ) {
+      if (!mounted) return;
+
+      if (event.event == AuthChangeEvent.signedOut) {
+        _appointmentsChannel?.unsubscribe();
+        _appointmentsChannel = null;
+        return;
+      }
+
+      if (event.event == AuthChangeEvent.initialSession ||
+          event.event == AuthChangeEvent.signedIn ||
+          event.event == AuthChangeEvent.tokenRefreshed) {
+        _restartRealtime();
+        _loadAppointments();
+      }
+    });
     AppShell.tabIndexNotifier.addListener(_onTabChanged);
   }
 
@@ -49,10 +73,21 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
     }
   }
 
+  void _restartRealtime() {
+    if (!_realtimeEnabled) return;
+    _appointmentsChannel?.unsubscribe();
+    _appointmentsChannel = _service.subscribeToClientAppointments(
+      onChanged: _loadAppointments,
+    );
+  }
+
   @override
   void dispose() {
+    _authSubscription?.cancel();
     AppShell.tabIndexNotifier.removeListener(_onTabChanged);
     _appointmentsChannel?.unsubscribe();
+    _appointmentsChannel = null;
+    _realtimeEnabled = false;
     super.dispose();
   }
 
@@ -345,85 +380,78 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Mis citas'), centerTitle: true),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _errorMessage != null
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+        child: RefreshIndicator(
+          onRefresh: _loadAppointments,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: _isLoading
+                  ? const AppointmentHistoryLoadingState()
+                  : _errorMessage != null
+                  ? AppointmentHistoryErrorState(
+                      message: _errorMessage!,
+                      onRetry: _loadAppointments,
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          _errorMessage!,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                        const SizedBox(height: 16),
-                        FilledButton(
-                          onPressed: _loadAppointments,
-                          child: const Text('Reintentar'),
-                        ),
+                        _buildFilterChips(),
+                        const SizedBox(height: 20),
+                        if (_appointments.isEmpty)
+                          const AppointmentHistoryEmptyState()
+                        else if (_filteredAppointments.isEmpty)
+                          const AppointmentHistoryFilterEmptyState()
+                        else ...[
+                          if (_futureAppointments.isNotEmpty) ...[
+                            const Text(
+                              'Próximas citas',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            ..._futureAppointments.map(
+                              (appointment) => AppointmentHistoryCard(
+                                appointment: appointment,
+                                statusColor: _statusColor,
+                                statusIcon: _statusIcon,
+                                formatAppointmentDate: _formatAppointmentDate,
+                                isActiveAppointment: _isActiveAppointment,
+                                onOpenAppointmentDetail: _openAppointmentDetail,
+                                onShowAppointmentActions:
+                                    _showAppointmentActions,
+                              ),
+                            ),
+                          ],
+                          if (_pastAppointments.isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Historial',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            ..._pastAppointments.map(
+                              (appointment) => AppointmentHistoryCard(
+                                appointment: appointment,
+                                statusColor: _statusColor,
+                                statusIcon: _statusIcon,
+                                formatAppointmentDate: _formatAppointmentDate,
+                                isActiveAppointment: _isActiveAppointment,
+                                onOpenAppointmentDetail: _openAppointmentDetail,
+                                onShowAppointmentActions:
+                                    _showAppointmentActions,
+                              ),
+                            ),
+                          ],
+                        ],
                       ],
                     ),
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildFilterChips(),
-                      const SizedBox(height: 20),
-                      if (_appointments.isEmpty)
-                        const AppointmentHistoryEmptyState()
-                      else if (_filteredAppointments.isEmpty)
-                        const AppointmentHistoryFilterEmptyState()
-                      else ...[
-                        if (_futureAppointments.isNotEmpty) ...[
-                          const Text(
-                            'Próximas citas',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          ..._futureAppointments.map(
-                            (appointment) => AppointmentHistoryCard(
-                              appointment: appointment,
-                              statusColor: _statusColor,
-                              statusIcon: _statusIcon,
-                              formatAppointmentDate: _formatAppointmentDate,
-                              isActiveAppointment: _isActiveAppointment,
-                              onOpenAppointmentDetail: _openAppointmentDetail,
-                              onShowAppointmentActions: _showAppointmentActions,
-                            ),
-                          ),
-                        ],
-                        if (_pastAppointments.isNotEmpty) ...[
-                          const SizedBox(height: 16),
-                          const Text(
-                            'Historial',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          ..._pastAppointments.map(
-                            (appointment) => AppointmentHistoryCard(
-                              appointment: appointment,
-                              statusColor: _statusColor,
-                              statusIcon: _statusIcon,
-                              formatAppointmentDate: _formatAppointmentDate,
-                              isActiveAppointment: _isActiveAppointment,
-                              onOpenAppointmentDetail: _openAppointmentDetail,
-                              onShowAppointmentActions: _showAppointmentActions,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ],
-                  ),
+            ),
           ),
         ),
       ),

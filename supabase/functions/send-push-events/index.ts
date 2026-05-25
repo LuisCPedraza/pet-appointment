@@ -195,9 +195,17 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = env('SUPABASE_URL');
-    const serviceRoleKey = env('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ??
+      'https://vqxdujxvstelybwewyum.supabase.co';
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const serviceRoleKey = authHeader.startsWith('Bearer ')
+      ? authHeader.slice('Bearer '.length).trim()
+      : Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')?.trim() ?? '';
     const fcmServerKey = env('FCM_SERVER_KEY');
+
+    if (!serviceRoleKey) {
+      throw new Error('Missing required service role key');
+    }
 
     const supabase = createClient(supabaseUrl, serviceRoleKey, {
       auth: {
@@ -248,7 +256,7 @@ Deno.serve(async (req) => {
 
         const tokensQuery = await supabase
           .from('push_device_tokens')
-          .select('token')
+          .select('id, token')
           .eq('user_id', event.recipient_user_id)
           .eq('is_active', true);
 
@@ -256,7 +264,7 @@ Deno.serve(async (req) => {
           throw tokensQuery.error;
         }
 
-        const tokens = (tokensQuery.data ?? []) as Array<{ token: string }>;
+        const tokens = (tokensQuery.data ?? []) as Array<{ id: string; token: string }>;
         const content = buildNotificationContent(event, appointmentRow);
 
         if (tokens.length === 0) {
@@ -273,20 +281,43 @@ Deno.serve(async (req) => {
           continue;
         }
 
+        const sendErrors: string[] = [];
+        let deliveredCount = 0;
+
         for (const tokenRow of tokens) {
-          await sendFcmLegacyNotification({
-            serverKey: fcmServerKey,
-            token: tokenRow.token,
-            title: content.title,
-            body: content.body,
-            data: {
-              appointmentId: event.appointment_id,
-              eventType: event.event_type,
-              recipientUserId: event.recipient_user_id,
-              status: appointmentRow.status,
-              payload: event.payload,
-            },
-          });
+          try {
+            await sendFcmLegacyNotification({
+              serverKey: fcmServerKey,
+              token: tokenRow.token,
+              title: content.title,
+              body: content.body,
+              data: {
+                appointmentId: event.appointment_id,
+                eventType: event.event_type,
+                recipientUserId: event.recipient_user_id,
+                status: appointmentRow.status,
+                payload: event.payload,
+              },
+            });
+            deliveredCount++;
+          } catch (error) {
+            const message = String(error);
+            sendErrors.push(message);
+
+            if (message.includes('FCM error 404')) {
+              await supabase
+                .from('push_device_tokens')
+                .update({
+                  is_active: false,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('id', tokenRow.id);
+            }
+          }
+        }
+
+        if (deliveredCount === 0) {
+          throw new Error(sendErrors.join(' | ') || 'No se pudo enviar la notificación');
         }
 
         await supabase
@@ -295,7 +326,7 @@ Deno.serve(async (req) => {
             status: 'sent',
             processed_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            error_message: null,
+            error_message: sendErrors.length > 0 ? sendErrors.join(' | ') : null,
           })
           .eq('id', event.id);
         sent++;

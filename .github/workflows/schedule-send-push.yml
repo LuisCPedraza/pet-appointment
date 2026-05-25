@@ -32,6 +32,5 @@ jobs:
 
           curl -sS -X POST "$EDGE_FUNCTION_URL" \
             -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
             -H "Content-Type: application/json" \
             --data '{"limit":20}'

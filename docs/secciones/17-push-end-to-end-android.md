@@ -6,9 +6,9 @@ Este procedimiento valida que la app Flutter registra el token FCM del dispositi
 
 - Proyecto creado en Firebase Console.
 - `android/app/google-services.json` descargado desde Firebase y copiado al proyecto.
-- Secrets configurados en GitHub o en Supabase para la Edge Function:
-  - `SUPABASE_SERVICE_ROLE_KEY`
-  - `FCM_SERVER_KEY`
+- Secrets configurados:
+  - En Supabase: `FCM_SERVER_KEY`
+  - En GitHub Actions: `SUPABASE_SERVICE_ROLE_KEY` y `SUPABASE_SEND_PUSH_EVENTS_URL`
 - La Edge Function `send-push-events` ya desplegada en Supabase.
 
 ## 2. Verificación en Android
@@ -43,5 +43,5 @@ limit 10;
 ## 5. Fallos comunes
 
 - Si no aparece token, revisa `google-services.json` y que la app esté corriendo en un dispositivo con Google Play Services.
-- Si la Edge Function falla, revisa que existan `SUPABASE_SERVICE_ROLE_KEY` y `FCM_SERVER_KEY`.
+- Si la Edge Function falla, revisa que existan `FCM_SERVER_KEY` en Supabase y `SUPABASE_SERVICE_ROLE_KEY` en GitHub Actions.
 - Si el envío se procesa pero no llega al móvil, revisa el token registrado y los logs de Firebase.

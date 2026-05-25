@@ -27,6 +27,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
   late DateTime _currentWeekStart;
   ProfessionalAgendaController? _agendaController;
   StreamSubscription? _authSubscription;
+  String _statusFilter = 'Todas';
 
   @override
   void initState() {
@@ -51,7 +52,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
           event.event == AuthChangeEvent.tokenRefreshed) {
         final controller = _agendaController;
         if (controller != null && AuthService().hasValidSession) {
-          controller.subscribeRealtime();
+          controller.restartRealtime();
           unawaited(controller.loadAppointments());
         }
       }
@@ -128,6 +129,12 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
           final todayAppointments = controller.appointmentsForDay(
             DateTime.now(),
           );
+          final pendingAppointments = controller.appointments
+              .where((appointment) => appointment.status == 'En espera')
+              .length;
+          final confirmedAppointments = controller.appointments
+              .where((appointment) => appointment.status == 'Confirmada')
+              .length;
           final upcomingCount = controller.appointments.length;
 
           Widget body;
@@ -142,12 +149,14 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
               children: [
                 ProfessionalHomeDailyView(
                   controller: controller,
+                  statusFilter: _statusFilter,
                   onAppointmentTap: _openAppointmentDetail,
                   onConfirmAppointment: _confirmAppointment,
                 ),
                 ProfessionalHomeWeeklyView(
                   controller: controller,
                   weekStart: _currentWeekStart,
+                  statusFilter: _statusFilter,
                   onAppointmentTap: _openAppointmentDetail,
                   onConfirmAppointment: _confirmAppointment,
                 ),
@@ -162,6 +171,30 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
                 child: _AgendaOverviewCard(
                   totalAppointments: upcomingCount,
                   todayAppointments: todayAppointments.length,
+                  pendingAppointments: pendingAppointments,
+                  confirmedAppointments: confirmedAppointments,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: ['Todas', 'Pendientes', 'Confirmadas'].map((label) {
+                    final selected = _statusFilter == label;
+                    return ChoiceChip(
+                      label: Text(label),
+                      selected: selected,
+                      selectedColor: Colors.blue,
+                      labelStyle: TextStyle(
+                        color: selected ? Colors.white : Colors.black87,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      onSelected: (_) {
+                        setState(() => _statusFilter = label);
+                      },
+                    );
+                  }).toList(),
                 ),
               ),
               Expanded(child: body),
@@ -177,10 +210,14 @@ class _AgendaOverviewCard extends StatelessWidget {
   const _AgendaOverviewCard({
     required this.totalAppointments,
     required this.todayAppointments,
+    required this.pendingAppointments,
+    required this.confirmedAppointments,
   });
 
   final int totalAppointments;
   final int todayAppointments;
+  final int pendingAppointments;
+  final int confirmedAppointments;
 
   @override
   Widget build(BuildContext context) {
@@ -235,6 +272,16 @@ class _AgendaOverviewCard extends StatelessWidget {
                         icon: Icons.calendar_month,
                         label: 'Total',
                         value: '$totalAppointments',
+                      ),
+                      _MetricPill(
+                        icon: Icons.schedule,
+                        label: 'Pendientes',
+                        value: '$pendingAppointments',
+                      ),
+                      _MetricPill(
+                        icon: Icons.check_circle,
+                        label: 'Confirmadas',
+                        value: '$confirmedAppointments',
                       ),
                     ],
                   ),

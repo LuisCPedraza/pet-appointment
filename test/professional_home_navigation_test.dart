@@ -13,8 +13,17 @@ class _FakeAppointmentService {
     required DateTime from,
     required DateTime to,
     String? serviceId,
+    bool includeInactive = false,
   }) async {
     return [];
+  }
+
+  Future<Set<String>> fetchBookedSlotIds({
+    required String professionalId,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    return <String>{};
   }
 
   Future<int> createSlotsBetween({
@@ -79,6 +88,6 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 1));
 
     expect(find.text('Mi Disponibilidad'), findsOneWidget);
-    expect(find.text('Generar 4 semanas'), findsOneWidget);
+    expect(find.text('Aplicar (4 sem)'), findsOneWidget);
   });
 }

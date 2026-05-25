@@ -15,13 +15,13 @@
 
 ## 0. Check inicial del estado actual
 
-- [~] **Notificaciones push**: hay base local con `flutter_local_notifications`, cola remota de eventos y Edge Function, pero falta integración real con proveedor y validación end-to-end.
+- [x] **Notificaciones push**: integración local y remota validada end-to-end en Android con cola, Edge Function y Firebase.
 - [x] Base de registro de tokens remotos en Supabase.
-- [~] Cola de eventos push remotos en Supabase.
-- [~] Edge Function para enviar eventos push.
+- [x] Cola de eventos push remotos en Supabase.
+- [x] Edge Function para enviar eventos push.
 - [x] Scheduler programado para invocar `send-push-events` cada 5 minutos.
-- [~] **Slots del profesional**: ahora se pueden activar y desactivar desde la UI, y los slots inactivos siguen visibles.
-- [~] **Edición de perfil**: ya permite conservar la foto actual o elegir galería/cámara.
+- [x] **Slots del profesional**: ahora se pueden activar y desactivar desde la UI, y los slots inactivos siguen visibles.
+- [x] **Edición de perfil**: ya permite conservar la foto actual o elegir galería/cámara.
 
 ---
 
@@ -29,24 +29,24 @@
 
 ### Notificaciones push
 
-- [ ] Integración completa de `flutter_local_notifications` con backend remoto.
-- [~] Base de registro de tokens remotos en Supabase.
-- [ ] Disparar notificación cuando se crea una cita.
-- [ ] Disparar notificación cuando se modifica una cita.
-- [ ] Disparar notificación cuando se cancela una cita.
-- [ ] Definir si el canal será Supabase Edge Functions o Firebase Messaging.
+- [x] Integración completa de `flutter_local_notifications` con backend remoto.
+- [x] Base de registro de tokens remotos en Supabase.
+- [x] Disparar notificación cuando se crea una cita.
+- [x] Disparar notificación cuando se modifica una cita.
+- [x] Disparar notificación cuando se cancela una cita.
+- [x] Definir si el canal será Supabase Edge Functions o Firebase Messaging.
 
 ### Roles y permisos
 
 - [x] Diferenciar claramente los flujos de cliente, profesional y admin.
 - [x] Validar rutas protegidas por rol.
-- [~] Validar acciones permitidas por rol en UI y backend.
+- [x] Validar acciones permitidas por rol en UI y backend.
 - [ ] Revisar consistencia de RLS con los permisos de la app.
 
 ### Flujo de citas
 
-- [ ] Confirmación automática o manual de citas por el profesional.
-- [~] Validación fuerte de disponibilidad para evitar doble booking.
+- [x] Confirmación automática o manual de citas por el profesional.
+- [x] Validación fuerte de disponibilidad para evitar doble booking.
 - [x] Cancelación con motivo.
 - [ ] Definir si aplica reembolso y cómo se registra.
 - [x] Historial de cambios de estado completamente trazable.
@@ -55,8 +55,8 @@
 ### Perfil de profesional
 
 - [x] Gestión de horarios disponibles por día y hora.
-- [ ] Lista de citas pendientes.
-- [ ] Lista de citas confirmadas.
+- [x] Lista de citas pendientes.
+- [x] Lista de citas confirmadas.
 - [x] Vista de agenda clara para el profesional.
 
 ---
@@ -72,9 +72,9 @@
 
 ### Errores y UX
 
-- [ ] Mensajes de error más amigables.
-- [ ] Estados de carga consistentes.
-- [ ] Pantallas vacías bien resueltas.
+- [x] Mensajes de error más amigables en historial y disponibilidad.
+- [x] Estados de carga consistentes en historial y disponibilidad.
+- [x] Pantallas vacías bien resueltas en historial y agenda profesional.
 - [ ] Validaciones de formulario más completas.
 
 ### Imágenes y storage
@@ -97,9 +97,9 @@
 ### Pruebas
 
 - [x] Ampliar pruebas unitarias.
-- [~] Ampliar pruebas de integración.
-- [ ] Cubrir los flujos críticos de cita, rol y disponibilidad.
-- [~] Documentar y validar el flujo de push end-to-end en Android.
+- [x] Ampliar pruebas de integración.
+- [x] Cubrir los flujos críticos de cita, rol y disponibilidad.
+- [x] Documentar y validar el flujo de push end-to-end en Android.
 
 ### Plataforma y calidad
 

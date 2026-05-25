@@ -278,9 +278,9 @@ class _ProfessionalAvailabilityScreenState
             ),
             const SizedBox(height: 8),
             if (_loadError != null) ...[
-              Text(
-                _loadError!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ProfessionalAvailabilityErrorState(
+                message: _loadError!,
+                onRetry: _loadSlots,
               ),
               const SizedBox(height: 12),
             ],
@@ -374,7 +374,14 @@ class _ProfessionalAvailabilityScreenState
                 ),
               ),
             if (_loading)
-              const Center(child: CircularProgressIndicator())
+              const ProfessionalAvailabilityLoadingState()
+            else if (selectedSlots.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 32),
+                child: Center(
+                  child: Text('Todavía no hay slots para mostrar.'),
+                ),
+              )
             else
               ProfessionalAvailabilitySlotList(
                 slots: selectedSlots,

@@ -10,6 +10,7 @@ class ProfessionalAgendaController extends ChangeNotifier {
   bool isLoading = false;
 
   RealtimeChannel? _appointmentsChannel;
+  bool _realtimeEnabled = false;
 
   /// Retorna todas las citas para el día indicado ordenadas por hora.
   List<AppointmentModel> appointmentsForDay(DateTime day) {
@@ -58,6 +59,7 @@ class ProfessionalAgendaController extends ChangeNotifier {
 
   /// Suscribe a cambios en tiempo real en las citas del profesional.
   void subscribeRealtime() {
+    _realtimeEnabled = true;
     unsubscribe();
     _appointmentsChannel = _service.subscribeToProfessionalAppointments(
       onChanged: _onAppointmentsChanged,
@@ -92,6 +94,14 @@ class ProfessionalAgendaController extends ChangeNotifier {
 
   void unsubscribe() {
     _appointmentsChannel?.unsubscribe();
+    _appointmentsChannel = null;
+    _realtimeEnabled = false;
+  }
+
+  /// Reintenta el canal si la sesión vuelve y la pantalla sigue activa.
+  void restartRealtime() {
+    if (!_realtimeEnabled) return;
+    subscribeRealtime();
   }
 
   @override

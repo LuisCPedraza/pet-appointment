@@ -43,7 +43,10 @@ Future<void> main() async {
       ),
     );
 
-    expect(find.text('¡Tu cita ha sido\nagendada exitosamente!'), findsOneWidget);
+    expect(
+      find.text('¡Tu cita ha sido\nagendada exitosamente!'),
+      findsOneWidget,
+    );
     expect(find.text('Baño y corte'), findsWidgets);
     expect(find.text('Luna'), findsWidgets);
 

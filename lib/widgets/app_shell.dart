@@ -25,6 +25,7 @@ class _AppShellState extends State<AppShell> {
   int _currentIndex = 0;
   late final AppointmentNotificationService _notificationService;
   StreamSubscription? _authSubscription;
+  Future<void>? _restartNotificationFuture;
 
   // IndexedStack mantiene vivos todos los tabs — el estado no se pierde
   // al cambiar de pestaña (ej. el stack de navegación de Citas se preserva).
@@ -69,6 +70,20 @@ class _AppShellState extends State<AppShell> {
   }
 
   Future<void> _restartNotificationService() async {
+    if (_restartNotificationFuture != null) {
+      await _restartNotificationFuture;
+      return;
+    }
+
+    _restartNotificationFuture = _doRestartNotificationService();
+    try {
+      await _restartNotificationFuture;
+    } finally {
+      _restartNotificationFuture = null;
+    }
+  }
+
+  Future<void> _doRestartNotificationService() async {
     if (!AuthService().hasValidSession) return;
 
     await _notificationService.stop();
