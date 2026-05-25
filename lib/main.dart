@@ -55,9 +55,11 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     // Inicializar FCM y registrar token en Supabase
-    FcmService().init(onOpenApp: (appointmentId) async {
-      await _openAppointmentDetailFromNotification(appointmentId);
-    });
+    FcmService().init(
+      onOpenApp: (appointmentId) async {
+        await _openAppointmentDetailFromNotification(appointmentId);
+      },
+    );
     // Escuchar cambios de autenticación
     Supabase.instance.client.auth.onAuthStateChange.listen((event) {
       if (event.event == AuthChangeEvent.signedIn) {

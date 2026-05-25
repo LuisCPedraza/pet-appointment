@@ -16,7 +16,7 @@
 ## 0. Check inicial del estado actual
 
 - [~] **Notificaciones push**: hay base local con `flutter_local_notifications`, cola remota de eventos y Edge Function, pero falta integración real con proveedor y validación end-to-end.
-- [~] Base de registro de tokens remotos en Supabase.
+- [x] Base de registro de tokens remotos en Supabase.
 - [~] Cola de eventos push remotos en Supabase.
 - [~] Edge Function para enviar eventos push.
 - [x] Scheduler programado para invocar `send-push-events` cada 5 minutos.

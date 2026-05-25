@@ -40,10 +40,7 @@ class PushTokenService {
     try {
       await _client.rpc(
         'register_push_device_token',
-        params: {
-          'p_token': token.trim(),
-          'p_platform': normalizedPlatform,
-        },
+        params: {'p_token': token.trim(), 'p_platform': normalizedPlatform},
       );
     } catch (e) {
       debugPrint('Error registrando token de push remoto: $e');
@@ -53,17 +50,8 @@ class PushTokenService {
 
   /// Desactiva todos los tokens del usuario autenticado actual.
   Future<void> deactivateCurrentUserTokens() async {
-    final userId = _client.auth.currentUser?.id;
-    if (userId == null) return;
-
     try {
-      await _client
-          .from('push_device_tokens')
-          .update({
-            'is_active': false,
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .eq('user_id', userId);
+      await _client.rpc('deactivate_current_user_push_tokens');
     } catch (e) {
       debugPrint('Error desactivando tokens de push remoto: $e');
     }
@@ -71,19 +59,11 @@ class PushTokenService {
 
   /// Refresca el token para el usuario autenticado si ya existe uno.
   Future<void> touchToken({required String token}) async {
-    final userId = _client.auth.currentUser?.id;
-    if (userId == null) return;
-
     try {
-      await _client
-          .from('push_device_tokens')
-          .update({
-            'last_seen_at': DateTime.now().toUtc().toIso8601String(),
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-            'is_active': true,
-          })
-          .eq('user_id', userId)
-          .eq('token', token.trim());
+      await _client.rpc(
+        'touch_push_device_token',
+        params: {'p_token': token.trim()},
+      );
     } catch (e) {
       debugPrint('Error actualizando token de push remoto: $e');
     }

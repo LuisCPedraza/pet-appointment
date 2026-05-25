@@ -15,8 +15,17 @@ class FakeAppointmentService {
     required String professionalId,
     required DateTime from,
     required DateTime to,
+    bool includeInactive = false,
   }) async {
     return _slots;
+  }
+
+  Future<Set<String>> fetchBookedSlotIds({
+    required String professionalId,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    return <String>{};
   }
 
   Future<int> createSlotsBetween({

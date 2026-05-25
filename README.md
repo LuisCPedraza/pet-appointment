@@ -89,6 +89,7 @@ El workflow ahora valida secrets y falla con mensaje explícito si falta alguno.
 ## Testing
 - Ejecuta pruebas unitarias con `flutter test`.
 - Usa `flutter analyze` para mantener la calidad del código.
+- Para validar push remoto en Android, sigue [docs/secciones/17-push-end-to-end-android.md](docs/secciones/17-push-end-to-end-android.md).
 
 ## Branching y flujo Git
 - `main`: código listo para producción.

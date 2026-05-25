@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "684983474208",
+    "project_id": "pet-appointment-a7eb0",
+    "storage_bucket": "pet-appointment-a7eb0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:684983474208:android:bb3f789e291ca06eef8445",
+        "android_client_info": {
+          "package_name": "com.example.pet_appointment"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwiBWOIkqJ8npUdZwIJ187K2tMXnZROJc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
