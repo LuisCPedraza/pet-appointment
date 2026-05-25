@@ -108,3 +108,33 @@ Si tienes dudas, abre un issue o contacta al equipo por el canal del proyecto.
 
 ## Licencia
 Este proyecto se distribuye bajo la licencia MIT. Ver [LICENSE](LICENSE) para más detalles.
+
+## Guía rápida: añadir filtros por especialidad / ubicación
+
+Pasos mínimos para añadir filtros por `specialty` y `location` en la app:
+
+1. Esquema DB
+	- Añadir columnas en la tabla `users` (o la tabla de profesionales si existe):
+	  - `specialty` (text), `location` (text), `rating` (numeric) si aplica.
+	- Crear migration SQL con valores por defecto y `NULL` seguro para datos existentes.
+
+2. RLS y seguridad
+	- Actualizar las políticas RLS que lean campos de `users` para que sigan aplicando.
+	- Revisar policies que usen `select`/`filter` para permitir lectura de `specialty`/`location` a los roles que correspondan.
+
+3. API / servicio
+	- Actualizar `AppointmentService.fetchProfessionals()` para seleccionar `specialty, location, rating`.
+	- Añadir parámetros opcionales a los métodos que obtienen profesionales para filtrar por `specialty` y/o `location`.
+
+4. UI
+	- Añadir campos/combos en el selector de profesionales: chips o dropdown para `specialty` y `location`.
+	- Llamar al servicio con los filtros aplicados o filtrar localmente si los datos ya están cargados.
+	- Mantener accesibilidad y estados (carga, vacío, error) consistentes.
+
+5. Tests
+	- Añadir tests unitarios para la serialización y el service layer.
+	- Añadir widget tests para la UI: confirmar que al aplicar filtro aparecen sólo profesionales coincidentes.
+
+Notas:
+- Si la app debe soportar búsquedas geolocalizadas, considerar almacenar `location` con lat/lng y usar consultas geoespaciales en el servidor.
+- Revisar el impacto en RLS: exponer más columnas puede requerir restricciones adicionales según política de privacidad.
