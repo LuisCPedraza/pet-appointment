@@ -65,9 +65,9 @@
 
 ### Realtime
 
-- [ ] Manejo de errores de conexión.
-- [ ] Manejo de reconexión.
-- [ ] Actualización automática de agenda sin refrescar.
+- [x] Manejo de errores de conexión.
+- [x] Manejo de reconexión.
+- [x] Actualización automática de agenda sin refrescar.
 - [ ] Validar que la experiencia no se rompa cuando Realtime falla.
 
 ### Errores y UX
@@ -119,6 +119,7 @@
 - [~] Cerrar el alcance real del MVP con criterios medibles.
 - [~] Priorizar roles/permisos y flujo de citas.
  - [x] Revisar filtros profesionales (filtro por nombre/email implementado)
+ - [~] Validación en staging de reconexión Realtime con desconexión forzada
 
 ### Siguiente paso recomendado
 

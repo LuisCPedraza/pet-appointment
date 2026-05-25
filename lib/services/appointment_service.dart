@@ -197,7 +197,7 @@ class AppointmentService {
     required String professionalId,
     required void Function() onChanged,
     bool autoSubscribe = true,
-    void Function(String status, Object? error)? onStatus,
+    void Function(RealtimeSubscribeStatus status, Object? error)? onStatus,
   }) {
     final channel = _client
         .channel('appointments:$professionalId')
@@ -213,25 +213,25 @@ class AppointmentService {
           callback: (_) => onChanged(),
         );
 
-    channel.subscribe((status, error) {
-      debugPrint(
-        '🔌 Realtime appointments [$professionalId]: $status${error != null ? ' — $error' : ''}',
-      );
-    });
-    return channel;
     if (autoSubscribe) {
       channel.subscribe((status, error) {
         debugPrint(
-          '🔌 Realtime appointments [$professionalId]: $status${error != null ? ' — $error' : ''}',
+          '🔌 Realtime appointments [$professionalId]: ${status.name}${error != null ? ' — $error' : ''}',
         );
         onStatus?.call(status, error);
       });
     }
+    return channel;
+  }
+
+  /// Suscribe a cambios en la tabla [availability] del profesional indicado.
+  /// Llama a [onChanged] cuando se agrega, modifica o elimina un slot.
+  /// Debes guardar el canal devuelto y llamar [channel.unsubscribe()] en dispose().
   RealtimeChannel subscribeToSlots({
     required String professionalId,
     required void Function() onChanged,
     bool autoSubscribe = true,
-    void Function(String status, Object? error)? onStatus,
+    void Function(RealtimeSubscribeStatus status, Object? error)? onStatus,
   }) {
     final channel = _client
         .channel('slots:$professionalId')
@@ -250,7 +250,7 @@ class AppointmentService {
     if (autoSubscribe) {
       channel.subscribe((status, error) {
         debugPrint(
-          '🔌 Realtime slots [$professionalId]: $status${error != null ? ' — $error' : ''}',
+          '🔌 Realtime slots [$professionalId]: ${status.name}${error != null ? ' — $error' : ''}',
         );
         onStatus?.call(status, error);
       });
@@ -488,7 +488,7 @@ class AppointmentService {
   RealtimeChannel subscribeToServices({
     required void Function() onChanged,
     bool autoSubscribe = true,
-    void Function(String status, Object? error)? onStatus,
+    void Function(RealtimeSubscribeStatus status, Object? error)? onStatus,
   }) {
     final channel = _client
         .channel('services:catalog')
@@ -502,7 +502,7 @@ class AppointmentService {
     if (autoSubscribe) {
       channel.subscribe((status, error) {
         debugPrint(
-          '🔌 Realtime services: $status${error != null ? ' — $error' : ''}',
+          '🔌 Realtime services: ${status.name}${error != null ? ' — $error' : ''}',
         );
         onStatus?.call(status, error);
       });
@@ -515,7 +515,7 @@ class AppointmentService {
   RealtimeChannel subscribeToAllAppointments({
     required void Function() onChanged,
     bool autoSubscribe = true,
-    void Function(String status, Object? error)? onStatus,
+    void Function(RealtimeSubscribeStatus status, Object? error)? onStatus,
   }) {
     final channel = _client
         .channel('appointments:all')
@@ -528,7 +528,7 @@ class AppointmentService {
     if (autoSubscribe) {
       channel.subscribe((status, error) {
         debugPrint(
-          '🔌 Realtime all-appointments: $status${error != null ? ' — $error' : ''}',
+          '🔌 Realtime all-appointments: ${status.name}${error != null ? ' — $error' : ''}',
         );
         onStatus?.call(status, error);
       });
@@ -540,7 +540,7 @@ class AppointmentService {
   RealtimeChannel subscribeToAllSlots({
     required void Function() onChanged,
     bool autoSubscribe = true,
-    void Function(String status, Object? error)? onStatus,
+    void Function(RealtimeSubscribeStatus status, Object? error)? onStatus,
   }) {
     final channel = _client
         .channel('slots:all')
@@ -553,7 +553,7 @@ class AppointmentService {
     if (autoSubscribe) {
       channel.subscribe((status, error) {
         debugPrint(
-          '🔌 Realtime all-slots: $status${error != null ? ' — $error' : ''}',
+          '🔌 Realtime all-slots: ${status.name}${error != null ? ' — $error' : ''}',
         );
         onStatus?.call(status, error);
       });

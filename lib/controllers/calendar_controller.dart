@@ -97,10 +97,7 @@ class CalendarController extends ChangeNotifier {
       autoSubscribe: false,
     );
 
-    _subscribeChannel(
-      channel: _appointmentsChannel,
-      label: 'appointments',
-    );
+    _subscribeChannel(channel: _appointmentsChannel, label: 'appointments');
     _subscribeChannel(channel: _slotsChannel, label: 'slots');
     _subscribeChannel(channel: _servicesChannel, label: 'services');
   }
@@ -113,9 +110,9 @@ class CalendarController extends ChangeNotifier {
     try {
       channel.subscribe((status, error) {
         debugPrint(
-          '🔌 Realtime [$label] status=$status${error != null ? ' error=$error' : ''}',
+          '🔌 Realtime [$label] status=${status.name}${error != null ? ' error=$error' : ''}',
         );
-        final ok = status == 'SUBSCRIBED' && error == null;
+        final ok = status == RealtimeSubscribeStatus.subscribed && error == null;
         if (ok) {
           _subscribedChannels += 1;
           if (_subscribedChannels >= _expectedRealtimeSubscriptions) {
@@ -133,13 +130,13 @@ class CalendarController extends ChangeNotifier {
 
   void _scheduleReconnect({
     required String label,
-    required String status,
+    required RealtimeSubscribeStatus status,
     Object? error,
   }) {
     if (_reconnectScheduled) return;
     if (_reconnectAttempts >= _maxReconnectAttempts) {
       debugPrint(
-        '⛔ Realtime reconnect disabled after $_reconnectAttempts attempts for [$label] (last status: $status${error != null ? ', error: $error' : ''})',
+        '⛔ Realtime reconnect disabled after $_reconnectAttempts attempts for [$label] (last status: ${status.name}${error != null ? ', error: $error' : ''})',
       );
       return;
     }
@@ -150,7 +147,7 @@ class CalendarController extends ChangeNotifier {
     _reconnectScheduled = true;
 
     debugPrint(
-      '🔁 Realtime reconnect #$_reconnectAttempts for [$label] in ${delay.inSeconds}s (status=$status${error != null ? ', error=$error' : ''})',
+      '🔁 Realtime reconnect #$_reconnectAttempts for [$label] in ${delay.inSeconds}s (status=${status.name}${error != null ? ', error=$error' : ''})',
     );
 
     _reconnectTimer?.cancel();
