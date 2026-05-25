@@ -37,6 +37,10 @@ class AuthService {
   /// Retorna true si hay una sesión activa (usuario ya autenticado).
   bool get hasActiveSession => _client.auth.currentSession != null;
 
+  /// Retorna true si hay una sesión activa y el access token todavía es válido.
+  bool get hasValidSession =>
+      hasActiveSession && !(_client.auth.currentSession?.isExpired ?? false);
+
   /// URL de la foto de perfil guardada en metadata.
   String get currentUserPhotoUrl =>
       _client.auth.currentUser?.userMetadata?['photo_url'] as String? ?? '';

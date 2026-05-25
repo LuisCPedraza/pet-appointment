@@ -74,6 +74,7 @@ class CalendarController extends ChangeNotifier {
   }
 
   void subscribeRealtime() {
+    unsubscribe();
     _appointmentsChannel = _service.subscribeToAllAppointments(
       onChanged: refreshBookedIds,
     );

@@ -1037,7 +1037,7 @@ class AppointmentService {
       throw Exception('El horario seleccionado no existe');
     }
 
-    final slotRow = availabilityRows.first as Map<String, dynamic>;
+    final slotRow = availabilityRows.first;
     final slotProfessionalId = slotRow['professional_id'] as String? ?? '';
     final slotServiceId = slotRow['service_id'] as String?;
     final slotIsAvailable = slotRow['is_available'] as bool? ?? false;
@@ -1064,7 +1064,7 @@ class AppointmentService {
         .limit(1);
 
     final hasConflict = blockedRows.any((row) {
-      final appointmentRow = row as Map<String, dynamic>;
+      final appointmentRow = row;
       return appointmentRow['id'] != excludeAppointmentId;
     });
 

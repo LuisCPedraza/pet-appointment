@@ -65,7 +65,10 @@ class FcmService {
   Future<void> _registerToken(String token) async {
     final platform = _detectPlatform();
     try {
-      await PushTokenService().registerDeviceToken(token: token, platform: platform);
+      await PushTokenService().registerDeviceToken(
+        token: token,
+        platform: platform,
+      );
     } catch (e) {
       debugPrint('Error registrando token en Supabase: $e');
     }
@@ -75,7 +78,9 @@ class FcmService {
     if (kIsWeb) return 'web';
     if (Platform.isAndroid) return 'android';
     if (Platform.isIOS) return 'ios';
-    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) return 'desktop';
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      return 'desktop';
+    }
     return 'unknown';
   }
 }

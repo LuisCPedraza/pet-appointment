@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pet_appointment/controllers/professional_agenda_controller.dart';
 import 'package:pet_appointment/models/appointment_model.dart';
+import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/utils/app_globals.dart';
 import 'package:pet_appointment/features/appointments/appointment_detail_screen.dart';
 import 'package:pet_appointment/screens/professional_home/professional_home.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Pantalla principal del profesional que muestra su agenda con:
 /// - Vista diaria: citas del día actual
@@ -22,6 +26,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
   late TabController _tabController;
   late DateTime _currentWeekStart;
   ProfessionalAgendaController? _agendaController;
+  StreamSubscription? _authSubscription;
 
   @override
   void initState() {
@@ -31,6 +36,26 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
     _currentWeekStart = _currentWeekStart.subtract(
       Duration(days: _currentWeekStart.weekday - 1), // lunes
     );
+
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+      event,
+    ) {
+      if (!mounted) return;
+      if (event.event == AuthChangeEvent.signedOut) {
+        _agendaController?.unsubscribe();
+        return;
+      }
+
+      if (event.event == AuthChangeEvent.initialSession ||
+          event.event == AuthChangeEvent.signedIn ||
+          event.event == AuthChangeEvent.tokenRefreshed) {
+        final controller = _agendaController;
+        if (controller != null && AuthService().hasValidSession) {
+          controller.subscribeRealtime();
+          unawaited(controller.loadAppointments());
+        }
+      }
+    });
 
     // Cargar citas al inicializar
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -44,6 +69,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     _agendaController?.unsubscribe();
     _tabController.dispose();
     super.dispose();

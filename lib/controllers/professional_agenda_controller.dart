@@ -58,6 +58,7 @@ class ProfessionalAgendaController extends ChangeNotifier {
 
   /// Suscribe a cambios en tiempo real en las citas del profesional.
   void subscribeRealtime() {
+    unsubscribe();
     _appointmentsChannel = _service.subscribeToProfessionalAppointments(
       onChanged: _onAppointmentsChanged,
     );

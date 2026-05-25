@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/controllers/calendar_controller.dart';
+import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/services/appointment_notification_service.dart';
 import 'package:pet_appointment/widgets/card_container.dart';
 import 'package:pet_appointment/widgets/calendar/booking_heading.dart';
@@ -12,6 +15,7 @@ import 'package:pet_appointment/widgets/calendar/pet_selector_card.dart';
 import 'package:pet_appointment/widgets/calendar/service_selector_card.dart';
 import 'package:pet_appointment/widgets/calendar/time_slots_card.dart';
 import 'package:pet_appointment/utils/app_globals.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -23,11 +27,30 @@ class CalendarScreen extends StatefulWidget {
 class _CalendarScreenState extends State<CalendarScreen> {
   final _controller = CalendarController();
   final _notesController = TextEditingController();
+  StreamSubscription? _authSubscription;
 
   @override
   void initState() {
     super.initState();
     _controller.addListener(_onControllerChange);
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+      event,
+    ) {
+      if (!mounted) return;
+
+      if (event.event == AuthChangeEvent.signedOut) {
+        _controller.unsubscribe();
+        return;
+      }
+
+      if (event.event == AuthChangeEvent.initialSession ||
+          event.event == AuthChangeEvent.signedIn ||
+          event.event == AuthChangeEvent.tokenRefreshed) {
+        if (AuthService().hasValidSession) {
+          _controller.subscribeRealtime();
+        }
+      }
+    });
     _init();
   }
 
@@ -46,6 +69,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     _controller.removeListener(_onControllerChange);
     _controller.unsubscribe();
     _controller.dispose();
