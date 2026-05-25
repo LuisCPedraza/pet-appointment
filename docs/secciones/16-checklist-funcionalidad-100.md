@@ -85,6 +85,7 @@
 
 ### Búsqueda y filtros
 
+- [x] Buscar profesionales por nombre/email (filtro local en UI, tests añadidos).
 - [ ] Buscar profesionales por especialidad.
 - [ ] Buscar profesionales por ubicación.
 - [ ] Buscar profesionales por calificación.
@@ -117,6 +118,7 @@
 
 - [~] Cerrar el alcance real del MVP con criterios medibles.
 - [~] Priorizar roles/permisos y flujo de citas.
+ - [x] Revisar filtros profesionales (filtro por nombre/email implementado)
 
 ### Siguiente paso recomendado
 
