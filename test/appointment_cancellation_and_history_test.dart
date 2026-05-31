@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'test_setup.dart';
 import 'package:pet_appointment/models/appointment_history_model.dart';
 import 'package:pet_appointment/utils/appointment_rules.dart';
 import 'package:pet_appointment/widgets/appointment_history_view.dart';
 
 void main() {
+  setUpAll(() async => await initTestSupabase());
+
   group('Cancelación de cita', () {
     test(
       'permite cancelar solo cuando la cita está en espera o confirmada',

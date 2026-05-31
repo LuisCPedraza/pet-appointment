@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'test_setup.dart';
 import 'package:pet_appointment/controllers/calendar_controller.dart';
 import 'package:pet_appointment/widgets/calendar/professional_selector_card.dart';
 
 void main() {
+  setUpAll(() async => await initTestSupabase());
+
   testWidgets('El filtro muestra sólo profesionales coincidentes', (
     tester,
   ) async {

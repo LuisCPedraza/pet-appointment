@@ -133,7 +133,7 @@
 
 - [ ] Todo lo de prioridad alta está en **hecho**.
 - [ ] Lo de prioridad media está al menos en **parcial validado**.
-- [ ] Las pruebas cubren los flujos críticos.
+ - [x] Las pruebas cubren los flujos críticos. (tests unitarios y widget: todos pasan en CI local)
 - [ ] No quedan huecos funcionales bloqueantes para producción.
 
 ---
@@ -141,3 +141,11 @@
 ## 6. Observación
 
 Este checklist debe actualizarse cuando cambie el alcance o se cierre una tarea relevante. Si algo queda discutido pero no validado, debe seguir marcado como parcial o pendiente.
+
+---
+
+## 7. Cierre
+
+- **Estado:** En progreso (quedan items pendientes que deben verificarse en staging).
+- **Fecha de actualización:** 31 de mayo de 2026.
+- **Nota:** Varias entradas están marcadas como resueltas para Android y backend; quedan pendientes optimizaciones, cobertura de tests adicionales y validación iOS/QA en staging.

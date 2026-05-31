@@ -1,140 +1,161 @@
 # PetAppointment
 
-![Estado](https://img.shields.io/badge/Estado-En%20desarrollo-orange?style=for-the-badge)
-![CI](https://img.shields.io/github/actions/workflow/status/LuisCPedraza/pet-appointment/test.yml?branch=develop&style=for-the-badge)
+## Portada
+
+**Proyecto:** PetAppointment
+
+**Tipo de entrega:** Proyecto móvil académico y funcional
+
+**Tecnología principal:** Flutter / Dart / Supabase
+
+**Estado:** Entrega final preparada y validada en Android
+
+**Repositorio de trabajo:** [README principal](README.md)
+
+![Estado](https://img.shields.io/badge/Estado-Entrega%20final%20preparada-success?style=for-the-badge)
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter&logoColor=white)
 ![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?style=for-the-badge&logo=dart&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-PetAppointment es una aplicación multiplataforma (Flutter) para gestionar citas veterinarias y servicios de grooming. Permite a dueños de mascotas reservar citas, y a profesionales administrar su agenda y atender solicitudes.
+### Datos académicos
 
----
+| Campo | Detalle |
+|---|---|
+| **Nombre del proyecto** | PetAppointment |
+| **Asignatura** | Proyecto de dispositivos móviles |
+| **Entrega** | Final |
+| **Plataforma objetivo** | Android, con base Flutter multiplataforma |
+| **Responsables** | Completar con nombres del equipo |
+| **Fecha** | 31 de mayo de 2026 |
+
+## Resumen Ejecutivo
+
+PetAppointment es una aplicación móvil desarrollada en Flutter para la gestión de citas veterinarias y servicios de grooming. La solución contempla autenticación por roles, administración de mascotas, reserva de citas con calendario, agenda profesional y documentación de soporte para evaluación académica.
+
+## Autores
+
+> Reemplazar estos campos con los nombres oficiales del equipo antes de la entrega.
+
+| Nombre | Rol | Correo |
+|---|---|---|
+| Autor 1 | Desarrollo Flutter | Pendiente |
+| Autor 2 | UI/UX | Pendiente |
+| Autor 3 | Backend / Supabase | Pendiente |
+
+## Objetivos del proyecto
+
+### Objetivo general
+
+Desarrollar una aplicación móvil funcional que permita a los dueños de mascotas reservar, gestionar y cancelar citas veterinarias o de grooming, proporcionando también herramientas de administración y control para los profesionales del servicio.
+
+### Objetivos específicos
+
+1. Implementar autenticación segura por roles con Supabase.
+2. Gestionar mascotas, servicios y citas desde una interfaz móvil clara.
+3. Visualizar disponibilidad en calendario y reducir errores de reserva.
+4. Mantener una experiencia de usuario coherente y adaptable en pantalla móvil.
+5. Dejar evidencia técnica, pruebas y documentación para sustentación final.
 
 ## Tabla de contenidos
-- [Características](#caracter%C3%ADsticas)
-- [Estado del Proyecto](#estado-del-proyecto)
-- [Quickstart](#quickstart)
-- [Requisitos](#requisitos)
-- [Desarrollo](#desarrollo)
-- [Testing](#testing)
-- [Branching y flujo Git](#branching-y-flujo-git)
-- [Contribuir](#contribuir)
-- [Contacto y Soporte](#contacto-y-soporte)
-- [Licencia](#licencia)
 
----
+- [Portada](#portada)
+- [Resumen Ejecutivo](#resumen-ejecutivo)
+- [Autores](#autores)
+- [Objetivos del proyecto](#objetivos-del-proyecto)
+- [Documentación de apoyo](#documentación-de-apoyo)
+- [Estado actual](#estado-actual)
+- [Funcionalidades verificadas](#funcionalidades-verificadas)
+- [Evidencia de validación](#evidencia-de-validación)
+- [Instalación y ejecución](#instalación-y-ejecución)
+- [Configuración requerida](#configuración-requerida)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Soporte y licencia](#soporte-y-licencia)
 
-## Características
-- Registro e inicio de sesión (roles: cliente, profesional, admin).
-- Gestión de mascotas y servicios.
-- Reserva, reprogramación y cancelación de citas.
-- Agenda profesional (vistas diarias/semanales).
-- Notificaciones locales activas, registro remoto de tokens y cola de eventos en preparación de envío remoto.
+## Documentación de apoyo
 
-## Estado del proyecto
-El proyecto está en desarrollo activo. Las ramas oficiales son `main`, `develop` y `staging`.
+| Entregable | Archivo |
+|---|---|
+| Documento técnico principal | [docs/PetAppointment_Documentacion_Tecnica.md](docs/PetAppointment_Documentacion_Tecnica.md) |
+| Guía de desarrollador | [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) |
+| Guía visual de estilo | [docs/STYLE_GUIDE.md](docs/STYLE_GUIDE.md) |
+| Plan de pruebas | [docs/secciones/11-plan-de-pruebas.md](docs/secciones/11-plan-de-pruebas.md) |
+| Requisitos no funcionales | [docs/secciones/13-requisitos-no-funcionales.md](docs/secciones/13-requisitos-no-funcionales.md) |
+| Riesgos y mitigaciones | [docs/secciones/12-riesgos-y-mitigaciones.md](docs/secciones/12-riesgos-y-mitigaciones.md) |
+| Roadmap | [docs/secciones/14-roadmap-y-futuras-mejoras.md](docs/secciones/14-roadmap-y-futuras-mejoras.md) |
+| Checklist final | [docs/secciones/16-checklist-funcionalidad-100.md](docs/secciones/16-checklist-funcionalidad-100.md) |
+| Evidencia de push Android | [docs/secciones/17-push-end-to-end-android.md](docs/secciones/17-push-end-to-end-android.md) |
+| Entrega final solicitada | [entrega_final/entraga_final_proyecto.md](entrega_final/entraga_final_proyecto.md) |
 
-## Quickstart
-Instala Flutter (ver versión recomendada en `pubspec.yaml`) y ejecuta:
+## Estado Actual
+
+| Área | Estado |
+|---|---|
+| Funcionalidad principal | Completada y validada en Android |
+| UI/UX del flujo de cita | Mejorada y clara para el usuario |
+| Generación de APK | Completada |
+| Documentación de entrega | En preparación final |
+| Compatibilidad iOS | Base Flutter presente, validación nativa pendiente |
+| Métricas/analíticas | Pendiente de instrumentación |
+
+## Funcionalidades Verificadas
+
+- Registro e inicio de sesión por roles.
+- Gestión de mascotas con foto.
+- Selección visual de mascota para reservas.
+- Calendario de citas con disponibilidad.
+- Agenda profesional y actualización de estados.
+- Soporte de notificaciones con inicialización defensiva.
+
+## Evidencia de Validación
+
+- APK de release generado: [build/app/outputs/flutter-apk/app-release.apk](build/app/outputs/flutter-apk/app-release.apk)
+- Pruebas automáticas ejecutadas con éxito.
+- Revisión manual en dispositivo reportada por el usuario como correcta.
+
+## Instalación y Ejecución
 
 ```bash
 flutter pub get
 flutter run
 ```
 
-Para análisis estático y pruebas:
+Para compilar la entrega Android:
 
 ```bash
-flutter analyze
-flutter test
+flutter build apk --release
 ```
 
-### Variables de entorno
-Configura un archivo `.env` en la raíz con al menos:
+Para instalar en un dispositivo conectado:
+
+```bash
+adb -s emulator-5554 install -r build/app/outputs/flutter-apk/app-release.apk
+```
+
+## Configuración Requerida
+
+Crear un archivo `.env` en la raíz con estas variables:
 
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
 
-### Icono de la app
-El icono de Android e iOS se genera desde [lib/images/Logo2.png](lib/images/Logo2.png) usando `flutter_launcher_icons`.
+## Recomendaciones para la Entrega
 
-### Firma APK release
-Para compilar un APK firmado, crea `android/key.properties` a partir de [android/key.properties.example](android/key.properties.example) y coloca el keystore en `android/app/upload-keystore.jks`.
+1. Revisar [docs/PetAppointment_Documentacion_Tecnica.md](docs/PetAppointment_Documentacion_Tecnica.md) como documento base de sustentación.
+2. Usar [entrega_final/entraga_final_proyecto.md](entrega_final/entraga_final_proyecto.md) como anexo de evaluación final.
+3. Adjuntar el APK ubicado en [build/app/outputs/flutter-apk/app-release.apk](build/app/outputs/flutter-apk/app-release.apk) para la demo.
 
-Para firmar en GitHub Actions (workflow [build-apk.yml](.github/workflows/build-apk.yml)), configura estos secretos del repositorio:
+## Estructura del Proyecto
 
-- `ANDROID_KEYSTORE_BASE64`: contenido del archivo `.jks` en base64.
-- `ANDROID_STORE_PASSWORD`: contraseña del keystore.
-- `ANDROID_KEY_PASSWORD`: contraseña de la key.
-- `ANDROID_KEY_ALIAS`: alias de la key (por ejemplo, `pet_appointment`).
-
-En Windows PowerShell puedes generar el base64 así:
-
-```powershell
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("android/app/upload-keystore.jks"))
+```text
+lib/                 Lógica principal de Flutter
+docs/                Documentación técnica, guía y evidencias
+integration_test/    Pruebas de integración
+test/                Pruebas unitarias y de widgets
+android/             Configuración y build Android
+ios/                 Configuración nativa iOS
+supabase/            Migraciones y funciones de backend
 ```
 
-El workflow ahora valida secrets y falla con mensaje explícito si falta alguno. Además, genera y publica dos artifacts firmados: APK y AAB.
+## Soporte y Licencia
 
-## Requisitos
-- Flutter SDK 3.x
-- Git
-- (Opcional) Cuenta Supabase para pruebas de integración
-
-## Desarrollo
-1. Crea una rama feature desde `develop` para tu cambio: `git checkout -b feature/mi-cambio develop`.
-2. Mantén commits pequeños y revisables.
-3. Abre PR hacia `develop` y asigna revisores.
-
-## Testing
-- Ejecuta pruebas unitarias con `flutter test`.
-- Usa `flutter analyze` para mantener la calidad del código.
-- Para validar push remoto en Android, sigue [docs/secciones/17-push-end-to-end-android.md](docs/secciones/17-push-end-to-end-android.md).
-
-## Branching y flujo Git
-- `main`: código listo para producción.
-- `staging`: pre-release; aquí se integran cambios probados en `develop` para validación final.
-- `develop`: integración de features activos. Haz PRs hacia `develop`.
-
-Recomendación: usar `staging` como entorno donde se despliegan candidate builds antes de mergear a `main`.
-
-## Contribuir
-1. Lee `docs/README.md` y la guía de estilo en `docs/STYLE_GUIDE.md`.
-2. Crea issues claros y asigna labels.
-3. Sigue el flujo Git descrito arriba.
-
-## Contacto y Soporte
-Si tienes dudas, abre un issue o contacta al equipo por el canal del proyecto.
-
-## Licencia
-Este proyecto se distribuye bajo la licencia MIT. Ver [LICENSE](LICENSE) para más detalles.
-
-## Guía rápida: añadir filtros por especialidad / ubicación
-
-Pasos mínimos para añadir filtros por `specialty` y `location` en la app:
-
-1. Esquema DB
-	- Añadir columnas en la tabla `users` (o la tabla de profesionales si existe):
-	  - `specialty` (text), `location` (text), `rating` (numeric) si aplica.
-	- Crear migration SQL con valores por defecto y `NULL` seguro para datos existentes.
-
-2. RLS y seguridad
-	- Actualizar las políticas RLS que lean campos de `users` para que sigan aplicando.
-	- Revisar policies que usen `select`/`filter` para permitir lectura de `specialty`/`location` a los roles que correspondan.
-
-3. API / servicio
-	- Actualizar `AppointmentService.fetchProfessionals()` para seleccionar `specialty, location, rating`.
-	- Añadir parámetros opcionales a los métodos que obtienen profesionales para filtrar por `specialty` y/o `location`.
-
-4. UI
-	- Añadir campos/combos en el selector de profesionales: chips o dropdown para `specialty` y `location`.
-	- Llamar al servicio con los filtros aplicados o filtrar localmente si los datos ya están cargados.
-	- Mantener accesibilidad y estados (carga, vacío, error) consistentes.
-
-5. Tests
-	- Añadir tests unitarios para la serialización y el service layer.
-	- Añadir widget tests para la UI: confirmar que al aplicar filtro aparecen sólo profesionales coincidentes.
-
-Notas:
-- Si la app debe soportar búsquedas geolocalizadas, considerar almacenar `location` con lat/lng y usar consultas geoespaciales en el servidor.
-- Revisar el impacto en RLS: exponer más columnas puede requerir restricciones adicionales según política de privacidad.
+Si necesitas continuar la entrega o generar una nueva versión, revisa primero la documentación enlazada arriba. Este proyecto se distribuye bajo licencia MIT. Ver [LICENSE](LICENSE) para más detalles.

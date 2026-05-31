@@ -1,7 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'test_setup.dart';
 import 'package:pet_appointment/utils/slot_generation.dart';
 
 void main() {
+  setUpAll(() async => await initTestSupabase());
+
   group('Slot generation', () {
     test('buildSlotRanges generates consecutive ranges without overlap', () {
       final ranges = buildSlotRanges(

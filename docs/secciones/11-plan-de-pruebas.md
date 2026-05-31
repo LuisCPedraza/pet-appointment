@@ -53,5 +53,15 @@ open coverage/html/index.html
 flutter test integration_test/
 ```
 
+### Integración CI
+
+Se añadió un workflow de GitHub Actions que ejecuta `flutter test --coverage` y sube `coverage/lcov.info` como artifact.
+
+- Archivo: `.github/workflows/test-and-coverage.yml`
+- Artifact: `coverage-lcov`
+
+Usar los pasos descritos en `docs/entrega_final/test_reports.md` para descargar y generar el HTML localmente.
+
+
 ---
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'test_setup.dart';
 import 'package:pet_appointment/models/availability_slot.dart';
+import 'package:pet_appointment/models/service_model.dart';
 import 'package:pet_appointment/screens/professional_availability_screen.dart';
 
 class FakeChannel {
@@ -74,9 +76,15 @@ class FakeAppointmentService {
     onChangedCallback = onChanged;
     return FakeChannel();
   }
+
+  Future<List<ServiceModel>> fetchServices() async {
+    return [];
+  }
 }
 
 void main() {
+  setUpAll(() async => await initTestSupabase());
+
   testWidgets('ProfessionalAvailability generates slots and displays them', (
     tester,
   ) async {
