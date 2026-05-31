@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:pet_appointment/models/availability_slot.dart';
+import 'package:pet_appointment/models/service_model.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
 import 'package:pet_appointment/screens/professional_availability/professional_availability.dart';
+import 'package:pet_appointment/widgets/semantics_wrapper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfessionalAvailabilityScreen extends StatefulWidget {
@@ -21,6 +23,8 @@ class ProfessionalAvailabilityScreen extends StatefulWidget {
 
 class _ProfessionalAvailabilityScreenState
     extends State<ProfessionalAvailabilityScreen> {
+  static const bool _isFlutterTest = bool.fromEnvironment('FLUTTER_TEST');
+
   late final dynamic _service;
   final Map<int, bool> _weekdayEnabled = {
     1: true,
@@ -36,6 +40,8 @@ class _ProfessionalAvailabilityScreenState
   int _slotMinutes = 30;
   int _weeksToGenerate = 4;
   List<AvailabilitySlot> _slots = [];
+  List<ServiceModel> _services = [];
+  String? _selectedServiceId;
   DateTime? _selectedSlotDate;
   bool _loading = false;
   String? _loadError;
@@ -46,6 +52,7 @@ class _ProfessionalAvailabilityScreenState
     super.initState();
     _service = widget.appointmentService ?? AppointmentService();
     _loadSlots();
+    _loadServices();
     _subscribe();
   }
 
@@ -63,6 +70,18 @@ class _ProfessionalAvailabilityScreenState
       professionalId: profId,
       onChanged: _loadSlots,
     );
+  }
+
+  Future<void> _loadServices() async {
+    try {
+      final loaded = await _service.fetchServices();
+      if (!mounted) return;
+      setState(() {
+        _services = loaded;
+      });
+    } catch (e) {
+      _logNonBlockingError('Error cargando servicios disponibles', e);
+    }
   }
 
   Future<void> _loadSlots() async {
@@ -92,7 +111,7 @@ class _ProfessionalAvailabilityScreenState
           includeInactive: true,
         );
       } catch (e) {
-        debugPrint('fallback slots activos: $e');
+        _logNonBlockingError('fallback slots activos', e);
         slots = await _service.fetchSlots(
           professionalId: profId,
           from: from,
@@ -109,7 +128,7 @@ class _ProfessionalAvailabilityScreenState
           to: to,
         );
       } catch (e) {
-        debugPrint('no se pudieron cargar bookedIds: $e');
+        _logNonBlockingError('no se pudieron cargar bookedIds', e);
       }
 
       final enrichedSlots = slots
@@ -130,7 +149,7 @@ class _ProfessionalAvailabilityScreenState
             : (availableDays.isNotEmpty ? availableDays.first : null);
       });
     } catch (e) {
-      debugPrint('Error cargando slots del profesional: $e');
+      _logNonBlockingError('Error cargando slots del profesional', e);
       if (!mounted) return;
       setState(() {
         _slots = [];
@@ -183,6 +202,7 @@ class _ProfessionalAvailabilityScreenState
         start: dayStart.toUtc(),
         end: dayEnd.toUtc(),
         slotMinutes: _slotMinutes,
+        serviceId: _selectedServiceId,
       );
       created += count as int;
     }
@@ -214,6 +234,13 @@ class _ProfessionalAvailabilityScreenState
     return left.year == right.year &&
         left.month == right.month &&
         left.day == right.day;
+  }
+
+  void _logNonBlockingError(String message, Object error) {
+    if (_isFlutterTest) {
+      return;
+    }
+    debugPrint('$message: $error');
   }
 
   String _formatDate(DateTime value) {
@@ -323,6 +350,39 @@ class _ProfessionalAvailabilityScreenState
               loading: _loading,
               onGenerate: _applyConfiguration,
             ),
+            const SizedBox(height: 12),
+            if (_services.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Servicio asignado a nuevos slots (opcional)',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String?>(
+                    initialValue: _selectedServiceId,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                    ),
+                    items: [
+                      const DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text('Ninguno (slots genéricos)'),
+                      ),
+                      ..._services.map(
+                        (s) => DropdownMenuItem<String?>(
+                          value: s.id,
+                          child: Text(s.name),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) =>
+                        setState(() => _selectedServiceId = value),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
             const SizedBox(height: 20),
             const Text(
               'Próximos slots',
@@ -358,10 +418,13 @@ class _ProfessionalAvailabilityScreenState
                           ),
                         ),
                         const SizedBox(width: 8),
-                        IconButton(
-                          tooltip: 'Elegir fecha',
-                          onPressed: () => _pickSlotDate(availableDays),
-                          icon: const Icon(Icons.calendar_month_outlined),
+                        SemanticsWrapper(
+                          label: 'Elegir fecha',
+                          child: IconButton(
+                            tooltip: 'Elegir fecha',
+                            onPressed: () => _pickSlotDate(availableDays),
+                            icon: const Icon(Icons.calendar_month_outlined),
+                          ),
                         ),
                       ],
                     ),

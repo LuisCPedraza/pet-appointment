@@ -24,7 +24,7 @@ class BookingHeading extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Agenda una sesion de cuidado para tu companero.',
+            'Sigue los pasos para elegir mascota, servicio, profesional y horario.',
             style: TextStyle(fontSize: 14, color: AppColors.onSurfaceVariant),
           ),
         ],

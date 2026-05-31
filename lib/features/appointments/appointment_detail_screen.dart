@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:pet_appointment/models/appointment_model.dart';
 import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
+import 'package:pet_appointment/widgets/semantics_wrapper.dart';
 import 'package:pet_appointment/widgets/status_selector.dart';
 import 'package:pet_appointment/screens/appointment_detail/appointment_detail.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -59,9 +60,12 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
             onPressed: () => Navigator.of(dialogContext).pop(false),
             child: const Text('Cancelar'),
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Confirmar'),
+          SemanticsWrapper(
+            label: 'Confirmar cambio de estado',
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Confirmar'),
+            ),
           ),
         ],
       ),

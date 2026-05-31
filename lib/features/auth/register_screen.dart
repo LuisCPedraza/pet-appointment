@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pet_appointment/config/theme.dart';
+import 'package:pet_appointment/widgets/semantics_wrapper.dart';
 import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/utils/field_validators.dart';
 import 'package:pet_appointment/utils/snackbar_helper.dart';
@@ -213,15 +214,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
       title: const AppLogoTitle(),
       titleSpacing: 16,
       actions: [
-        TextButton(
-          onPressed: () =>
-              Navigator.of(context).pushReplacementNamed('/login'),
-          child: Text(
-            'Iniciar sesión',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: AppColors.primary,
-              fontSize: 14,
+        SemanticsWrapper(
+          label: 'Ir a iniciar sesión',
+          child: TextButton(
+            onPressed: () =>
+                Navigator.of(context).pushReplacementNamed('/login'),
+            child: Text(
+              'Iniciar sesión',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
+                fontSize: 14,
+              ),
             ),
           ),
         ),

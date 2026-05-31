@@ -55,17 +55,17 @@ class _AppShellState extends State<AppShell> {
       event,
     ) {
       if (event.event == AuthChangeEvent.signedOut) {
-        unawaited(_notificationService.stop());
+        _notificationService.stop();
         return;
       }
 
       if (event.event == AuthChangeEvent.initialSession ||
           event.event == AuthChangeEvent.signedIn ||
           event.event == AuthChangeEvent.tokenRefreshed) {
-        unawaited(_restartNotificationService());
+        _restartNotificationService();
       }
     });
-    unawaited(_restartNotificationService());
+    _restartNotificationService();
     AppShell.tabIndexNotifier.addListener(_onExternalTabSelected);
   }
 
@@ -149,7 +149,7 @@ class _AppShellState extends State<AppShell> {
   void dispose() {
     _authSubscription?.cancel();
     AppShell.tabIndexNotifier.removeListener(_onExternalTabSelected);
-    unawaited(_notificationService.stop());
+    _notificationService.stop();
     super.dispose();
   }
 }

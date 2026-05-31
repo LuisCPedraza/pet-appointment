@@ -7,6 +7,7 @@ import 'package:pet_appointment/models/appointment_model.dart';
 import 'package:pet_appointment/features/appointments/appointment_detail_screen.dart';
 import 'package:pet_appointment/screens/appointment_history/appointment_history.dart';
 import 'package:pet_appointment/screens/appointment_history/appointment_history_widgets.dart';
+import 'package:pet_appointment/widgets/semantics_wrapper.dart';
 import 'package:pet_appointment/features/appointments/reschedule_appointment_screen.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
 import 'package:pet_appointment/widgets/app_shell.dart';
@@ -261,9 +262,12 @@ class _AppointmentHistoryScreenState extends State<AppointmentHistoryScreen> {
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancelar'),
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Confirmar'),
+          SemanticsWrapper(
+            label: 'Confirmar cancelación de cita',
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Confirmar'),
+            ),
           ),
         ],
       ),

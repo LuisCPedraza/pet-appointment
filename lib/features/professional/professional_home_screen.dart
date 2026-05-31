@@ -53,7 +53,7 @@ class _ProfessionalHomeScreenState extends State<ProfessionalHomeScreen>
         final controller = _agendaController;
         if (controller != null && AuthService().hasValidSession) {
           controller.restartRealtime();
-          unawaited(controller.loadAppointments());
+          controller.loadAppointments();
         }
       }
     });

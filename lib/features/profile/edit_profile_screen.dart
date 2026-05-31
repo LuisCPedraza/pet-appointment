@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pet_appointment/config/theme.dart';
+import 'package:pet_appointment/widgets/semantics_wrapper.dart';
 import 'package:pet_appointment/services/auth_service.dart';
 // field validators moved to widget file
 import 'package:pet_appointment/screens/edit_profile/edit_profile.dart';
@@ -193,10 +194,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          color: AppColors.primary,
-          onPressed: () => Navigator.of(context).pop(),
+        leading: SemanticsWrapper(
+          label: 'Volver',
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            color: AppColors.primary,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
         ),
         title: Text(
           'Editar perfil',

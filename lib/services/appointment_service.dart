@@ -101,6 +101,19 @@ class AppointmentService {
 
     try {
       await _client.from('availability').insert(inserts);
+      // Registrar evento de generación de slots para analítica mínima (fire-and-forget)
+      Future.microtask(() async {
+        try {
+          await (Supabase.instance.client.from('app_events').insert({
+            'event_name': 'slots_generated',
+            'payload': {
+              'professional_id': professionalId,
+              'count': inserts.length,
+            },
+            'created_at': DateTime.now().toUtc().toIso8601String(),
+          }));
+        } catch (_) {}
+      });
       return inserts.length;
     } catch (e) {
       debugPrint('Error creando slots: $e');
@@ -594,9 +607,37 @@ class AppointmentService {
           .single();
 
       final appointmentId = insertResponse['id'] as String;
+      // Log minimal analytics event (fire-and-forget)
+      Future.microtask(() async {
+        try {
+          await (Supabase.instance.client.from('app_events').insert({
+            'event_name': 'appointment_created',
+            'payload': {
+              'appointment_id': appointmentId,
+              'professional_id': professionalId,
+              'service_id': serviceId,
+            },
+            'created_at': DateTime.now().toUtc().toIso8601String(),
+          }));
+        } catch (_) {}
+      });
       return _fetchAppointmentById(appointmentId);
     } catch (e) {
       if (_isSlotConflictError(e)) {
+        // Record analytics about failed booking attempt (fire-and-forget)
+        Future.microtask(() async {
+          try {
+            await (Supabase.instance.client.from('app_events').insert({
+              'event_name': 'appointment_create_conflict',
+              'payload': {
+                'professional_id': professionalId,
+                'availability_id': availabilityId,
+                'service_id': serviceId,
+              },
+              'created_at': DateTime.now().toUtc().toIso8601String(),
+            }));
+          } catch (_) {}
+        });
         throw Exception('Ese horario ya no está disponible. Elige otro.');
       }
       rethrow;

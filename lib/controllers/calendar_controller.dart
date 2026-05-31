@@ -69,6 +69,9 @@ class CalendarController extends ChangeNotifier {
       services = results[1] as List<ServiceModel>;
       professionals = results[2] as List<Map<String, String>>;
       if (pets.isNotEmpty) selectedPetId = pets.first['id'] as String;
+      if (services.isNotEmpty) {
+        selectedServiceId ??= services.first.id;
+      }
       if (professionals.isNotEmpty) {
         selectedProfessionalId ??= professionals.first['id'];
       }
@@ -112,7 +115,8 @@ class CalendarController extends ChangeNotifier {
         debugPrint(
           '🔌 Realtime [$label] status=${status.name}${error != null ? ' error=$error' : ''}',
         );
-        final ok = status == RealtimeSubscribeStatus.subscribed && error == null;
+        final ok =
+            status == RealtimeSubscribeStatus.subscribed && error == null;
         if (ok) {
           _subscribedChannels += 1;
           if (_subscribedChannels >= _expectedRealtimeSubscriptions) {

@@ -19,23 +19,46 @@ class FcmService {
   FcmService._();
   static final FcmService _instance = FcmService._();
   factory FcmService() => _instance;
-
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  FirebaseMessaging? _messaging;
   OnOpenAppCallback? _onOpenApp;
+  bool _enabled = false;
 
   Future<void> init({OnOpenAppCallback? onOpenApp}) async {
     _onOpenApp = onOpenApp;
+    // Intentar inicializar Firebase; si falla, deshabilitamos FCM sin romper la app
+    try {
+      await Firebase.initializeApp();
+      _messaging = FirebaseMessaging.instance;
+      _enabled = true;
+    } catch (e) {
+      debugPrint('Firebase init failed, disabling FCM: $e');
+      _enabled = false;
+      return;
+    }
+
     // Registrar handler de background
-    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    try {
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    } catch (e) {
+      debugPrint('Could not register background handler: $e');
+    }
 
     // Solicitar permisos en iOS/macOS
     if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
-      await _messaging.requestPermission(alert: true, badge: true, sound: true);
+      try {
+        await _messaging?.requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+      } catch (e) {
+        debugPrint('Error requesting FCM permissions: $e');
+      }
     }
 
     // Obtener token
     try {
-      final token = await _messaging.getToken();
+      final token = await _messaging?.getToken();
       if (token != null) {
         await _registerToken(token);
       }
@@ -44,7 +67,7 @@ class FcmService {
     }
 
     // Refrescar token
-    _messaging.onTokenRefresh.listen((token) async {
+    _messaging?.onTokenRefresh.listen((token) async {
       await _registerToken(token);
     });
 

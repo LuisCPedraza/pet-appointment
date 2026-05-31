@@ -4,6 +4,7 @@ import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/utils/field_validators.dart';
 import 'package:pet_appointment/utils/snackbar_helper.dart';
 import 'package:pet_appointment/widgets/widgets.dart';
+import 'package:pet_appointment/widgets/semantics_wrapper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -95,23 +96,26 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _loginWithApple() async {
-    setState(() => _isLoading = true);
+    if (!mounted) return;
 
-    try {
-      await _authService.signInWithApple();
-    } on AuthException catch (e) {
-      if (!mounted) return;
-      showAppSnackBar(context, e.message, color: AppColors.error);
-    } catch (_) {
-      if (!mounted) return;
-      showAppSnackBar(
-        context,
-        'Error iniciando sesión con Apple. Intenta de nuevo.',
-        color: AppColors.error,
-      );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Próximamente'),
+          content: const Text(
+            'El acceso con Apple todavía no está disponible. '
+            'Puedes usar correo, Google o GitHub mientras tanto.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Entendido'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -172,20 +176,24 @@ class _LoginScreenState extends State<LoginScreen> {
                     // --- ¿Olvidaste tu contraseña? ---
                     Align(
                       alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () =>
-                            Navigator.of(context).pushNamed('/forgot-password'),
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          '¿Olvidaste tu contraseña?',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
+                      child: SemanticsWrapper(
+                        label: 'Olvidé mi contraseña',
+                        child: TextButton(
+                          onPressed: () => Navigator.of(
+                            context,
+                          ).pushNamed('/forgot-password'),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            '¿Olvidaste tu contraseña?',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
@@ -202,15 +210,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     // --- Botón Google ---
                     SizedBox(
                       width: double.infinity,
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.login_rounded),
-                        label: const Text('Continuar con Google'),
-                        onPressed: _isLoading ? null : _loginWithGoogle,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: BorderSide(
-                            color: AppColors.onSurfaceVariant.withValues(
-                              alpha: 0.2,
+                      child: SemanticsWrapper(
+                        label: 'Continuar con Google',
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.login_rounded),
+                          label: const Text('Continuar con Google'),
+                          onPressed: _isLoading ? null : _loginWithGoogle,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: BorderSide(
+                              color: AppColors.onSurfaceVariant.withValues(
+                                alpha: 0.2,
+                              ),
                             ),
                           ),
                         ),
@@ -220,15 +231,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     // --- Botón GitHub ---
                     SizedBox(
                       width: double.infinity,
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.code_rounded),
-                        label: const Text('Continuar con GitHub'),
-                        onPressed: _isLoading ? null : _loginWithGithub,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: BorderSide(
-                            color: AppColors.onSurfaceVariant.withValues(
-                              alpha: 0.2,
+                      child: SemanticsWrapper(
+                        label: 'Continuar con GitHub',
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.code_rounded),
+                          label: const Text('Continuar con GitHub'),
+                          onPressed: _isLoading ? null : _loginWithGithub,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: BorderSide(
+                              color: AppColors.onSurfaceVariant.withValues(
+                                alpha: 0.2,
+                              ),
                             ),
                           ),
                         ),
@@ -238,15 +252,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     // --- Botón Apple ---
                     SizedBox(
                       width: double.infinity,
-                      child: OutlinedButton.icon(
-                        icon: Icon(Icons.apple),
-                        label: const Text('Continuar con Apple'),
-                        onPressed: _isLoading ? null : _loginWithApple,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: BorderSide(
-                            color: AppColors.onSurfaceVariant.withValues(
-                              alpha: 0.2,
+                      child: SemanticsWrapper(
+                        label: 'Continuar con Apple, próximamente',
+                        child: OutlinedButton.icon(
+                          icon: Icon(Icons.apple),
+                          label: const Text('Continuar con Apple'),
+                          onPressed: _loginWithApple,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: BorderSide(
+                              color: AppColors.onSurfaceVariant.withValues(
+                                alpha: 0.2,
+                              ),
                             ),
                           ),
                         ),

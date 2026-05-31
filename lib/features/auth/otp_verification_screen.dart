@@ -6,6 +6,8 @@ import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/services/auth_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:pet_appointment/widgets/semantics_wrapper.dart';
+
 /// Pantalla donde el usuario ingresa el código OTP de 8 dígitos
 /// que Supabase envió a su correo para recuperar la contraseña.
 class OtpVerificationScreen extends StatefulWidget {
@@ -71,8 +73,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           .verifyRecoveryOtp(email: widget.email.trim(), otp: _otpValue.trim())
           .timeout(const Duration(seconds: 15));
       if (mounted) {
-        Navigator.of(context)
-            .pushReplacementNamed('/reset-password');
+        Navigator.of(context).pushReplacementNamed('/reset-password');
       }
     } on TimeoutException {
       if (mounted) {
@@ -207,59 +208,65 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                               ]
                             : [],
                       ),
-                      child: ElevatedButton(
-                        onPressed: (_isLoading || !_otpComplete)
-                            ? null
-                            : _verify,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
+                      child: SemanticsWrapper(
+                        label: _isLoading
+                            ? 'Verificando código'
+                            : 'Verificar código',
+                        child: ElevatedButton(
+                          onPressed: (_isLoading || !_otpComplete)
+                              ? null
+                              : _verify,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
+                            ),
                           ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  'Verificar código',
+                                  style: TextStyle(
+                                    fontFamily: 'Plus Jakarta Sans',
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15,
+                                    color: _otpComplete
+                                        ? Colors.white
+                                        : AppColors.onSurfaceVariant,
+                                  ),
+                                ),
                         ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : Text(
-                                'Verificar código',
-                                style: TextStyle(
-                                  fontFamily: 'Plus Jakarta Sans',
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 15,
-                                  color: _otpComplete
-                                      ? Colors.white
-                                      : AppColors.onSurfaceVariant,
-                                ),
-                              ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // ── Reenviar código ────────────────────────────────────
                   Center(
-                    child: TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: const Text(
-                        '¿No recibiste el código? Volver e intentar de nuevo',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
+                    child: SemanticsWrapper(
+                      label: 'Volver e intentar de nuevo',
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        textAlign: TextAlign.center,
+                        child: const Text(
+                          '¿No recibiste el código? Volver e intentar de nuevo',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
                   ),

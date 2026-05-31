@@ -4,6 +4,7 @@ import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/models/user_profile_model.dart';
 import 'package:pet_appointment/services/appointment_notification_service.dart';
 import 'package:pet_appointment/services/auth_service.dart';
+import 'package:pet_appointment/widgets/semantics_wrapper.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -71,10 +72,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Mi Perfil'),
         centerTitle: true,
         actions: [
-          IconButton(
-            tooltip: 'Editar perfil',
-            onPressed: _editProfile,
-            icon: const Icon(Icons.edit_outlined),
+          SemanticsWrapper(
+            label: 'Editar perfil',
+            child: IconButton(
+              tooltip: 'Editar perfil',
+              onPressed: _editProfile,
+              icon: const Icon(Icons.edit_outlined),
+            ),
           ),
         ],
       ),

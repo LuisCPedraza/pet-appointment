@@ -6,6 +6,7 @@ import 'package:pet_appointment/controllers/calendar_controller.dart';
 import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/services/appointment_notification_service.dart';
 import 'package:pet_appointment/widgets/card_container.dart';
+import 'package:pet_appointment/widgets/app_shell.dart';
 import 'package:pet_appointment/widgets/calendar/booking_heading.dart';
 import 'package:pet_appointment/widgets/calendar/calendar_card.dart';
 import 'package:pet_appointment/widgets/calendar/confirm_button.dart';
@@ -57,6 +58,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Future<void> _init() async {
     try {
       await _controller.loadInitialData();
+      if (_controller.selectedServiceId != null &&
+          _controller.selectedProfessionalId != null) {
+        await _controller.loadMonth(_controller.focusedDay);
+      }
       _controller.subscribeRealtime();
     } catch (e) {
       if (mounted) _showSnack('Error al cargar datos: $e', isError: true);
@@ -134,6 +139,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
             const SliverToBoxAdapter(child: BookingHeading()),
             SliverToBoxAdapter(
               child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                child: _BookingFlowProgress(controller: _controller),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                 child: CardContainer(
                   child: Column(
@@ -207,6 +218,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
               SliverToBoxAdapter(
                 child: PetSelectorCard(controller: _controller),
               ),
+            if (_controller.pets.isEmpty)
+              const SliverToBoxAdapter(child: PetsRequiredHint()),
             if (_controller.services.isNotEmpty)
               SliverToBoxAdapter(
                 child: ServiceSelectorCard(controller: _controller),
@@ -313,6 +326,180 @@ class ProfessionalRequiredHint extends StatelessWidget {
             style: TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _BookingFlowProgress extends StatelessWidget {
+  const _BookingFlowProgress({required this.controller});
+
+  final CalendarController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final steps = [
+      _FlowStep('Mascota', Icons.pets_outlined),
+      _FlowStep('Servicio', Icons.medical_services_outlined),
+      _FlowStep('Profesional', Icons.person_search_outlined),
+      _FlowStep('Fecha', Icons.calendar_month_outlined),
+      _FlowStep('Hora', Icons.schedule_outlined),
+      _FlowStep('Confirmar', Icons.check_circle_outline),
+    ];
+
+    final activeIndex = _currentStepIndex();
+
+    return CardContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Sigue estos pasos',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'El flujo es guiado: primero mascota, luego servicio, profesional, fecha y hora.',
+            style: TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(steps.length, (index) {
+              final completed = index < activeIndex;
+              final active = index == activeIndex;
+              final step = steps[index];
+              return _FlowChip(
+                label: step.label,
+                icon: step.icon,
+                completed: completed,
+                active: active,
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  int _currentStepIndex() {
+    if (controller.selectedPetId == null) return 0;
+    if (controller.selectedServiceId == null) return 1;
+    if (controller.selectedProfessionalId == null) return 2;
+    if (controller.selectedDay == null) return 3;
+    if (controller.selectedSlot == null) return 4;
+    return 5;
+  }
+}
+
+class _FlowStep {
+  const _FlowStep(this.label, this.icon);
+
+  final String label;
+  final IconData icon;
+}
+
+class _FlowChip extends StatelessWidget {
+  const _FlowChip({
+    required this.label,
+    required this.icon,
+    required this.completed,
+    required this.active,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool completed;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final backgroundColor = completed
+        ? AppColors.secondaryContainer
+        : active
+        ? AppColors.primaryContainer
+        : AppColors.surfaceContainerHigh;
+    final foregroundColor = completed
+        ? const Color(0xFF005E3E)
+        : active
+        ? AppColors.primary
+        : AppColors.onSurfaceVariant;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: active
+              ? AppColors.primary.withValues(alpha: 0.35)
+              : AppColors.outline.withValues(alpha: 0.15),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: foregroundColor),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: foregroundColor,
+            ),
+          ),
+          if (completed) ...[
+            const SizedBox(width: 6),
+            const Icon(Icons.check, size: 14, color: Color(0xFF005E3E)),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class PetsRequiredHint extends StatelessWidget {
+  const PetsRequiredHint({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: CardContainer(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.pets_outlined, size: 18, color: AppColors.primary),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Primero agrega una mascota',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No puedes agendar una cita sin mascota asociada. Agrégala desde la pestaña Mascotas y luego vuelve al calendario.',
+              style: TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  AppShell.selectTab(1);
+                },
+                child: const Text('Ir a Mascotas'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

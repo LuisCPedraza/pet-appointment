@@ -4,6 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:pet_appointment/models/appointment_model.dart';
@@ -144,17 +145,37 @@ class AppointmentNotificationService {
 
   Future<void> _initializePlugin() async {
     if (!_pluginInitialized) {
-      const androidSettings = AndroidInitializationSettings('ic_notification');
       const iosSettings = DarwinInitializationSettings();
 
-      await _notifications.initialize(
-        const InitializationSettings(
-          android: androidSettings,
-          iOS: iosSettings,
-        ),
-        onDidReceiveNotificationResponse: _handleNotificationResponse,
-        onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
-      );
+      // Intentamos inicializar con el icono personalizado `ic_notification`.
+      // Si falla (p.ej. recurso ausente en algunos entornos), reintentamos
+      // con el icono por defecto del paquete (`@mipmap/ic_launcher`).
+      try {
+        const androidSettings = AndroidInitializationSettings(
+          'ic_notification',
+        );
+        await _notifications.initialize(
+          const InitializationSettings(
+            android: androidSettings,
+            iOS: iosSettings,
+          ),
+          onDidReceiveNotificationResponse: _handleNotificationResponse,
+          onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+        );
+      } on PlatformException catch (e) {
+        debugPrint(
+          'Fallo inicializando icono ic_notification: $e — aplicando fallback',
+        );
+        // Fallback al icono por defecto del paquete
+        final fallbackAndroid = AndroidInitializationSettings(
+          '@mipmap/ic_launcher',
+        );
+        await _notifications.initialize(
+          InitializationSettings(android: fallbackAndroid, iOS: iosSettings),
+          onDidReceiveNotificationResponse: _handleNotificationResponse,
+          onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+        );
+      }
 
       _pluginInitialized = true;
     }

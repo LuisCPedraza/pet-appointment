@@ -3,6 +3,7 @@ import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/controllers/calendar_controller.dart';
 import 'package:pet_appointment/widgets/card_container.dart';
 import 'package:pet_appointment/widgets/section_label.dart';
+import 'package:pet_appointment/widgets/semantics_wrapper.dart';
 
 /// Tarjeta para escoger el profesional que atenderá la cita.
 class ProfessionalSelectorCard extends StatefulWidget {
@@ -23,7 +24,7 @@ class _ProfessionalSelectorCardState extends State<ProfessionalSelectorCard> {
   @override
   Widget build(BuildContext context) {
     final controller = widget.controller;
-    final all = controller.professionals as List<Map<String, String>>;
+    final all = controller.professionals;
     final visible = _query.isEmpty
         ? all
         : all.where((p) {
@@ -39,7 +40,10 @@ class _ProfessionalSelectorCardState extends State<ProfessionalSelectorCard> {
         children: [
           const SectionLabel('Profesional'),
           const SizedBox(height: 8),
-          _ProfessionalFilter(onQueryChanged: _onQueryChanged),
+          _ProfessionalFilter(
+            key: const Key('professional-filter'),
+            onQueryChanged: _onQueryChanged,
+          ),
           const SizedBox(height: 12),
           if (visible.isEmpty)
             Text(
@@ -85,7 +89,6 @@ class _ProfessionalFilter extends StatefulWidget {
 
 class _ProfessionalFilterState extends State<_ProfessionalFilter> {
   final _controller = TextEditingController();
-  String _query = '';
 
   @override
   void dispose() {
@@ -102,18 +105,21 @@ class _ProfessionalFilterState extends State<_ProfessionalFilter> {
           controller: _controller,
           decoration: InputDecoration(
             hintText: 'Buscar profesional por nombre o email',
-            suffixIcon: IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () {
-                final q = _controller.text.trim();
-                setState(() => _query = q);
-                widget.onQueryChanged(q);
-              },
+            suffixIcon: SemanticsWrapper(
+              label: 'Buscar profesional',
+              child: IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: () {
+                  final q = _controller.text.trim();
+                  setState(() {});
+                  widget.onQueryChanged(q);
+                },
+              ),
             ),
           ),
           onSubmitted: (v) {
             final q = v.trim();
-            setState(() => _query = q);
+            setState(() {});
             widget.onQueryChanged(q);
           },
         ),
@@ -129,7 +135,7 @@ class _ProfessionalFilterState extends State<_ProfessionalFilter> {
                   label: const Text('Limpiar'),
                   onPressed: () {
                     _controller.clear();
-                    setState(() => _query = '');
+                    setState(() {});
                     widget.onQueryChanged('');
                   },
                 ),
