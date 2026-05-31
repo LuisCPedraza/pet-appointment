@@ -58,7 +58,7 @@
 | ID | Historia de Usuario | Criterios de Aceptación | Story Points |
 |---|---|---|---|
 | US-20 | Como **cliente**, quiero **recibir una notificación** cuando el estado de mi cita cambie para **estar siempre informado**. | Notificación local en dispositivo al detectar cambio de estado vía Realtime | 5 |
-| US-21 | Como **cliente**, quiero **recibir un recordatorio 24 horas antes** de mi cita para **no olvidarla**. | Notificación programada vía Supabase Edge Function o flutter_local_notifications | 5 |
+| US-21 | Como **cliente**, quiero **recibir un recordatorio 24 horas antes** de mi cita para **no olvidarla**. | Notificación local programada vía `flutter_local_notifications` | 5 |
 | US-22 | Como **profesional**, quiero **ser notificado al instante** cuando se registre una nueva cita para **preparar mi agenda con anticipación**. | Notificación push en tiempo real vía Supabase Realtime | 3 |
 
 #### Épica EP-06: Panel de Administración

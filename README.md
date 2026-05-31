@@ -1,149 +1,161 @@
 # PetAppointment
 
-Sistema móvil para gestión de citas veterinarias y peluquería de mascotas.
+## Portada
 
-![Estado](https://img.shields.io/badge/Estado-En%20desarrollo-orange?style=for-the-badge)
+**Proyecto:** PetAppointment
+
+**Tipo de entrega:** Proyecto móvil académico y funcional
+
+**Tecnología principal:** Flutter / Dart / Supabase
+
+**Estado:** Entrega final preparada y validada en Android
+
+**Repositorio de trabajo:** [README principal](README.md)
+
+![Estado](https://img.shields.io/badge/Estado-Entrega%20final%20preparada-success?style=for-the-badge)
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter&logoColor=white)
 ![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?style=for-the-badge&logo=dart&logoColor=white)
-![Android](https://img.shields.io/badge/Android-Soportado-3DDC84?style=for-the-badge&logo=android&logoColor=white)
-![Web](https://img.shields.io/badge/Web-Base%20Flutter-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)
-![Licencia](https://img.shields.io/badge/Licencia-MIT-success?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-## Información Institucional
+### Datos académicos
 
 | Campo | Detalle |
 |---|---|
-| Proyecto | PetAppointment - Sistema de Citas Veterinarias |
-| Tipo | Proyecto Universitario de Desarrollo Móvil |
-| Universidad | Universidad del Valle |
-| Facultad | Ingeniería |
-| Programa | Tecnología en Desarrollo de Software |
-| Asignatura | Desarrollo de Aplicaciones para Dispositivos Móviles |
-| Docente | Quintero Capera Daniel |
+| **Nombre del proyecto** | PetAppointment |
+| **Asignatura** | Proyecto de dispositivos móviles |
+| **Entrega** | Final |
+| **Plataforma objetivo** | Android, con base Flutter multiplataforma |
+| **Responsables** | Completar con nombres del equipo |
+| **Fecha** | 31 de mayo de 2026 |
 
-### Integrantes
+## Resumen Ejecutivo
 
-| Nombre | Código | Rol |
+PetAppointment es una aplicación móvil desarrollada en Flutter para la gestión de citas veterinarias y servicios de grooming. La solución contempla autenticación por roles, administración de mascotas, reserva de citas con calendario, agenda profesional y documentación de soporte para evaluación académica.
+
+## Autores
+
+> Reemplazar estos campos con los nombres oficiales del equipo antes de la entrega.
+
+| Nombre | Rol | Correo |
 |---|---|---|
-| Nicolas Gonzalez Giraldo | 202369659 | Desarrollador Flutter / Líder Técnico |
-| Luis Carlos Pedraza Corredor | 202369678 | Desarrollador Flutter / Diseño UI/UX |
-| Luis Carlos Pedraza Corredor | 202369678 | Integración Supabase / Base de Datos |
+| Autor 1 | Desarrollo Flutter | Pendiente |
+| Autor 2 | UI/UX | Pendiente |
+| Autor 3 | Backend / Supabase | Pendiente |
 
-## Diagrama del Proyecto
+## Objetivos del proyecto
 
-```mermaid
-flowchart LR
-	A[Cliente] --> B[App Flutter]
-	C[Profesional] --> B
-	D[Administrador] --> B
+### Objetivo general
 
-	B --> E[Autenticación]
-	B --> F[Gestión de Mascotas]
-	B --> G[Reservas y Agenda]
-	B --> H[Estados de Cita]
+Desarrollar una aplicación móvil funcional que permita a los dueños de mascotas reservar, gestionar y cancelar citas veterinarias o de grooming, proporcionando también herramientas de administración y control para los profesionales del servicio.
 
-	E --> I[(Supabase Auth)]
-	F --> J[(PostgreSQL)]
-	G --> J
-	H --> K[(Supabase Realtime)]
+### Objetivos específicos
 
-	B --> L[Notificaciones]
-```
+1. Implementar autenticación segura por roles con Supabase.
+2. Gestionar mascotas, servicios y citas desde una interfaz móvil clara.
+3. Visualizar disponibilidad en calendario y reducir errores de reserva.
+4. Mantener una experiencia de usuario coherente y adaptable en pantalla móvil.
+5. Dejar evidencia técnica, pruebas y documentación para sustentación final.
 
-## Visión del Proyecto
+## Tabla de contenidos
 
-PetAppointment busca digitalizar el proceso de reserva y seguimiento de citas para clínicas veterinarias y servicios de grooming, ofreciendo una experiencia clara tanto para dueños de mascotas como para personal profesional y administración.
+- [Portada](#portada)
+- [Resumen Ejecutivo](#resumen-ejecutivo)
+- [Autores](#autores)
+- [Objetivos del proyecto](#objetivos-del-proyecto)
+- [Documentación de apoyo](#documentación-de-apoyo)
+- [Estado actual](#estado-actual)
+- [Funcionalidades verificadas](#funcionalidades-verificadas)
+- [Evidencia de validación](#evidencia-de-validación)
+- [Instalación y ejecución](#instalación-y-ejecución)
+- [Configuración requerida](#configuración-requerida)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Soporte y licencia](#soporte-y-licencia)
+
+## Documentación de apoyo
+
+| Entregable | Archivo |
+|---|---|
+| Documento técnico principal | [docs/PetAppointment_Documentacion_Tecnica.md](docs/PetAppointment_Documentacion_Tecnica.md) |
+| Guía de desarrollador | [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) |
+| Guía visual de estilo | [docs/STYLE_GUIDE.md](docs/STYLE_GUIDE.md) |
+| Plan de pruebas | [docs/secciones/11-plan-de-pruebas.md](docs/secciones/11-plan-de-pruebas.md) |
+| Requisitos no funcionales | [docs/secciones/13-requisitos-no-funcionales.md](docs/secciones/13-requisitos-no-funcionales.md) |
+| Riesgos y mitigaciones | [docs/secciones/12-riesgos-y-mitigaciones.md](docs/secciones/12-riesgos-y-mitigaciones.md) |
+| Roadmap | [docs/secciones/14-roadmap-y-futuras-mejoras.md](docs/secciones/14-roadmap-y-futuras-mejoras.md) |
+| Checklist final | [docs/secciones/16-checklist-funcionalidad-100.md](docs/secciones/16-checklist-funcionalidad-100.md) |
+| Evidencia de push Android | [docs/secciones/17-push-end-to-end-android.md](docs/secciones/17-push-end-to-end-android.md) |
+| Entrega final solicitada | [entrega_final/entraga_final_proyecto.md](entrega_final/entraga_final_proyecto.md) |
 
 ## Estado Actual
 
-El proyecto está en fase inicial: base Flutter creada, documentación técnica organizada y preparación para comenzar la implementación funcional.
+| Área | Estado |
+|---|---|
+| Funcionalidad principal | Completada y validada en Android |
+| UI/UX del flujo de cita | Mejorada y clara para el usuario |
+| Generación de APK | Completada |
+| Documentación de entrega | En preparación final |
+| Compatibilidad iOS | Base Flutter presente, validación nativa pendiente |
+| Métricas/analíticas | Pendiente de instrumentación |
 
-## Estado por Módulo
-
-| Módulo | Estado | Observación |
-|---|---|---|
-| Autenticación | Planeado | Pendiente de implementación con Supabase Auth |
-| Gestión de Mascotas | Planeado | CRUD aún no iniciado |
-| Servicios y Catálogo | Planeado | Definición funcional en documentación |
-| Citas y Agenda | Planeado | Flujo descrito, sin desarrollo en código |
-| Estados de Cita | Planeado | Diseño funcional definido |
-| Notificaciones | Planeado | Integración pendiente |
-| Backend Supabase | Planeado | Conexión aún no implementada |
-| Pruebas | En progreso | Base de pruebas Flutter disponible |
-| Documentación | En progreso | Estructura modular creada |
-
-## Gestión del Proyecto (Jira)
-
-- Tablero Jira del equipo (Scrum): [PA - PetAppointment](https://correounivalle-team-f1bug4uj.atlassian.net/jira/software/projects/PA/summary?atlOrigin=eyJpIjoiM2Y2ZDkwMzk2NWNiNDNmMjk5OTQwMmZkMzIzYjZjZmMiLCJwIjoiaiJ9)
-
-## Ramas Oficiales (Entrega 1)
-
-- main: rama principal del repositorio.
-- develop: integración de desarrollo.
-- staging: pruebas previas a entrega.
-
-## Funcionalidades Objetivo
+## Funcionalidades Verificadas
 
 - Registro e inicio de sesión por roles.
-- Gestión de mascotas y servicios.
-- Reserva, reprogramación y cancelación de citas.
-- Agenda y seguimiento de estados de atención.
-- Integración backend con Supabase (planeado).
+- Gestión de mascotas con foto.
+- Selección visual de mascota para reservas.
+- Calendario de citas con disponibilidad.
+- Agenda profesional y actualización de estados.
+- Soporte de notificaciones con inicialización defensiva.
 
-## Stack Tecnológico
+## Evidencia de Validación
 
-- Flutter
-- Dart
-- Supabase (planeado)
-- PostgreSQL (vía Supabase)
+- APK de release generado: [build/app/outputs/flutter-apk/app-release.apk](build/app/outputs/flutter-apk/app-release.apk)
+- Pruebas automáticas ejecutadas con éxito.
+- Revisión manual en dispositivo reportada por el usuario como correcta.
 
-## Estructura del Repositorio
-
-- lib/: código fuente de la aplicación.
-- test/: pruebas automatizadas.
-- docs/: documentación técnica modular y guía visual.
-- android/, ios/, web/, windows/, macos/, linux/: plataformas de ejecución.
-
-## Inicio Rápido
-
-1. Instala Flutter SDK y valida tu entorno.
-2. Descarga dependencias.
-3. Ejecuta la app.
-4. Corre análisis y pruebas.
+## Instalación y Ejecución
 
 ```bash
 flutter pub get
 flutter run
-flutter analyze
-flutter test
 ```
 
-## Documentación
+Para compilar la entrega Android:
 
-- Índice principal: [docs/README.md](docs/README.md)
-- Documento de Entrega 1: [docs/Entrega_1_Primer_Adelanto.md](docs/Entrega_1_Primer_Adelanto.md)
-- Documento técnico completo: [docs/PetAppointment_Documentacion_Tecnica.md](docs/PetAppointment_Documentacion_Tecnica.md)
-- Guía de estilo visual: [docs/STYLE_GUIDE.md](docs/STYLE_GUIDE.md)
-- Secciones de documentación:
-	- [1. Visión General, Contexto y Objetivos](docs/secciones/01-vision-general-contexto-objetivos.md)
-	- [2. Alcance Funcional Inicial](docs/secciones/02-alcance-funcional-inicial.md)
-	- [3. Roles del Sistema](docs/secciones/03-roles-del-sistema.md)
-	- [4. Diagramas](docs/secciones/04-diagramas.md)
-	- [5. Épicas, Historias de Usuario y Tareas Técnicas](docs/secciones/05-epicas-historias-y-tareas-tecnicas.md)
-	- [6. Stack Tecnológico Detallado](docs/secciones/06-stack-tecnologico-detallado.md)
-	- [7. Arquitectura Técnica](docs/secciones/07-arquitectura-tecnica.md)
-	- [8. Automatización con Supabase](docs/secciones/08-automatizacion-con-supabase.md)
-	- [9. Puesta en Marcha y Workflow Recomendado](docs/secciones/09-puesta-en-marcha-y-workflow.md)
-	- [10. Manual de Usuario](docs/secciones/10-manual-de-usuario.md)
-	- [11. Plan de Pruebas](docs/secciones/11-plan-de-pruebas.md)
-	- [12. Riesgos y Mitigaciones](docs/secciones/12-riesgos-y-mitigaciones.md)
-	- [13. Requisitos No Funcionales](docs/secciones/13-requisitos-no-funcionales.md)
-	- [14. Roadmap y Futuras Mejoras](docs/secciones/14-roadmap-y-futuras-mejoras.md)
+```bash
+flutter build apk --release
+```
 
-## Equipo
+Para instalar en un dispositivo conectado:
 
-Proyecto académico universitario en evolución.
+```bash
+adb -s emulator-5554 install -r build/app/outputs/flutter-apk/app-release.apk
+```
 
-## Licencia
+## Configuración Requerida
 
-Este proyecto se distribuye bajo la licencia incluida en [LICENSE](LICENSE).
+Crear un archivo `.env` en la raíz con estas variables:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+
+## Recomendaciones para la Entrega
+
+1. Revisar [docs/PetAppointment_Documentacion_Tecnica.md](docs/PetAppointment_Documentacion_Tecnica.md) como documento base de sustentación.
+2. Usar [entrega_final/entraga_final_proyecto.md](entrega_final/entraga_final_proyecto.md) como anexo de evaluación final.
+3. Adjuntar el APK ubicado en [build/app/outputs/flutter-apk/app-release.apk](build/app/outputs/flutter-apk/app-release.apk) para la demo.
+
+## Estructura del Proyecto
+
+```text
+lib/                 Lógica principal de Flutter
+docs/                Documentación técnica, guía y evidencias
+integration_test/    Pruebas de integración
+test/                Pruebas unitarias y de widgets
+android/             Configuración y build Android
+ios/                 Configuración nativa iOS
+supabase/            Migraciones y funciones de backend
+```
+
+## Soporte y Licencia
+
+Si necesitas continuar la entrega o generar una nueva versión, revisa primero la documentación enlazada arriba. Este proyecto se distribuye bajo licencia MIT. Ver [LICENSE](LICENSE) para más detalles.

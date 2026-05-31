@@ -1,60 +1,8 @@
-import 'dart:typed_data';
+import 'package:pet_appointment/models/pet.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
-/// Modelo de datos para una mascota.
-class Pet {
-  final String id;
-  final String ownerId;
-  final String name;
-  final String species; // 'Perro', 'Gato', 'Otro'
-  final String? breed;
-  final DateTime? birthDate;
-  final double? weight;
-  final String? notes;
-  final String? photoUrl;
-  final DateTime createdAt;
-
-  Pet({
-    required this.id,
-    required this.ownerId,
-    required this.name,
-    required this.species,
-    this.breed,
-    this.birthDate,
-    this.weight,
-    this.notes,
-    this.photoUrl,
-    required this.createdAt,
-  });
-
-  /// Convierte de JSON (Supabase) a objeto Pet.
-  factory Pet.fromJson(Map<String, dynamic> json) {
-    return Pet(
-      id: json['id'] as String,
-      ownerId: json['owner_id'] as String,
-      name: json['name'] as String,
-      species: json['species'] as String,
-      breed: json['breed'] as String?,
-      birthDate: json['birth_date'] != null
-          ? DateTime.parse(json['birth_date'] as String)
-          : null,
-      weight: json['weight'] != null
-          ? (json['weight'] as num).toDouble()
-          : null,
-      notes: json['notes'] as String?,
-      photoUrl: json['photo_url'] as String?,
-      createdAt: DateTime.parse(json['created_at'] as String),
-    );
-  }
-}
-
-/// DTO para listado de mascotas con fecha de última cita.
-class PetListItem {
-  final Pet pet;
-  final DateTime? lastAppointmentAt;
-
-  PetListItem({required this.pet, required this.lastAppointmentAt});
-}
+export 'package:pet_appointment/models/pet.dart';
 
 /// Servicio para gestionar mascotas del usuario autenticado.
 class PetService {
@@ -93,7 +41,7 @@ class PetService {
     try {
       await _client.storage.from('pet-photos').remove([path]);
     } catch (e) {
-      print('Error eliminando foto de mascota en storage: $e');
+      debugPrint('Error eliminando foto de mascota en storage: $e');
     }
   }
 
@@ -129,7 +77,7 @@ class PetService {
       final publicUrl = _client.storage.from('pet-photos').getPublicUrl(path);
       return publicUrl;
     } catch (e) {
-      print('Error subiendo foto de mascota: $e');
+      debugPrint('Error subiendo foto de mascota: $e');
       return null;
     }
   }
@@ -337,7 +285,7 @@ class PetService {
           .single();
       return Pet.fromJson(response);
     } catch (e) {
-      print('Error obteniendo mascota: $e');
+      debugPrint('Error obteniendo mascota: $e');
       return null;
     }
   }
@@ -425,7 +373,7 @@ class PetService {
 
       return updatedPet;
     } catch (e) {
-      print('Error actualizando mascota: $e');
+      debugPrint('Error actualizando mascota: $e');
       return null;
     }
   }
@@ -441,7 +389,7 @@ class PetService {
 
       return true;
     } catch (e) {
-      print('Error eliminando mascota: $e');
+      debugPrint('Error eliminando mascota: $e');
       return false;
     }
   }

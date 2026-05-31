@@ -1,9 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pet_appointment/services/pet_service.dart';
+import '../test_setup.dart';
 
 void main() {
-  group('PetService - CRUD Operations', () {
+  setUpAll(() async => await initTestSupabase());
 
+  group('PetService - CRUD Operations', () {
     group('createPet', () {
       test('should validate create payload structure', () async {
         // Arrange - simular payload que PetService enviaría a Supabase
@@ -118,7 +120,6 @@ void main() {
     group('updatePet', () {
       test('should validate update payload structure', () async {
         // Arrange
-        const petId = 'pet-update-123';
         const newName = 'Fluffy Updated';
         final newBirthDate = DateTime(2019, 8, 20);
         const newWeight = 4.2;

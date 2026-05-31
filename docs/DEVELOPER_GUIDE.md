@@ -27,16 +27,22 @@ lib/
 │   ├── theme.dart              # AppColors y AppTheme (fuente única de verdad visual)
 │   └── config.dart             # Barrel de config/
 │
+├── features/                   # Organización por dominio/feature
+│   ├── features.dart           # Barrel global de features
+│   ├── auth/                   # Login, registro y recuperación de acceso
+│   ├── appointments/           # Historial, confirmación y detalle de citas
+│   ├── calendar/               # Calendario y programación
+│   ├── home/                   # Home autenticado y home público
+│   ├── pets/                   # Gestión de mascotas
+│   ├── professional/           # Panel profesional y disponibilidad
+│   └── profile/                # Perfil y edición de cuenta
+│
 ├── widgets/
 │   ├── app_shell.dart          # Shell de navegación: NavigationBar + body intercambiable
 │   └── widgets.dart            # Barrel de widgets/
 │
 ├── screens/
-│   ├── home_screen.dart        # Pantalla de inicio (implementada)
-│   ├── pets_screen.dart        # Mis Mascotas (placeholder)
-│   ├── calendar_screen.dart    # Mis Citas (placeholder)
-│   ├── profile_screen.dart     # Mi Perfil (placeholder)
-│   └── screens.dart            # Barrel de screens/
+│   └── screens.dart            # Barrel de compatibilidad que reexporta features/
 │
 └── sketch/
     └── main_sketch.dart        # Bosquejo visual de referencia (no modificar)
@@ -113,16 +119,16 @@ Navigator.push(context, MaterialPageRoute(builder: (_) => const OtraPantalla()))
 
 ## Archivos barrel
 
-Cada carpeta tiene un barrel (ej. `screens/screens.dart`) que re-exporta todos sus archivos. Importa siempre el barrel, no el archivo individual:
+Cada carpeta tiene un barrel propio. La app importa preferentemente el barrel global de features o el barrel de la carpeta correspondiente, no archivos individuales:
 
 ```dart
 // ✅
-import 'package:pet_appointment/screens/screens.dart';
+import 'package:pet_appointment/features/features.dart';
 // ❌
 import '../screens/home_screen.dart';
 ```
 
-Al crear un archivo nuevo, agrégalo al barrel de su carpeta.
+Al crear un archivo nuevo, agrégalo al barrel de su feature. Si el archivo es compartido, va en `widgets/`.
 
 ---
 

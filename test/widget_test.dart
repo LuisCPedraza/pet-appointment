@@ -7,9 +7,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'test_setup.dart';
 import 'package:pet_appointment/app/sprint2_app.dart';
 
 void main() {
+  setUpAll(() async => await initTestSupabase());
+
   testWidgets('Muestra shell base de Sprint 2', (WidgetTester tester) async {
     await tester.pumpWidget(const PetAppointmentApp(isSupabaseReady: false));
 

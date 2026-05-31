@@ -1,7 +1,7 @@
-import 'dart:typed_data';
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter/foundation.dart';
+import 'package:pet_appointment/models/user_profile_model.dart';
 
 /// Maneja toda la comunicación con Supabase Auth.
 /// La pantalla no sabe cómo funciona Supabase, solo llama métodos de aquí.
@@ -9,7 +9,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class AuthService {
   // Acceso al cliente de Supabase (ya inicializado en main.dart)
   final _client = Supabase.instance.client;
-  
+
   // Almacenamiento seguro para tokens y datos de sesión
   static const _secureStorage = FlutterSecureStorage();
   static const String _sessionTokenKey = 'auth_token';
@@ -36,6 +36,10 @@ class AuthService {
 
   /// Retorna true si hay una sesión activa (usuario ya autenticado).
   bool get hasActiveSession => _client.auth.currentSession != null;
+
+  /// Retorna true si hay una sesión activa y el access token todavía es válido.
+  bool get hasValidSession =>
+      hasActiveSession && !(_client.auth.currentSession?.isExpired ?? false);
 
   /// URL de la foto de perfil guardada en metadata.
   String get currentUserPhotoUrl =>
@@ -126,7 +130,6 @@ class AuthService {
   Future<bool> restoreSession() async {
     try {
       final storedToken = await _secureStorage.read(key: _sessionTokenKey);
-      final storedRefreshToken = await _secureStorage.read(key: _refreshTokenKey);
 
       if (storedToken == null) {
         return false;
@@ -137,9 +140,121 @@ class AuthService {
       // La mejor práctica es dejar que Supabase maneje la persistencia automáticamente
       return hasActiveSession;
     } catch (e) {
-      print('Error restaurando sesión: $e');
+      debugPrint('Error restaurando sesión: $e');
       return false;
     }
+  }
+
+  /// Inicia sesión usando Google a través de Supabase OAuth.
+  /// En móviles usará el flujo de navegador/ deep link configurado en Supabase.
+  ///
+  /// Requiere:
+  /// - Google Cloud Console: OAuth 2.0 credentials configuradas
+  /// - Supabase: Google OAuth habilitado con Client ID y Secret
+  /// - Redirect URI: Debe coincidir en Google Cloud, Supabase y deeplink del código
+  ///
+  /// Lanza [AuthException] si hay problemas con:
+  /// - Configuración de OAuth (Client ID/Secret inválidos)
+  /// - Redirect URI mismatch
+  /// - Conectividad de red
+  /// - Usuario cancela el login
+  Future<void> signInWithGoogle({String? redirectTo}) async {
+    try {
+      debugPrint('🔐 Iniciando login con Google...');
+
+      // Platform-specific redirect URI si no se proporciona.
+      // En web debe ser la URL actual de la app; en móvil, el deep link.
+      final finalRedirectTo = redirectTo ?? _getDefaultRedirectUri();
+      debugPrint('📍 Redirect URI final: $finalRedirectTo');
+
+      debugPrint('🔄 Enviando solicitud OAuth a Supabase...');
+      await _client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: finalRedirectTo,
+        authScreenLaunchMode: LaunchMode.externalApplication,
+        queryParams: {'prompt': 'select_account'},
+      );
+
+      debugPrint('✅ Login con Google completado exitosamente');
+    } on AuthException catch (e) {
+      debugPrint('❌ Error de autenticación: ${e.message}');
+      rethrow;
+    } catch (e) {
+      debugPrint('❌ Error inesperado en Google Sign In: $e');
+      throw AuthException(
+        'Error al iniciar sesión con Google. Intenta de nuevo.',
+      );
+    }
+  }
+
+  /// Inicia sesión usando GitHub a través de Supabase OAuth.
+  /// Requiere que GitHub OAuth esté habilitado en Supabase y que el redirect URI
+  /// esté registrado como petappointment://login-callback/ en GitHub y Supabase.
+  Future<void> signInWithGithub({String? redirectTo}) async {
+    try {
+      debugPrint('🔐 Iniciando login con GitHub...');
+
+      final finalRedirectTo = redirectTo ?? _getDefaultRedirectUri();
+      debugPrint('📍 Redirect URI final: $finalRedirectTo');
+
+      debugPrint('🔄 Enviando solicitud OAuth a Supabase...');
+      await _client.auth.signInWithOAuth(
+        OAuthProvider.github,
+        redirectTo: finalRedirectTo,
+        authScreenLaunchMode: LaunchMode.externalApplication,
+        queryParams: {'prompt': 'consent'},
+      );
+
+      debugPrint('✅ Login con GitHub completado exitosamente');
+    } on AuthException catch (e) {
+      debugPrint('❌ Error de autenticación: ${e.message}');
+      rethrow;
+    } catch (e) {
+      debugPrint('❌ Error inesperado en GitHub Sign In: $e');
+      throw AuthException(
+        'Error al iniciar sesión con GitHub. Intenta de nuevo.',
+      );
+    }
+  }
+
+  /// Inicia sesión usando Apple a través de Supabase OAuth.
+  /// Requiere que Apple OAuth esté habilitado en Supabase y que el redirect URI
+  /// esté correctamente configurado en el panel de Supabase y en Apple Developer.
+  Future<void> signInWithApple({String? redirectTo}) async {
+    try {
+      debugPrint('🔐 Iniciando login con Apple...');
+
+      final finalRedirectTo = redirectTo ?? _getDefaultRedirectUri();
+      debugPrint('📍 Redirect URI final: $finalRedirectTo');
+
+      debugPrint('🔄 Enviando solicitud OAuth a Supabase...');
+      await _client.auth.signInWithOAuth(
+        OAuthProvider.apple,
+        redirectTo: finalRedirectTo,
+        authScreenLaunchMode: LaunchMode.externalApplication,
+      );
+
+      debugPrint('✅ Login con Apple completado exitosamente');
+    } on AuthException catch (e) {
+      debugPrint('❌ Error de autenticación: ${e.message}');
+      rethrow;
+    } catch (e) {
+      debugPrint('❌ Error inesperado en Apple Sign In: $e');
+      throw AuthException(
+        'Error al iniciar sesión con Apple. Intenta de nuevo.',
+      );
+    }
+  }
+
+  /// Obtiene el redirect URI por defecto según la plataforma.
+  static String _getDefaultRedirectUri() {
+    // En desarrollo, Flutter usará el scheme registrado en:
+    // Android: AndroidManifest.xml
+    // iOS: Info.plist CFBundleURLSchemes
+    if (kIsWeb) {
+      return Uri.base.origin;
+    }
+    return 'petappointment://login-callback/';
   }
 
   /// Envía un correo de recuperación con un código OTP de 8 dígitos.
@@ -170,12 +285,141 @@ class AuthService {
     await _client.auth.updateUser(UserAttributes(password: newPassword));
   }
 
+  /// Retorna true si el usuario actual tiene rol `admin`.
+  Future<bool> isCurrentUserAdmin() async {
+    try {
+      return await getCurrentUserRole() == 'admin';
+    } catch (e) {
+      debugPrint('Error comprobando rol admin: $e');
+      return false;
+    }
+  }
+
+  /// Recupera usuarios paginados con filtros simples.
+  Future<List<Map<String, dynamic>>> fetchUsers({
+    required int limit,
+    required int offset,
+    String? roleFilter,
+    String? search,
+  }) async {
+    try {
+      var query = _client
+          .from('users')
+          .select('id, full_name, email, role, created_at, is_active');
+      if (roleFilter != null && roleFilter.isNotEmpty) {
+        query = query.eq('role', roleFilter);
+      }
+      if (search != null && search.isNotEmpty) {
+        // Buscar por nombre o correo con un solo filtro OR.
+        query = query.or('full_name.ilike.%$search%,email.ilike.%$search%');
+      }
+      final data =
+          await query
+                  .order('created_at', ascending: false)
+                  .range(offset, offset + limit - 1)
+              as List<dynamic>;
+      return data.cast<Map<String, dynamic>>();
+    } catch (e) {
+      debugPrint('fetchUsers error: $e');
+      rethrow;
+    }
+  }
+
+  /// Cambia el rol de un usuario; intenta usar RPC seguro y hace fallback a update.
+  Future<bool> changeUserRole({
+    required String userId,
+    required String newRole,
+  }) async {
+    try {
+      // Intentar función RPC (recomendada): admin_update_user_role(user_id, new_role)
+      await _client.rpc(
+        'admin_update_user_role',
+        params: {'user_id': userId, 'new_role': newRole},
+      );
+      return true;
+    } catch (e) {
+      debugPrint('RPC changeUserRole error: $e');
+      // Fallback: update tabla (depende de RLS)
+      try {
+        await _client.from('users').update({'role': newRole}).eq('id', userId);
+        return true;
+      } catch (fallbackError) {
+        debugPrint('Fallback changeUserRole error: $fallbackError');
+        return false;
+      }
+    }
+  }
+
+  /// Activa/desactiva usuario (soft delete) usando RPC o update.
+  Future<bool> setUserActive({
+    required String userId,
+    required bool active,
+  }) async {
+    try {
+      await _client.rpc(
+        'admin_set_user_active',
+        params: {'user_id': userId, 'active': active},
+      );
+      return true;
+    } catch (e) {
+      debugPrint('RPC setUserActive error: $e');
+      try {
+        await _client
+            .from('users')
+            .update({'is_active': active})
+            .eq('id', userId);
+        return true;
+      } catch (fallbackError) {
+        debugPrint('Fallback setUserActive error: $fallbackError');
+        return false;
+      }
+    }
+  }
+
   /// Correo del usuario autenticado.
   String get currentUserEmail => _client.auth.currentUser?.email ?? '';
+
+  /// Id del usuario autenticado.
+  String? get currentUserId => _client.auth.currentUser?.id;
 
   /// Teléfono del usuario autenticado (del metadata de registro).
   String get currentUserPhone =>
       _client.auth.currentUser?.userMetadata?['phone'] as String? ?? '';
+
+  /// Obtiene el perfil completo del usuario autenticado desde `users`.
+  Future<UserProfileModel> getCurrentUserProfile() async {
+    final user = _client.auth.currentUser;
+    if (user == null) {
+      throw Exception('No hay sesión activa');
+    }
+
+    try {
+      final row = await _client
+          .from('users')
+          .select(
+            'id, full_name, email, phone, photo_url, role, is_active, created_at',
+          )
+          .eq('id', user.id)
+          .maybeSingle();
+
+      if (row != null) {
+        return UserProfileModel.fromJson(row);
+      }
+    } catch (e) {
+      debugPrint('Error obteniendo perfil de usuario: $e');
+    }
+
+    final role = await getCurrentUserRole();
+    return UserProfileModel.fallback(
+      id: user.id,
+      name: currentUserName,
+      email: currentUserEmail,
+      phone: currentUserPhone,
+      role: role,
+      photoUrl: currentUserPhotoUrl.isEmpty ? null : currentUserPhotoUrl,
+      isActive: true,
+    );
+  }
 
   /// Sube la imagen de perfil a Supabase Storage y retorna su URL pública.
   Future<String> uploadProfilePhoto({

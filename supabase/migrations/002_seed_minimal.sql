@@ -6,8 +6,8 @@
 insert into public.users (email, full_name, phone, role)
 values
   ('admin@petappointment.dev', 'Admin PetAppointment', '3000000001', 'admin'),
-  ('pro@petappointment.dev', 'Profesional PetAppointment', '3000000002', 'professional'),
-  ('client@petappointment.dev', 'Cliente PetAppointment', '3000000003', 'client')
+  ('profesional@pet.dev', 'Profesional PetAppointment', '3000000002', 'professional'),
+  ('client@pet.dev', 'Cliente PetAppointment', '3000000003', 'client')
 on conflict (email) do update
 set full_name = excluded.full_name,
     phone = excluded.phone,
@@ -24,7 +24,7 @@ on conflict do nothing;
 with pro as (
   select id as professional_id
   from public.users
-  where email = 'pro@petappointment.dev'
+  where email = 'profesional@pet.dev'
   limit 1
 ), svc as (
   select id as service_id
@@ -45,7 +45,10 @@ cross join (
   values
     (now() + interval '1 day' + interval '09:00', now() + interval '1 day' + interval '09:30'),
     (now() + interval '1 day' + interval '10:00', now() + interval '1 day' + interval '10:30'),
-    (now() + interval '1 day' + interval '11:00', now() + interval '1 day' + interval '11:30')
+    (now() + interval '1 day' + interval '11:00', now() + interval '1 day' + interval '11:30'),
+    (now() + interval '2 day' + interval '09:00', now() + interval '2 day' + interval '09:30'),
+    (now() + interval '2 day' + interval '10:00', now() + interval '2 day' + interval '10:30'),
+    (now() + interval '2 day' + interval '11:00', now() + interval '2 day' + interval '11:30')
 ) as s(slot_start, slot_end)
 on conflict (professional_id, slot_start) do nothing;
 
@@ -53,7 +56,7 @@ on conflict (professional_id, slot_start) do nothing;
 with c as (
   select id as owner_id
   from public.users
-  where email = 'client@petappointment.dev'
+  where email = 'client@pet.dev'
   limit 1
 )
 insert into public.pets (owner_id, name, species, breed, birth_date, notes)
@@ -69,12 +72,12 @@ where not exists (
 with c as (
   select id as client_id
   from public.users
-  where email = 'client@petappointment.dev'
+  where email = 'client@pet.dev'
   limit 1
 ), p as (
   select id as professional_id
   from public.users
-  where email = 'pro@petappointment.dev'
+  where email = 'profesional@pet.dev'
   limit 1
 ), pet as (
   select id as pet_id

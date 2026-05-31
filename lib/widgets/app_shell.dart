@@ -1,17 +1,21 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pet_appointment/config/config.dart';
-import 'package:pet_appointment/screens/screens.dart';
+import 'package:pet_appointment/features/features.dart';
+import 'package:pet_appointment/services/appointment_notification_service.dart';
 import 'package:pet_appointment/services/auth_service.dart';
+import 'package:pet_appointment/widgets/booking_flow_navigator.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AppShell extends StatefulWidget {
-  const AppShell({super.key, this.child});
+  const AppShell({super.key, this.initialIndex = 0, this.onNotificationTap});
 
-  final Widget? child;
+  final int initialIndex;
+  final void Function(String appointmentId)? onNotificationTap;
+  static final ValueNotifier<int> tabIndexNotifier = ValueNotifier<int>(0);
 
-  static void selectTab(BuildContext context, int index) {
-    final shellState = context.findAncestorStateOfType<_AppShellState>();
-    shellState?._onTabSelected(index);
-  }
+  static void selectTab(int index) => tabIndexNotifier.value = index;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -19,34 +23,92 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _currentIndex = 0;
+  late final AppointmentNotificationService _notificationService;
+  StreamSubscription? _authSubscription;
+  Future<void>? _restartNotificationFuture;
 
+  // IndexedStack mantiene vivos todos los tabs — el estado no se pierde
+  // al cambiar de pestaña (ej. el stack de navegación de Citas se preserva).
   static const List<Widget> _screens = [
     HomeScreen(),
     PetsScreen(),
-    CalendarScreen(),
+    BookingFlowNavigator(), // flujo Servicio → Profesional → Calendario
+    AppointmentHistoryScreen(),
     ProfileScreen(),
   ];
 
   // Tabs que requieren sesión activa
-  static const _protectedTabs = {1, 2, 3};
+  static const _protectedTabs = {1, 2, 3, 4};
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = AppShell.tabIndexNotifier.value;
+    if (widget.initialIndex != 0 && widget.initialIndex != _currentIndex) {
+      _currentIndex = widget.initialIndex;
+      AppShell.tabIndexNotifier.value = widget.initialIndex;
+    }
+    _notificationService = AppointmentNotificationService(
+      onNotificationTap: widget.onNotificationTap,
+    );
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+      event,
+    ) {
+      if (event.event == AuthChangeEvent.signedOut) {
+        _notificationService.stop();
+        return;
+      }
+
+      if (event.event == AuthChangeEvent.initialSession ||
+          event.event == AuthChangeEvent.signedIn ||
+          event.event == AuthChangeEvent.tokenRefreshed) {
+        _restartNotificationService();
+      }
+    });
+    _restartNotificationService();
+    AppShell.tabIndexNotifier.addListener(_onExternalTabSelected);
+  }
+
+  Future<void> _restartNotificationService() async {
+    if (_restartNotificationFuture != null) {
+      await _restartNotificationFuture;
+      return;
+    }
+
+    _restartNotificationFuture = _doRestartNotificationService();
+    try {
+      await _restartNotificationFuture;
+    } finally {
+      _restartNotificationFuture = null;
+    }
+  }
+
+  Future<void> _doRestartNotificationService() async {
+    if (!AuthService().hasValidSession) return;
+
+    await _notificationService.stop();
+    await _notificationService.start();
+  }
+
+  void _onExternalTabSelected() {
+    if (!mounted) return;
+    setState(() => _currentIndex = AppShell.tabIndexNotifier.value);
+  }
 
   void _onTabSelected(int index) {
     if (_protectedTabs.contains(index) && !AuthService().hasActiveSession) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
-      return; // no cambiar el tab activo
+      Navigator.of(context).pushNamed('/login');
+      return;
     }
-    setState(() => _currentIndex = index);
+    AppShell.selectTab(index);
   }
 
   @override
   Widget build(BuildContext context) {
-    // Si recibe un child de Go Router, usarlo; de lo contrario, mostrar la pantalla del índice
-    final body = widget.child ?? _screens[_currentIndex];
-
     return Scaffold(
-      body: body,
+      // IndexedStack muestra solo el tab activo pero mantiene todos en memoria.
+      // Ventaja: volver al tab de Citas mantiene en qué pantalla estabas.
+      body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         backgroundColor: Colors.white.withValues(alpha: 0.9),
@@ -69,6 +131,11 @@ class _AppShellState extends State<AppShell> {
             label: 'Calendario',
           ),
           NavigationDestination(
+            icon: Icon(Icons.history_outlined),
+            selectedIcon: Icon(Icons.history),
+            label: 'Historial',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.person_outlined),
             selectedIcon: Icon(Icons.person),
             label: 'Perfil',
@@ -76,5 +143,13 @@ class _AppShellState extends State<AppShell> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    AppShell.tabIndexNotifier.removeListener(_onExternalTabSelected);
+    _notificationService.stop();
+    super.dispose();
   }
 }

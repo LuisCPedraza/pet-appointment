@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+class AppFonts {
+  AppFonts._();
+  static const String primary = 'Plus Jakarta Sans';
+}
+
 class AppColors {
   // Paleta principal (del diseño HTML)
   static const Color primary       = Color(0xFF025E9F);
+  static const Color primaryDark   = Color(0xFF2F517A);
   static const Color onPrimary     = Color(0xFFEDF3FF);
   static const Color primaryContainer = Color(0xFF73B2F9);
 

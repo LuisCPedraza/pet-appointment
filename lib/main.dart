@@ -1,16 +1,65 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:app_links/app_links.dart';
 import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:pet_appointment/services/analytics_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:pet_appointment/services/fcm_service.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
+import 'package:pet_appointment/features/features.dart';
+import 'package:pet_appointment/widgets/widgets.dart';
 import 'package:pet_appointment/config/config.dart';
+import 'package:pet_appointment/controllers/professional_agenda_controller.dart';
+import 'package:pet_appointment/services/appointment_service.dart';
+import 'package:pet_appointment/services/auth_service.dart';
+import 'package:pet_appointment/screens/login_callback_screen.dart';
+import 'package:pet_appointment/screens/admin_shell.dart';
+import 'package:pet_appointment/utils/app_globals.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
+  // Inicializar Supabase y utilidades
   await _initializeSupabase();
-  runApp(const MyApp());
+  await initializeDateFormatting('es_ES', null);
+
+  // Inicializar servicio de analítica (usa Supabase como backend de eventos)
+  AnalyticsService.init();
+  AnalyticsService.logAppOpen();
+
+  // Inicialización defensiva de Firebase (no falla si no hay google-services.json)
+  try {
+    await Firebase.initializeApp();
+    FirebaseAnalytics.instance.logAppOpen();
+    // Forward Flutter errors to Crashlytics when initialized
+    FlutterError.onError = (details) {
+      FlutterError.presentError(details);
+      FirebaseCrashlytics.instance.recordFlutterError(details);
+      AnalyticsService.logError(details.exception, details.stack, fatal: true);
+    };
+  } catch (e) {
+    debugPrint('Firebase no inicializado: $e');
+  }
+
+  // Capturar errores Flutter y enviarlos a la tabla de eventos/crash_reports
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    AnalyticsService.logError(details.exception, details.stack, fatal: true);
+  };
+
+  runZonedGuarded(
+    () {
+      runApp(const MyApp());
+    },
+    (error, stack) {
+      AnalyticsService.logError(error, stack, fatal: true);
+    },
+  );
 }
 
 Future<void> _initializeSupabase() async {
@@ -35,58 +84,123 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late AppLinks _appLinks;
-  StreamSubscription<Uri>? _deepLinkSubscription;
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
     super.initState();
-    _initDeepLinks();
-  }
-
-  void _initDeepLinks() {
-    _appLinks = AppLinks();
-
-    // Escuchar deep links entrantes
-    _deepLinkSubscription = _appLinks.uriLinkStream.listen(
-      (uri) {
-        _handleDeepLink(uri);
-      },
-      onError: (err) {
-        debugPrint('Error en deep link: $err');
+    // Inicializar FCM y registrar token en Supabase
+    FcmService().init(
+      onOpenApp: (appointmentId) async {
+        await _openAppointmentDetailFromNotification(appointmentId);
       },
     );
+    // Escuchar cambios de autenticación
+    Supabase.instance.client.auth.onAuthStateChange.listen((event) {
+      if (event.event == AuthChangeEvent.signedIn) {
+        _routeAfterSignIn();
+      }
+    });
   }
 
-  void _handleDeepLink(Uri uri) {
-    debugPrint('Deep link recibido: $uri');
+  Future<void> _routeAfterSignIn() async {
+    final role = await AuthService().getCurrentUserRole();
+    if (!mounted || _navigatorKey.currentState == null) return;
 
-    // Ejemplo: petappointment://reset-password?token=xxx&type=recovery
-    if (uri.scheme == 'petappointment' && uri.path == '/reset-password') {
-      AppRouter.router.go('/reset-password');
-    }
+    final route = switch (role) {
+      'admin' => '/admin',
+      'professional' => '/professional-home',
+      _ => '/home',
+    };
+
+    _navigatorKey.currentState?.pushNamedAndRemoveUntil(route, (_) => false);
   }
 
-  @override
-  void dispose() {
-    _deepLinkSubscription?.cancel();
-    super.dispose();
+  Future<void> _openAppointmentDetailFromNotification(
+    String appointmentId,
+  ) async {
+    final appointment = await AppointmentService().fetchAppointmentById(
+      appointmentId,
+    );
+    if (appointment == null) return;
+
+    if (!mounted || _navigatorKey.currentState == null) return;
+    _navigatorKey.currentState?.push(
+      MaterialPageRoute(
+        builder: (context) => AppointmentDetailScreen(appointment: appointment),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'PetAppointment',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ProfessionalAgendaController()),
       ],
-      supportedLocales: const [Locale('es'), Locale('es', 'ES'), Locale('en')],
-      locale: const Locale('es', 'ES'),
-      routerConfig: AppRouter.router,
+      child: MaterialApp(
+        scaffoldMessengerKey: appScaffoldMessengerKey,
+        navigatorKey: _navigatorKey,
+        title: 'PetAppointment',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        home: AppShell(
+          onNotificationTap: _openAppointmentDetailFromNotification,
+        ),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('es', 'ES'), Locale('en', 'US')],
+        locale: const Locale('es', 'ES'),
+        routes: {
+          '/home': (_) => AppShell(
+            onNotificationTap: _openAppointmentDetailFromNotification,
+          ),
+          '/admin': (_) => const AdminAccessGate(initialIndex: 0),
+          '/admin/users': (_) => const AdminAccessGate(initialIndex: 1),
+          '/admin/services': (_) => const AdminAccessGate(initialIndex: 2),
+          '/admin/reports': (_) => const AdminAccessGate(initialIndex: 3),
+          '/edit-profile': (_) => const EditProfileScreen(),
+          '/login': (_) => const LoginScreen(),
+          '/register': (_) => const RegisterScreen(),
+          '/forgot-password': (_) => const ForgotPasswordScreen(),
+          '/reset-password': (_) => const ResetPasswordScreen(),
+          '/calendar': (_) => AppShell(
+            initialIndex: 2,
+            onNotificationTap: _openAppointmentDetailFromNotification,
+          ),
+          '/appointments-history': (_) => const AppointmentHistoryScreen(),
+          '/professional-home': (_) => const ProfessionalHomeScreen(),
+          '/professional-availability': (_) =>
+              const ProfessionalAvailabilityScreen(),
+          '/login-callback': (_) => const LoginCallbackScreen(),
+        },
+        onGenerateRoute: _generateRoute,
+      ),
     );
+  }
+
+  /// Generador de rutas dinámicas para pasar argumentos a las pantallas.
+  Route<dynamic> _generateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case '/confirm':
+      case '/appointment-confirm':
+        final appointment = settings.arguments;
+        return MaterialPageRoute(
+          builder: (context) =>
+              AppointmentConfirmScreen(appointment: appointment as dynamic),
+        );
+      case '/appointments-history':
+        return MaterialPageRoute(builder: (context) => const AppShell());
+      case '/professional-availability':
+        return MaterialPageRoute(
+          builder: (context) => const ProfessionalAvailabilityScreen(),
+        );
+      default:
+        // Redirigir a home en lugar de mostrar "ruta no encontrada"
+        return MaterialPageRoute(builder: (context) => const AppShell());
+    }
   }
 }
