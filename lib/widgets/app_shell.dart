@@ -6,6 +6,7 @@ import 'package:pet_appointment/features/features.dart';
 import 'package:pet_appointment/services/appointment_notification_service.dart';
 import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/widgets/booking_flow_navigator.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key, this.initialIndex = 0, this.onNotificationTap});
@@ -23,6 +24,8 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int _currentIndex = 0;
   late final AppointmentNotificationService _notificationService;
+  StreamSubscription? _authSubscription;
+  Future<void>? _restartNotificationFuture;
 
   // IndexedStack mantiene vivos todos los tabs — el estado no se pierde
   // al cambiar de pestaña (ej. el stack de navegación de Citas se preserva).
@@ -48,8 +51,43 @@ class _AppShellState extends State<AppShell> {
     _notificationService = AppointmentNotificationService(
       onNotificationTap: widget.onNotificationTap,
     );
-    unawaited(_notificationService.start());
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+      event,
+    ) {
+      if (event.event == AuthChangeEvent.signedOut) {
+        _notificationService.stop();
+        return;
+      }
+
+      if (event.event == AuthChangeEvent.initialSession ||
+          event.event == AuthChangeEvent.signedIn ||
+          event.event == AuthChangeEvent.tokenRefreshed) {
+        _restartNotificationService();
+      }
+    });
+    _restartNotificationService();
     AppShell.tabIndexNotifier.addListener(_onExternalTabSelected);
+  }
+
+  Future<void> _restartNotificationService() async {
+    if (_restartNotificationFuture != null) {
+      await _restartNotificationFuture;
+      return;
+    }
+
+    _restartNotificationFuture = _doRestartNotificationService();
+    try {
+      await _restartNotificationFuture;
+    } finally {
+      _restartNotificationFuture = null;
+    }
+  }
+
+  Future<void> _doRestartNotificationService() async {
+    if (!AuthService().hasValidSession) return;
+
+    await _notificationService.stop();
+    await _notificationService.start();
   }
 
   void _onExternalTabSelected() {
@@ -109,8 +147,9 @@ class _AppShellState extends State<AppShell> {
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     AppShell.tabIndexNotifier.removeListener(_onExternalTabSelected);
-    unawaited(_notificationService.stop());
+    _notificationService.stop();
     super.dispose();
   }
 }

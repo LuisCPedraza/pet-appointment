@@ -3,6 +3,7 @@ import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/utils/field_validators.dart';
 import 'package:pet_appointment/widgets/widgets.dart';
+import 'package:pet_appointment/widgets/semantics_wrapper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -54,8 +55,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             content: const Text('Contraseña actualizada correctamente.'),
             backgroundColor: AppColors.secondary,
             behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
         Navigator.of(context).pop();
@@ -71,8 +73,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             content: Text(msg),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -83,8 +86,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             content: const Text('Error inesperado. Intenta de nuevo.'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -101,10 +105,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          color: AppColors.primary,
-          onPressed: () => Navigator.of(context).pop(),
+        leading: SemanticsWrapper(
+          label: 'Volver',
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            color: AppColors.primary,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
         ),
         title: Text(
           'Cambiar contraseña',
@@ -199,7 +206,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       label: 'Confirmar nueva contraseña',
                       controller: _confirmPasswordController,
                       validator: FieldValidators.confirmPassword(
-                          _newPasswordController),
+                        _newPasswordController,
+                      ),
                       textInputAction: TextInputAction.done,
                     ),
                   ],
@@ -220,8 +228,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  disabledBackgroundColor:
-                      AppColors.primary.withValues(alpha: 0.5),
+                  disabledBackgroundColor: AppColors.primary.withValues(
+                    alpha: 0.5,
+                  ),
                 ),
                 child: _isLoading
                     ? const SizedBox(

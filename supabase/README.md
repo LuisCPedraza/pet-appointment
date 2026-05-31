@@ -20,8 +20,27 @@ Este directorio contiene la base para iniciar `TASK-02P1` y `TASK-03`.
 5. Verificar bucket `pet-photos` en `Storage`.
 6. Verificar Realtime en `Database -> Replication`.
 
+## Push remoto
+
+La base ya incluye una cola de eventos para push remoto y una Edge Function para drenarla.
+
+1. Ejecuta las migraciones nuevas hasta `017_push_notification_events.sql`.
+2. Despliega la Edge Function `send-push-events` con el CLI de Supabase:
+
+```bash
+supabase login
+supabase link --project-ref vqxdujxvstelybwewyum
+supabase secrets set FCM_SERVER_KEY=<fcm-server-key>
+supabase functions deploy send-push-events --project-ref vqxdujxvstelybwewyum
+```
+
+1. Configura en GitHub el secret `SUPABASE_SERVICE_ROLE_KEY` para el workflow y `SUPABASE_SEND_PUSH_EVENTS_URL` con la URL pública de la función.
+1. Configura en Supabase solo `FCM_SERVER_KEY`.
+1. Llama la función cuando quieras procesar eventos pendientes o prográmala como job.
+
 ## Notas
 
 - Este esquema usa UUID y claves foraneas para mantener integridad.
 - El diseño de `availability` permite gestionar bloques de horario disponibles.
 - `appointment_history` conserva trazabilidad de cambios de estado.
+- La mensajería remota depende de tokens de dispositivo válidos en `push_device_tokens`.

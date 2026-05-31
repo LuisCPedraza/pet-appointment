@@ -1,5 +1,5 @@
 name: pet_appointment
-description: "A new Flutter project."
+description: "Agenda citas veterinarias y de peluquería para tu mascota de forma fácil y rápida."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -46,8 +46,15 @@ dependencies:
   provider: ^6.0.0
   flutter_local_notifications: ^17.2.3
   timezone: ^0.9.1
+  firebase_core: ^2.6.0
+  firebase_messaging: ^14.2.3
+  firebase_crashlytics: ^3.0.6
+  firebase_analytics: ^10.3.0
+  shared_preferences: ^2.1.1
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
   flutter_launcher_icons: ^0.14.4
 

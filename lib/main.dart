@@ -1,7 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:pet_appointment/services/analytics_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:pet_appointment/services/fcm_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:pet_appointment/features/features.dart';
@@ -9,6 +16,7 @@ import 'package:pet_appointment/widgets/widgets.dart';
 import 'package:pet_appointment/config/config.dart';
 import 'package:pet_appointment/controllers/professional_agenda_controller.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
+import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/screens/login_callback_screen.dart';
 import 'package:pet_appointment/screens/admin_shell.dart';
 import 'package:pet_appointment/utils/app_globals.dart';
@@ -16,9 +24,42 @@ import 'package:pet_appointment/utils/app_globals.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
+  // Inicializar Supabase y utilidades
   await _initializeSupabase();
   await initializeDateFormatting('es_ES', null);
-  runApp(const MyApp());
+
+  // Inicializar servicio de analítica (usa Supabase como backend de eventos)
+  AnalyticsService.init();
+  AnalyticsService.logAppOpen();
+
+  // Inicialización defensiva de Firebase (no falla si no hay google-services.json)
+  try {
+    await Firebase.initializeApp();
+    FirebaseAnalytics.instance.logAppOpen();
+    // Forward Flutter errors to Crashlytics when initialized
+    FlutterError.onError = (details) {
+      FlutterError.presentError(details);
+      FirebaseCrashlytics.instance.recordFlutterError(details);
+      AnalyticsService.logError(details.exception, details.stack, fatal: true);
+    };
+  } catch (e) {
+    debugPrint('Firebase no inicializado: $e');
+  }
+
+  // Capturar errores Flutter y enviarlos a la tabla de eventos/crash_reports
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    AnalyticsService.logError(details.exception, details.stack, fatal: true);
+  };
+
+  runZonedGuarded(
+    () {
+      runApp(const MyApp());
+    },
+    (error, stack) {
+      AnalyticsService.logError(error, stack, fatal: true);
+    },
+  );
 }
 
 Future<void> _initializeSupabase() async {
@@ -48,13 +89,31 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    // Inicializar FCM y registrar token en Supabase
+    FcmService().init(
+      onOpenApp: (appointmentId) async {
+        await _openAppointmentDetailFromNotification(appointmentId);
+      },
+    );
     // Escuchar cambios de autenticación
     Supabase.instance.client.auth.onAuthStateChange.listen((event) {
       if (event.event == AuthChangeEvent.signedIn) {
-        // Navegar al home reemplazando la ruta actual
-        _navigatorKey.currentState?.pushReplacementNamed('/home');
+        _routeAfterSignIn();
       }
     });
+  }
+
+  Future<void> _routeAfterSignIn() async {
+    final role = await AuthService().getCurrentUserRole();
+    if (!mounted || _navigatorKey.currentState == null) return;
+
+    final route = switch (role) {
+      'admin' => '/admin',
+      'professional' => '/professional-home',
+      _ => '/home',
+    };
+
+    _navigatorKey.currentState?.pushNamedAndRemoveUntil(route, (_) => false);
   }
 
   Future<void> _openAppointmentDetailFromNotification(
@@ -126,6 +185,7 @@ class _MyAppState extends State<MyApp> {
   /// Generador de rutas dinámicas para pasar argumentos a las pantallas.
   Route<dynamic> _generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case '/confirm':
       case '/appointment-confirm':
         final appointment = settings.arguments;
         return MaterialPageRoute(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'test_setup.dart';
 import 'package:pet_appointment/models/availability_slot.dart';
+import 'package:pet_appointment/models/service_model.dart';
 import 'package:pet_appointment/screens/professional_availability_screen.dart';
 
 class FakeChannel {
@@ -15,8 +17,17 @@ class FakeAppointmentService {
     required String professionalId,
     required DateTime from,
     required DateTime to,
+    bool includeInactive = false,
   }) async {
     return _slots;
+  }
+
+  Future<Set<String>> fetchBookedSlotIds({
+    required String professionalId,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    return <String>{};
   }
 
   Future<int> createSlotsBetween({
@@ -65,9 +76,15 @@ class FakeAppointmentService {
     onChangedCallback = onChanged;
     return FakeChannel();
   }
+
+  Future<List<ServiceModel>> fetchServices() async {
+    return [];
+  }
 }
 
 void main() {
+  setUpAll(() async => await initTestSupabase());
+
   testWidgets('ProfessionalAvailability generates slots and displays them', (
     tester,
   ) async {

@@ -37,6 +37,10 @@ class AuthService {
   /// Retorna true si hay una sesión activa (usuario ya autenticado).
   bool get hasActiveSession => _client.auth.currentSession != null;
 
+  /// Retorna true si hay una sesión activa y el access token todavía es válido.
+  bool get hasValidSession =>
+      hasActiveSession && !(_client.auth.currentSession?.isExpired ?? false);
+
   /// URL de la foto de perfil guardada en metadata.
   String get currentUserPhotoUrl =>
       _client.auth.currentUser?.userMetadata?['photo_url'] as String? ?? '';
@@ -283,16 +287,8 @@ class AuthService {
 
   /// Retorna true si el usuario actual tiene rol `admin`.
   Future<bool> isCurrentUserAdmin() async {
-    final email = _client.auth.currentUser?.email;
-    if (email == null) return false;
     try {
-      final res = await _client
-          .from('users')
-          .select('role')
-          .eq('email', email)
-          .single();
-      final role = res['role'] as String? ?? '';
-      return role == 'admin';
+      return await getCurrentUserRole() == 'admin';
     } catch (e) {
       debugPrint('Error comprobando rol admin: $e');
       return false;

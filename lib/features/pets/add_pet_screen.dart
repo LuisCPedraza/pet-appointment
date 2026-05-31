@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:pet_appointment/services/pet_service.dart';
 import 'package:pet_appointment/utils/field_validators.dart';
 import 'package:pet_appointment/screens/add_pet/add_pet.dart';
+import 'package:pet_appointment/widgets/semantics_wrapper.dart';
 
 class AddPetScreen extends StatefulWidget {
   const AddPetScreen({super.key, this.initialPet});
@@ -62,10 +63,10 @@ class _AddPetScreenState extends State<AddPetScreen> {
     super.dispose();
   }
 
-  Future<void> _pickPhoto() async {
+  Future<void> _pickPhoto(ImageSource source) async {
     try {
       final pickedFile = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
+        source: source,
         imageQuality: 85,
         maxWidth: 1200,
       );
@@ -84,6 +85,35 @@ class _AddPetScreenState extends State<AddPetScreen> {
         ).showSnackBar(SnackBar(content: Text('Error seleccionando foto: $e')));
       }
     }
+  }
+
+  Future<void> _choosePhotoSource() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined),
+                title: const Text('Tomar foto'),
+                onTap: () => Navigator.of(sheetContext).pop(ImageSource.camera),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: const Text('Elegir de la galería'),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(ImageSource.gallery),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (source == null) return;
+    await _pickPhoto(source);
   }
 
   Future<void> _selectBirthDate() async {
@@ -306,7 +336,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                 selectedPhotoBytes: _selectedPhotoBytes,
                 existingPhotoUrl: _existingPhotoUrl,
                 removeExistingPhoto: _removeExistingPhoto,
-                onPickPhoto: _pickPhoto,
+                onPickPhoto: _choosePhotoSource,
                 onRemoveSelectedPhoto: () {
                   setState(() {
                     _selectedPhotoBytes = null;
@@ -322,15 +352,22 @@ class _AddPetScreenState extends State<AddPetScreen> {
               const SizedBox(height: 24),
 
               // Botón guardar
-              ElevatedButton(
-                onPressed: _isLoading ? null : _savePet,
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(_isEditMode ? 'Guardar cambios' : 'Guardar mascota'),
+              SemanticsWrapper(
+                label: _isLoading
+                    ? 'Guardando mascota'
+                    : (_isEditMode ? 'Guardar cambios' : 'Guardar mascota'),
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _savePet,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(
+                          _isEditMode ? 'Guardar cambios' : 'Guardar mascota',
+                        ),
+                ),
               ),
             ],
           ),

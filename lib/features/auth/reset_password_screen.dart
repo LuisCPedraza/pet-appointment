@@ -5,6 +5,7 @@ import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/utils/field_validators.dart';
 import 'package:pet_appointment/widgets/widgets.dart';
+import 'package:pet_appointment/widgets/semantics_wrapper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Pantalla para definir una nueva contraseña.
@@ -58,8 +59,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             backgroundColor: AppColors.secondary,
           ),
         );
-        Navigator.of(context)
-            .pushNamedAndRemoveUntil('/login', (_) => false);
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
       }
     } on TimeoutException {
       if (mounted) {
@@ -177,33 +177,38 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             ),
                           ],
                         ),
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _updatePassword,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
+                        child: SemanticsWrapper(
+                          label: _isLoading
+                              ? 'Guardando nueva contraseña'
+                              : 'Guardar nueva contraseña',
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _updatePassword,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
                             ),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text(
+                                    'Guardar nueva contraseña',
+                                    style: TextStyle(
+                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 15,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                           ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text(
-                                  'Guardar nueva contraseña',
-                                  style: TextStyle(
-                                    fontFamily: 'Plus Jakarta Sans',
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 15,
-                                    color: Colors.white,
-                                  ),
-                                ),
                         ),
                       ),
                     ),

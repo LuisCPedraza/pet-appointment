@@ -12,6 +12,8 @@
 | UT-06 | Mascotas | CRUD completo de mascotas sin errores | Unit |
 | UT-07 | Validadores | Validar teléfono con formato correcto e incorrecto | Unit |
 | UT-08 | Validadores | Validar fecha de nacimiento no futura | Unit |
+| UT-09 | Reglas de cita | Cliente solo puede cancelar citas en espera o confirmadas | Unit |
+| UT-10 | Reglas de cita | Profesional y admin solo aceptan transiciones válidas de estado | Unit |
 
 ### 11.2 Pruebas de Widget
 
@@ -31,6 +33,8 @@
 | IT-02 | Reserva de cita | Cliente puede completar el flujo completo de reserva de cita | Integración |
 | IT-03 | Cancelación | Cliente puede cancelar una cita y el slot queda disponible inmediatamente | Integración |
 | IT-04 | Tiempo real | Cambio de estado por profesional se refleja en la app del cliente en menos de 2 segundos | Integración |
+| IT-05 | Push Android | La app registra token FCM y recibe notificación al disparar `send-push-events` | Integración |
+| IT-06 | Confirmación | La pantalla de confirmación muestra datos de la cita y navega a historial/home | Integración |
 
 ### 11.4 Comandos de Prueba
 
@@ -48,6 +52,16 @@ open coverage/html/index.html
 # Prueba de integración específica
 flutter test integration_test/
 ```
+
+### Integración CI
+
+Se añadió un workflow de GitHub Actions que ejecuta `flutter test --coverage` y sube `coverage/lcov.info` como artifact.
+
+- Archivo: `.github/workflows/test-and-coverage.yml`
+- Artifact: `coverage-lcov`
+
+Usar los pasos descritos en `docs/entrega_final/test_reports.md` para descargar y generar el HTML localmente.
+
 
 ---
 

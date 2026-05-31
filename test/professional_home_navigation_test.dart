@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'test_setup.dart';
 import 'package:pet_appointment/models/availability_slot.dart';
+import 'package:pet_appointment/models/service_model.dart';
 import 'package:pet_appointment/screens/professional_availability_screen.dart';
 
 class _FakeChannel {
@@ -13,8 +15,17 @@ class _FakeAppointmentService {
     required DateTime from,
     required DateTime to,
     String? serviceId,
+    bool includeInactive = false,
   }) async {
     return [];
+  }
+
+  Future<Set<String>> fetchBookedSlotIds({
+    required String professionalId,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    return <String>{};
   }
 
   Future<int> createSlotsBetween({
@@ -38,6 +49,10 @@ class _FakeAppointmentService {
   }) async {
     return _FakeChannel();
   }
+
+  Future<List<ServiceModel>> fetchServices() async {
+    return [];
+  }
 }
 
 class _RouteHost extends StatelessWidget {
@@ -58,6 +73,8 @@ class _RouteHost extends StatelessWidget {
 }
 
 void main() {
+  setUpAll(() async => await initTestSupabase());
+
   testWidgets('La ruta de disponibilidad abre la pantalla correcta', (
     tester,
   ) async {
@@ -79,6 +96,6 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 1));
 
     expect(find.text('Mi Disponibilidad'), findsOneWidget);
-    expect(find.text('Generar 4 semanas'), findsOneWidget);
+    expect(find.text('Aplicar (4 sem)'), findsOneWidget);
   });
 }

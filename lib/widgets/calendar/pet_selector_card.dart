@@ -32,6 +32,11 @@ class PetSelectorCard extends StatelessWidget {
             }).toList(),
             onChanged: controller.selectPet,
           ),
+          const SizedBox(height: 8),
+          Text(
+            'Selecciona la mascota que asistirá a la cita.',
+            style: TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+          ),
         ],
       ),
     );
@@ -63,6 +68,7 @@ class _PetDropdown extends StatelessWidget {
           isExpanded: true,
           icon: const Icon(Icons.expand_more_rounded),
           style: TextStyle(fontSize: 15, color: AppColors.onSurface),
+          hint: const Text('Selecciona una mascota'),
           items: items,
           onChanged: onChanged,
         ),

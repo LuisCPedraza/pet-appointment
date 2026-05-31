@@ -8,12 +8,14 @@ class ProfessionalHomeWeeklyView extends StatefulWidget {
     super.key,
     required this.controller,
     required this.weekStart,
+    required this.statusFilter,
     required this.onAppointmentTap,
     required this.onConfirmAppointment,
   });
 
   final ProfessionalAgendaController controller;
   final DateTime weekStart;
+  final String statusFilter;
   final ValueChanged<AppointmentModel> onAppointmentTap;
   final Future<void> Function(AppointmentModel appointment)
   onConfirmAppointment;
@@ -50,6 +52,18 @@ class _ProfessionalHomeWeeklyViewState
     setState(() {
       _weekStart = now.subtract(Duration(days: now.weekday - 1));
     });
+  }
+
+  List<AppointmentModel> _filterAppointments(
+    List<AppointmentModel> appointments,
+  ) {
+    return appointments.where((appointment) {
+      return switch (widget.statusFilter) {
+        'Pendientes' => appointment.status == 'En espera',
+        'Confirmadas' => appointment.status == 'Confirmada',
+        _ => true,
+      };
+    }).toList();
   }
 
   @override
@@ -103,7 +117,9 @@ class _ProfessionalHomeWeeklyViewState
             itemCount: 7,
             itemBuilder: (context, dayIndex) {
               final day = _weekStart.add(Duration(days: dayIndex));
-              final appointments = appointmentsByDay[dayIndex] ?? [];
+              final appointments = _filterAppointments(
+                appointmentsByDay[dayIndex] ?? [],
+              );
               final isToday =
                   DateTime(day.year, day.month, day.day) ==
                   DateTime(
@@ -117,6 +133,7 @@ class _ProfessionalHomeWeeklyViewState
                 dayName: dayFormatter.format(day).toUpperCase(),
                 appointments: appointments,
                 isToday: isToday,
+                statusFilter: widget.statusFilter,
                 onTapAppointment: widget.onAppointmentTap,
                 onConfirmAppointment: widget.onConfirmAppointment,
               );
@@ -135,6 +152,7 @@ class ProfessionalHomeDayCard extends StatelessWidget {
     required this.dayName,
     required this.appointments,
     required this.isToday,
+    required this.statusFilter,
     required this.onTapAppointment,
     required this.onConfirmAppointment,
   });
@@ -143,6 +161,7 @@ class ProfessionalHomeDayCard extends StatelessWidget {
   final String dayName;
   final List<AppointmentModel> appointments;
   final bool isToday;
+  final String statusFilter;
   final ValueChanged<AppointmentModel> onTapAppointment;
   final Future<void> Function(AppointmentModel appointment)
   onConfirmAppointment;
@@ -198,7 +217,9 @@ class ProfessionalHomeDayCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Center(
                   child: Text(
-                    'Sin citas',
+                    statusFilter == 'Todas'
+                        ? 'Sin citas'
+                        : 'Sin citas $statusFilter',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: Colors.grey.shade500,
                     ),

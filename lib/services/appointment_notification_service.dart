@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:pet_appointment/models/appointment_model.dart';
@@ -34,8 +36,26 @@ class AppointmentNotificationService {
   final Map<String, String> _lastStatuses = {};
   bool _initialized = false;
   bool? _isClient;
+  Future<void>? _startFuture;
+  bool _pluginInitialized = false;
+  bool _permissionsRequested = false;
 
   Future<void> start() async {
+    if (_initialized) return;
+    if (_startFuture != null) {
+      await _startFuture;
+      return;
+    }
+
+    _startFuture = _startInternal();
+    try {
+      await _startFuture;
+    } finally {
+      _startFuture = null;
+    }
+  }
+
+  Future<void> _startInternal() async {
     if (_initialized) return;
 
     final authService = AuthService();
@@ -85,9 +105,8 @@ class AppointmentNotificationService {
     if (role != 'client') return;
 
     final appointmentService = AppointmentService();
-    final upcomingAppointments = await appointmentService.fetchUpcomingAppointments(
-      limit: 100,
-    );
+    final upcomingAppointments = await appointmentService
+        .fetchUpcomingAppointments(limit: 100);
 
     final notifications = FlutterLocalNotificationsPlugin();
     for (final appointment in upcomingAppointments) {
@@ -125,26 +144,72 @@ class AppointmentNotificationService {
   }
 
   Future<void> _initializePlugin() async {
-    const androidSettings = AndroidInitializationSettings('ic_notification');
-    const iosSettings = DarwinInitializationSettings();
+    if (!_pluginInitialized) {
+      const iosSettings = DarwinInitializationSettings();
 
-    await _notifications.initialize(
-      const InitializationSettings(android: androidSettings, iOS: iosSettings),
-      onDidReceiveNotificationResponse: _handleNotificationResponse,
-      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
-    );
+      // Intentamos inicializar con el icono personalizado `ic_notification`.
+      // Si falla (p.ej. recurso ausente en algunos entornos), reintentamos
+      // con el icono por defecto del paquete (`@mipmap/ic_launcher`).
+      try {
+        const androidSettings = AndroidInitializationSettings(
+          'ic_notification',
+        );
+        await _notifications.initialize(
+          const InitializationSettings(
+            android: androidSettings,
+            iOS: iosSettings,
+          ),
+          onDidReceiveNotificationResponse: _handleNotificationResponse,
+          onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+        );
+      } on PlatformException catch (e) {
+        debugPrint(
+          'Fallo inicializando icono ic_notification: $e — aplicando fallback',
+        );
+        // Fallback al icono por defecto del paquete
+        final fallbackAndroid = AndroidInitializationSettings(
+          '@mipmap/ic_launcher',
+        );
+        await _notifications.initialize(
+          InitializationSettings(android: fallbackAndroid, iOS: iosSettings),
+          onDidReceiveNotificationResponse: _handleNotificationResponse,
+          onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+        );
+      }
+
+      _pluginInitialized = true;
+    }
+
+    if (_permissionsRequested) {
+      tz.initializeTimeZones();
+      return;
+    }
 
     final androidImpl = _notifications
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
         >();
-    await androidImpl?.requestNotificationsPermission();
+    try {
+      await androidImpl?.requestNotificationsPermission();
+    } on PlatformException catch (error) {
+      if (error.code != 'permissionRequestInProgress') {
+        rethrow;
+      }
+    }
 
     final iosImpl = _notifications
         .resolvePlatformSpecificImplementation<
           IOSFlutterLocalNotificationsPlugin
         >();
-    await iosImpl?.requestPermissions(alert: true, badge: true, sound: true);
+    try {
+      await iosImpl?.requestPermissions(alert: true, badge: true, sound: true);
+    } on PlatformException catch (error) {
+      if (error.code != 'permissionRequestInProgress') {
+        rethrow;
+      }
+    }
+
+    _permissionsRequested = true;
 
     tz.initializeTimeZones();
   }
@@ -191,7 +256,8 @@ class AppointmentNotificationService {
 
       if (previousStatus == currentStatus) continue;
 
-      if (previousStatus == null && _isClient == false &&
+      if (previousStatus == null &&
+          _isClient == false &&
           (currentStatus == 'Confirmada' || currentStatus == 'En espera')) {
         await _showProfessionalNewAppointmentNotification(appointment);
       } else if (currentStatus == 'Confirmada' && previousStatus != null) {
@@ -344,7 +410,9 @@ class AppointmentNotificationService {
     return appointmentId.hashCode & 0x7fffffff;
   }
 
-  Future<void> _scheduleAppointmentReminder(AppointmentModel appointment) async {
+  Future<void> _scheduleAppointmentReminder(
+    AppointmentModel appointment,
+  ) async {
     final scheduledAt = appointment.scheduledAt;
     if (scheduledAt == null) return;
 
@@ -352,8 +420,8 @@ class AppointmentNotificationService {
     final targetTime = reminderTime.isAfter(DateTime.now())
         ? reminderTime
         : (scheduledAt.isAfter(DateTime.now())
-            ? DateTime.now().add(const Duration(seconds: 5))
-            : null);
+              ? DateTime.now().add(const Duration(seconds: 5))
+              : null);
 
     if (targetTime == null) return;
 
@@ -382,4 +450,3 @@ class AppointmentNotificationService {
     );
   }
 }
-

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pet_appointment/features/pets/add_pet_screen.dart';
 import 'package:pet_appointment/config/theme.dart';
 import 'package:pet_appointment/services/pet_service.dart';
+import 'package:pet_appointment/widgets/semantics_wrapper.dart';
 import 'package:pet_appointment/widgets/pet_avatar.dart';
 
 class PetDetailScreen extends StatefulWidget {
@@ -153,9 +154,12 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
             '¿Deseas eliminar a ${_pet.name}? Esta acción no se puede deshacer.',
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancelar'),
+            SemanticsWrapper(
+              label: 'Cancelar eliminación',
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancelar'),
+              ),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
@@ -214,21 +218,27 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
           title: const Text('Detalle de mascota'),
           centerTitle: true,
           actions: [
-            IconButton(
-              onPressed: _isDeleting ? null : _deletePet,
-              icon: _isDeleting
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.delete_outline),
-              tooltip: 'Eliminar',
+            SemanticsWrapper(
+              label: 'Eliminar mascota',
+              child: IconButton(
+                onPressed: _isDeleting ? null : _deletePet,
+                icon: _isDeleting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.delete_outline),
+                tooltip: 'Eliminar',
+              ),
             ),
-            TextButton.icon(
-              onPressed: _isDeleting ? null : _openEditPet,
-              icon: const Icon(Icons.edit_outlined),
-              label: const Text('Editar'),
+            SemanticsWrapper(
+              label: 'Editar mascota',
+              child: TextButton.icon(
+                onPressed: _isDeleting ? null : _openEditPet,
+                icon: const Icon(Icons.edit_outlined),
+                label: const Text('Editar'),
+              ),
             ),
           ],
         ),

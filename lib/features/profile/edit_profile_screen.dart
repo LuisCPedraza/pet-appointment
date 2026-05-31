@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pet_appointment/config/theme.dart';
+import 'package:pet_appointment/widgets/semantics_wrapper.dart';
 import 'package:pet_appointment/services/auth_service.dart';
 // field validators moved to widget file
 import 'package:pet_appointment/screens/edit_profile/edit_profile.dart';
+
+enum _PhotoAction { keepCurrent, gallery, camera }
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -44,9 +47,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  Future<void> _pickPhoto() async {
+  Future<void> _pickPhoto(ImageSource source) async {
     final image = await _imagePicker.pickImage(
-      source: ImageSource.gallery,
+      source: source,
       imageQuality: 85,
       maxWidth: 1200,
     );
@@ -58,6 +61,59 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _selectedPhoto = image;
       _selectedPhotoBytes = bytes;
     });
+  }
+
+  Future<void> _choosePhotoSource() async {
+    if (_isLoading) return;
+
+    final action = await showModalBottomSheet<_PhotoAction>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_camera_back_outlined),
+                title: const Text('Usar foto actual'),
+                subtitle: const Text('Mantener la imagen ya guardada'),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(_PhotoAction.keepCurrent),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: const Text('Elegir de galería'),
+                subtitle: const Text('Seleccionar una foto existente'),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(_PhotoAction.gallery),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined),
+                title: const Text('Tomar foto con la cámara'),
+                subtitle: const Text('Capturar una nueva imagen'),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(_PhotoAction.camera),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (!mounted || action == null) return;
+
+    if (action == _PhotoAction.keepCurrent) {
+      setState(() {
+        _selectedPhoto = null;
+        _selectedPhotoBytes = null;
+      });
+      return;
+    }
+
+    await _pickPhoto(
+      action == _PhotoAction.gallery ? ImageSource.gallery : ImageSource.camera,
+    );
   }
 
   Future<void> _save() async {
@@ -138,10 +194,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          color: AppColors.primary,
-          onPressed: () => Navigator.of(context).pop(),
+        leading: SemanticsWrapper(
+          label: 'Volver',
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            color: AppColors.primary,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
         ),
         title: Text(
           'Editar perfil',
@@ -162,7 +221,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               selectedPhotoBytes: _selectedPhotoBytes,
               currentPhotoUrl: _currentPhotoUrl,
               isLoading: _isLoading,
-              onPickPhoto: _pickPhoto,
+              onPickPhoto: _choosePhotoSource,
               userEmail: _authService.currentUserEmail,
             ),
 
