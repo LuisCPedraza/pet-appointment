@@ -1605,30 +1605,32 @@ Una historia o tarea se considera **COMPLETADA** únicamente cuando cumple **tod
 
 ### Criterios funcionales
 
-* [x] Código implementado según la especificación de la HU. (implementaciones clave: Auth, Mascotas, Citas, Panel profesional, Notificaciones)
+* [X] Código implementado según la especificación de la HU. (implementaciones clave: Auth, Mascotas, Citas, Panel profesional, Notificaciones)
+
 * [~] Todos los criterios de aceptación verificados manualmente. (parcial: flujos críticos verificados en Android; iOS y validaciones en consola pendientes)
-* [x] Integración con Supabase (Auth / DB / Realtime / Storage) verificada en entorno real. (migraciones y RLS validadas)
-* [x] Sin errores bloqueadores en `flutter analyze`. (solo advertencias no bloqueantes detectadas)
+
+* [X] Integración con Supabase (Auth / DB / Realtime / Storage) verificada en entorno real. (migraciones y RLS validadas)
+* [X] Sin errores bloqueadores en `flutter analyze`. (solo advertencias no bloqueantes detectadas)
 
 ### Criterios de calidad
 
-* [ ] Código revisado por el otro miembro del equipo mediante Pull Request.
-* [ ] PR aprobado antes de mergear a `develop`.
-* [x] Pruebas unitarias o de widget escritas para lógica crítica. (suite actualizada; `flutter test --coverage` pasa)
-* [x] Sin warnings de linting marcados como `error` en `analysis_options.yaml`. (no hay errores bloqueantes)
+* [X] Código revisado por el otro miembro del equipo mediante Pull Request.
+* [X] PR aprobado antes de mergear a `develop`.
+* [X] Pruebas unitarias o de widget escritas para lógica crítica. (suite actualizada; `flutter test --coverage` pasa)
+* [X] Sin warnings de linting marcados como `error` en `analysis_options.yaml`. (no hay errores bloqueantes)
 * [ ] Clases y métodos públicos documentados con DartDoc (`///`).
 
 ### Criterios de integración
 
-* [ ] Mergeado a rama `develop` (nunca directamente a `main`).
-* [ ] Issue en Jira movido a columna  **Done** .
+* [X] Mergeado a rama `develop` (nunca directamente a `main`).
+* [X] Issue en Jira movido a columna  **Done** .
 * [ ] Commit SHA enlazado en el comentario del issue en Jira.
-* [x] Evidencia capturada: screenshot o video si es pantalla UI, log de consola si es lógica backend. (coverage/lcov.info, coverage/html/index.html, APK en `build/app/outputs` y artefactos locales)
+* [X] Evidencia capturada: screenshot o video si es pantalla UI, log de consola si es lógica backend. (coverage/lcov.info, coverage/html/index.html, APK en `build/app/outputs` y artefactos locales)
 
 ### Criterios de documentación
 
-* [x] Burndown del sprint actualizado.
-* [x] Si se modificó el esquema de BD, la migración está documentada en `/docs`. (migrations/ y docs/ entregadas)
+* [X] Burndown del sprint actualizado.
+* [X] Si se modificó el esquema de BD, la migración está documentada en `/docs`. (migrations/ y docs/ entregadas)
 * [ ] Si se añadió una variable de entorno, está registrada en `.env.example`.
 
 ---

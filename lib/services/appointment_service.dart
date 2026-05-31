@@ -484,6 +484,10 @@ class AppointmentService {
       ['En espera', 'Confirmada', 'En progreso'],
     );
 
+    query = query
+        .gte('scheduled_at', from.toUtc().toIso8601String())
+        .lte('scheduled_at', to.toUtc().toIso8601String());
+
     if (professionalId != null) {
       query = query.eq('professional_id', professionalId);
     }
