@@ -452,13 +452,17 @@ class AppointmentService {
     required DateTime to,
     String? serviceId,
     String? professionalId,
+    bool includeInactive = false,
   }) async {
     var query = _client
         .from('availability')
         .select('*, users!availability_professional_id_fkey(full_name)')
-        .eq('is_available', true)
         .gte('slot_start', from.toUtc().toIso8601String())
         .lte('slot_start', to.toUtc().toIso8601String());
+
+    if (!includeInactive) {
+      query = query.eq('is_available', true);
+    }
 
     if (serviceId != null) {
       query = query.or('service_id.eq.$serviceId,service_id.is.null');
@@ -479,26 +483,25 @@ class AppointmentService {
     required DateTime to,
     String? professionalId,
   }) async {
-    var query = _client.from('appointments').select('availability_id').inFilter(
-      'status',
-      ['En espera', 'Confirmada', 'En progreso'],
-    );
+    try {
+      final rows = await _client.rpc(
+        'get_booked_slot_ids',
+        params: {
+          'p_from': from.toUtc().toIso8601String(),
+          'p_to': to.toUtc().toIso8601String(),
+          'p_professional_id': professionalId,
+        },
+      );
 
-    query = query
-        .gte('scheduled_at', from.toUtc().toIso8601String())
-        .lte('scheduled_at', to.toUtc().toIso8601String());
-
-    if (professionalId != null) {
-      query = query.eq('professional_id', professionalId);
+      return (rows as List)
+          .map((row) => row['availability_id'] as String?)
+          .whereType<String>()
+          .where((id) => id.isNotEmpty)
+          .toSet();
+    } catch (e) {
+      debugPrint('fetchAllBookedSlotIds fallback: $e');
+      return <String>{};
     }
-
-    final rows = await query;
-
-    return (rows as List)
-        .map((row) => row['availability_id'] as String?)
-        .whereType<String>()
-        .where((id) => id.isNotEmpty)
-        .toSet();
   }
 
   /// Suscribe a cambios en la tabla de servicios para refrescar el catálogo.
@@ -803,36 +806,25 @@ class AppointmentService {
     required DateTime to,
     String? professionalId,
     String? serviceId,
+    String? status,
     required int limit,
     required int offset,
   }) async {
     try {
-      var query = _client
-          .from('appointments')
-          .select(
-            'id, professional_id, status, notes, created_at, '
-            'client_id, pet_id, service_id, availability_id, '
-            'users!appointments_client_id_fkey(id, full_name, email), '
-            'users!appointments_professional_id_fkey(full_name), '
-            'pets(id, name, species), '
-            'services(id, name), '
-            'availability(slot_start, slot_end)',
-          )
-          .gte('availability.slot_start', from.toUtc().toIso8601String())
-          .lte('availability.slot_start', to.toUtc().toIso8601String());
+      final response = await _client.rpc(
+        'admin_appointments_report_details',
+        params: {
+          'p_from': from.toUtc().toIso8601String(),
+          'p_to': to.toUtc().toIso8601String(),
+          'p_professional_id': professionalId,
+          'p_service_id': serviceId,
+          'p_status': status,
+          'p_limit': limit,
+          'p_offset': offset,
+        },
+      );
 
-      if (professionalId != null && professionalId.isNotEmpty) {
-        query = query.eq('professional_id', professionalId);
-      }
-      if (serviceId != null && serviceId.isNotEmpty) {
-        query = query.eq('service_id', serviceId);
-      }
-
-      final rows = await query
-          .order('created_at', ascending: false)
-          .range(offset, offset + limit - 1);
-
-      return (rows as List)
+      return (response as List)
           .map((row) => AppointmentModel.fromJson(row as Map<String, dynamic>))
           .toList();
     } catch (e) {

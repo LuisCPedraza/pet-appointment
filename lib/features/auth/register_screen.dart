@@ -49,6 +49,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         password: _passwordController.text,
         name: _nameController.text.trim(),
         phone: _phoneController.text.trim(),
+        emailRedirectTo: AuthService.oauthRedirectUri,
       );
 
       if (mounted) {

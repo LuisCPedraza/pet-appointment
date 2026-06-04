@@ -70,6 +70,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
           to: _dateRange!.end,
           professionalId: _professionalFilter,
           serviceId: _serviceFilter,
+          status: null,
           limit: _pageSize,
           offset: _page * _pageSize,
         ),
@@ -172,6 +173,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                 to: _dateRange!.end,
                 professionalId: _professionalFilter,
                 serviceId: _serviceFilter,
+                status: status,
                 limit: 1000,
                 offset: 0,
               ),
@@ -179,9 +181,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                 if (snapshot.connectionState != ConnectionState.done) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                final list =
-                    snapshot.data?.where((a) => a.status == status).toList() ??
-                    [];
+                final list = snapshot.data ?? [];
                 if (list.isEmpty) {
                   return const Center(
                     child: Text('No hay citas para este estado.'),

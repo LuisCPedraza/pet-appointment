@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_appointment/features/home/authenticated_home_screen.dart';
 import 'package:pet_appointment/services/auth_service.dart';
-import 'package:pet_appointment/screens/admin_shell.dart';
 import 'package:pet_appointment/screens/home/home.dart';
-import 'package:pet_appointment/features/professional/professional_home_screen.dart';
 // duplicate import removed
 
 class HomeScreen extends StatefulWidget {
@@ -35,26 +33,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Usuario autenticado: resolver rol antes de decidir la pantalla.
-    return FutureBuilder<String>(
-      future: _authService.getCurrentUserRole(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        final role = snapshot.data ?? 'client';
-        if (role == 'admin') {
-          return const AdminAccessGate(initialIndex: 0);
-        }
-        if (role == 'professional') {
-          return const ProfessionalHomeScreen();
-        }
-
-        return const AuthenticatedHomeScreen();
-      },
-    );
+    return const AuthenticatedHomeScreen();
   }
 }

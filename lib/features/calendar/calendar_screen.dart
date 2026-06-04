@@ -29,11 +29,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
   final _controller = CalendarController();
   final _notesController = TextEditingController();
   StreamSubscription? _authSubscription;
+  late final VoidCallback _tabListener;
 
   @override
   void initState() {
     super.initState();
     _controller.addListener(_onControllerChange);
+    _tabListener = _onExternalTabSelected;
+    AppShell.tabIndexNotifier.addListener(_tabListener);
     _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
       event,
     ) {
@@ -55,7 +58,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
     _init();
   }
 
+  void _onExternalTabSelected() {
+    if (!mounted || AppShell.tabIndexNotifier.value != 2) return;
+    _reloadCalendarData();
+  }
+
   Future<void> _init() async {
+    await _reloadCalendarData();
+  }
+
+  Future<void> _reloadCalendarData() async {
     try {
       await _controller.loadInitialData();
       if (_controller.selectedServiceId != null &&
@@ -76,6 +88,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   void dispose() {
     _authSubscription?.cancel();
     _controller.removeListener(_onControllerChange);
+    AppShell.tabIndexNotifier.removeListener(_tabListener);
     _controller.unsubscribe();
     _controller.dispose();
     _notesController.dispose();

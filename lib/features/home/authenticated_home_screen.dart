@@ -129,6 +129,28 @@ class _AuthenticatedHomeScreenState extends State<AuthenticatedHomeScreen> {
               children: [
                 _GreetingCard(firstName: firstName, profile: data.profile),
                 const SizedBox(height: 16),
+                if (data.profile.role == 'admin') ...[
+                  _RoleShortcutCard(
+                    icon: Icons.admin_panel_settings_outlined,
+                    title: 'Panel de administración',
+                    subtitle:
+                        'Gestiona usuarios, servicios y reportes desde aquí.',
+                    actionLabel: 'Abrir panel admin',
+                    onPressed: () => Navigator.of(context).pushNamed('/admin'),
+                  ),
+                  const SizedBox(height: 16),
+                ] else if (data.profile.role == 'professional') ...[
+                  _RoleShortcutCard(
+                    icon: Icons.calendar_month_outlined,
+                    title: 'Mi agenda profesional',
+                    subtitle:
+                        'Revisa tus citas y disponibilidad sin salir del inicio.',
+                    actionLabel: 'Abrir agenda',
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed('/professional-home'),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 _SummaryRow(
                   pets: data.pets,
                   appointments: data.upcomingAppointments,
@@ -166,6 +188,70 @@ class _HomeDashboardData {
   final AppointmentModel? nextAppointment;
   final List<AppointmentModel> upcomingAppointments;
   final List<Pet> pets;
+}
+
+class _RoleShortcutCard extends StatelessWidget {
+  const _RoleShortcutCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.actionLabel,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String actionLabel;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, color: AppColors.primary),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(subtitle),
+                  const SizedBox(height: 10),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: FilledButton.tonal(
+                      onPressed: onPressed,
+                      child: Text(actionLabel),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _GreetingCard extends StatelessWidget {
