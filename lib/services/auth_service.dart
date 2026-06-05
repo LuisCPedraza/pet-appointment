@@ -151,19 +151,9 @@ class AuthService {
     }
   }
 
-  /// Inicia sesión usando Google a través de Supabase OAuth.
-  /// En móviles usará el flujo de navegador/ deep link configurado en Supabase.
-  ///
-  /// Requiere:
-  /// - Google Cloud Console: OAuth 2.0 credentials configuradas
-  /// - Supabase: Google OAuth habilitado con Client ID y Secret
-  /// - Redirect URI: Debe coincidir en Google Cloud, Supabase y deeplink del código
-  ///
-  /// Lanza [AuthException] si hay problemas con:
-  /// - Configuración de OAuth (Client ID/Secret inválidos)
-  /// - Redirect URI mismatch
-  /// - Conectividad de red
-  /// - Usuario cancela el login
+  /// Inicia sesión usando Google.
+  /// - En web usa Supabase OAuth para mantener el flujo de navegador.
+  /// - En Android/iOS usa GoogleSignIn nativo con `GOOGLE_WEB_CLIENT_ID`.
   Future<void> signInWithGoogle({String? redirectTo}) async {
     try {
       debugPrint('🔐 Iniciando login con Google...');
