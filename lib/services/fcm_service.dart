@@ -21,7 +21,6 @@ class FcmService {
   factory FcmService() => _instance;
   FirebaseMessaging? _messaging;
   OnOpenAppCallback? _onOpenApp;
-  bool _enabled = false;
 
   Future<void> init({OnOpenAppCallback? onOpenApp}) async {
     _onOpenApp = onOpenApp;
@@ -29,10 +28,8 @@ class FcmService {
     try {
       await Firebase.initializeApp();
       _messaging = FirebaseMessaging.instance;
-      _enabled = true;
     } catch (e) {
       debugPrint('Firebase init failed, disabling FCM: $e');
-      _enabled = false;
       return;
     }
 

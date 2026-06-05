@@ -196,6 +196,7 @@ class CalendarController extends ChangeNotifier {
     if (selectedProfessionalId == null) {
       slotsByDay = {};
       bookedIds = {};
+      selectedDay = null;
       notifyListeners();
       return;
     }
@@ -206,8 +207,8 @@ class CalendarController extends ChangeNotifier {
       final slots = await _service.fetchAllSlots(
         from: from,
         to: to,
-        serviceId: selectedServiceId,
         professionalId: selectedProfessionalId,
+        includeInactive: true,
       );
       final booked = await _service.fetchAllBookedSlotIds(
         from: from,
@@ -221,6 +222,7 @@ class CalendarController extends ChangeNotifier {
       }
       slotsByDay = grouped;
       bookedIds = booked;
+      _syncSelectedDayWithAvailability(grouped);
       notifyListeners();
     } catch (e) {
       debugPrint('loadMonth error: $e');
@@ -259,8 +261,8 @@ class CalendarController extends ChangeNotifier {
       final slots = await _service.fetchAllSlots(
         from: from,
         to: to,
-        serviceId: selectedServiceId,
         professionalId: selectedProfessionalId,
+        includeInactive: true,
       );
       final Map<DateTime, List<AvailabilitySlot>> grouped = {};
       for (final s in slots) {
@@ -268,6 +270,7 @@ class CalendarController extends ChangeNotifier {
         grouped.putIfAbsent(key, () => []).add(s);
       }
       slotsByDay = grouped;
+      _syncSelectedDayWithAvailability(grouped);
       notifyListeners();
     } catch (e) {
       debugPrint('refreshSlots error: $e');
@@ -312,6 +315,13 @@ class CalendarController extends ChangeNotifier {
     selectedDay = day;
     focusedDay = focused;
     selectedSlot = null;
+    final key = DateTime(day.year, day.month, day.day);
+    final hasVisibleSlots = (slotsByDay[key] ?? const <AvailabilitySlot>[]).any(
+      (slot) => !slot.isPast && !bookedIds.contains(slot.id),
+    );
+    if (!hasVisibleSlots) {
+      _syncSelectedDayWithAvailability(slotsByDay);
+    }
     notifyListeners();
   }
 
@@ -371,5 +381,33 @@ class CalendarController extends ChangeNotifier {
     if (day == null) return [];
     final key = DateTime(day.year, day.month, day.day);
     return (slotsByDay[key] ?? []).where((s) => !s.isPast).toList();
+  }
+
+  void _syncSelectedDayWithAvailability(
+    Map<DateTime, List<AvailabilitySlot>> grouped,
+  ) {
+    if (grouped.isEmpty) {
+      selectedDay = null;
+      return;
+    }
+
+    final currentKey = selectedDay == null
+        ? null
+        : DateTime(selectedDay!.year, selectedDay!.month, selectedDay!.day);
+    final currentDaySlots = currentKey == null
+        ? const <AvailabilitySlot>[]
+        : grouped[currentKey] ?? const <AvailabilitySlot>[];
+    final hasVisibleSlots = currentDaySlots.any(
+      (slot) => !slot.isPast && !bookedIds.contains(slot.id),
+    );
+
+    if (hasVisibleSlots) return;
+
+    final availableDay = grouped.entries.map((entry) => entry.key).where((day) {
+      final slots = grouped[day] ?? const <AvailabilitySlot>[];
+      return slots.any((slot) => !slot.isPast && !bookedIds.contains(slot.id));
+    }).toList()..sort();
+
+    selectedDay = availableDay.isEmpty ? null : availableDay.first;
   }
 }

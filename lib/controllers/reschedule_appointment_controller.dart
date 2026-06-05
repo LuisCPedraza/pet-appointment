@@ -77,8 +77,8 @@ class RescheduleAppointmentController extends CalendarController {
       final slots = await _appointmentService.fetchAllSlots(
         from: from,
         to: to,
-        serviceId: selectedServiceId,
         professionalId: originalAppointment.professionalId,
+        includeInactive: true,
       );
 
       final grouped = <DateTime, List<AvailabilitySlot>>{};
@@ -137,8 +137,8 @@ class RescheduleAppointmentController extends CalendarController {
       final slots = await _appointmentService.fetchAllSlots(
         from: from,
         to: to,
-        serviceId: selectedServiceId,
         professionalId: originalAppointment.professionalId,
+        includeInactive: true,
       );
       final grouped = <DateTime, List<AvailabilitySlot>>{};
       for (final slot in slots) {

@@ -23,10 +23,7 @@ class TimeSlotsCard extends StatelessWidget {
           if (slots.isEmpty)
             Text(
               'No hay horarios disponibles para este dia.',
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.onSurfaceVariant,
-              ),
+              style: TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
             )
           else
             Wrap(
@@ -34,13 +31,18 @@ class TimeSlotsCard extends StatelessWidget {
               runSpacing: 8,
               children: slots.map((slot) {
                 final booked = controller.bookedIds.contains(slot.id);
+                final serviceMatches =
+                    controller.selectedServiceId == null ||
+                    slot.serviceId == null ||
+                    slot.serviceId == controller.selectedServiceId;
+                final available = slot.isAvailable && !booked && serviceMatches;
                 final sel = controller.selectedSlot?.id == slot.id;
                 return _TimeChip(
                   label: DateFormat('hh:mm a').format(slot.start),
                   sublabel: slot.professionalName,
                   selected: sel,
-                  booked: booked,
-                  onTap: booked ? null : () => controller.selectSlot(slot),
+                  booked: booked || !slot.isEnabled || !serviceMatches,
+                  onTap: available ? () => controller.selectSlot(slot) : null,
                 );
               }).toList(),
             ),

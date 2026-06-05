@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -16,50 +17,61 @@ import 'package:pet_appointment/widgets/widgets.dart';
 import 'package:pet_appointment/config/config.dart';
 import 'package:pet_appointment/controllers/professional_agenda_controller.dart';
 import 'package:pet_appointment/services/appointment_service.dart';
-import 'package:pet_appointment/services/auth_service.dart';
 import 'package:pet_appointment/screens/login_callback_screen.dart';
 import 'package:pet_appointment/screens/admin_shell.dart';
 import 'package:pet_appointment/utils/app_globals.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env');
-  // Inicializar Supabase y utilidades
-  await _initializeSupabase();
-  await initializeDateFormatting('es_ES', null);
-
-  // Inicializar servicio de analítica (usa Supabase como backend de eventos)
-  AnalyticsService.init();
-  AnalyticsService.logAppOpen();
-
-  // Inicialización defensiva de Firebase (no falla si no hay google-services.json)
   try {
-    await Firebase.initializeApp();
-    FirebaseAnalytics.instance.logAppOpen();
-    // Forward Flutter errors to Crashlytics when initialized
-    FlutterError.onError = (details) {
-      FlutterError.presentError(details);
-      FirebaseCrashlytics.instance.recordFlutterError(details);
-      AnalyticsService.logError(details.exception, details.stack, fatal: true);
-    };
+    runZonedGuarded(
+      () async {
+        WidgetsFlutterBinding.ensureInitialized();
+        await dotenv.load(fileName: '.env');
+        // Inicializar Supabase y utilidades
+        await _initializeSupabase();
+        await initializeDateFormatting('es_ES', null);
+
+        // Inicializar servicio de analítica (usa Supabase como backend de eventos)
+        AnalyticsService.init();
+        AnalyticsService.logAppOpen();
+
+        // Inicialización defensiva de Firebase (no falla si no hay google-services.json)
+        try {
+          await Firebase.initializeApp();
+          FirebaseAnalytics.instance.logAppOpen();
+          // Forward Flutter errors to Crashlytics when initialized
+          FlutterError.onError = (details) {
+            FlutterError.presentError(details);
+            FirebaseCrashlytics.instance.recordFlutterError(details);
+            AnalyticsService.logError(
+              details.exception,
+              details.stack,
+              fatal: true,
+            );
+          };
+        } catch (e) {
+          debugPrint('Firebase no inicializado: $e');
+        }
+
+        // Capturar errores Flutter y enviarlos a la tabla de eventos/crash_reports
+        FlutterError.onError = (FlutterErrorDetails details) {
+          FlutterError.presentError(details);
+          AnalyticsService.logError(
+            details.exception,
+            details.stack,
+            fatal: true,
+          );
+        };
+
+        runApp(const MyApp());
+      },
+      (error, stack) {
+        AnalyticsService.logError(error, stack, fatal: true);
+      },
+    );
   } catch (e) {
-    debugPrint('Firebase no inicializado: $e');
+    debugPrint('Error iniciando la app: $e');
   }
-
-  // Capturar errores Flutter y enviarlos a la tabla de eventos/crash_reports
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    AnalyticsService.logError(details.exception, details.stack, fatal: true);
-  };
-
-  runZonedGuarded(
-    () {
-      runApp(const MyApp());
-    },
-    (error, stack) {
-      AnalyticsService.logError(error, stack, fatal: true);
-    },
-  );
 }
 
 Future<void> _initializeSupabase() async {
@@ -73,7 +85,11 @@ Future<void> _initializeSupabase() async {
     return;
   }
 
-  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
+  await Supabase.initialize(
+    url: supabaseUrl,
+    anonKey: supabaseAnonKey,
+    authOptions: const FlutterAuthClientOptions(detectSessionInUri: true),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -85,6 +101,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  final AppLinks _appLinks = AppLinks();
+  StreamSubscription<Uri>? _deepLinkSubscription;
 
   @override
   void initState() {
@@ -101,19 +119,101 @@ class _MyAppState extends State<MyApp> {
         _routeAfterSignIn();
       }
     });
+    _initializeDeepLinks();
+  }
+
+  Future<void> _initializeDeepLinks() async {
+    if (const bool.fromEnvironment('FLUTTER_TEST')) {
+      return;
+    }
+
+    try {
+      final initialUri = await _appLinks.getInitialAppLink();
+      if (initialUri != null) {
+        await _handleDeepLink(initialUri);
+      }
+
+      _deepLinkSubscription = _appLinks.uriLinkStream.listen(
+        _handleDeepLink,
+        onError: (error) {
+          debugPrint('Error escuchando deep links: $error');
+        },
+      );
+    } catch (e) {
+      debugPrint('Error inicializando deep links: $e');
+    }
+  }
+
+  Future<void> _handleDeepLink(Uri uri) async {
+    final normalizedHost = uri.host.toLowerCase();
+    final normalizedPath = uri.path.toLowerCase();
+    final type = uri.queryParameters['type']?.toLowerCase();
+    final hasAuthCode =
+        uri.queryParameters.containsKey('code') ||
+        uri.queryParameters.containsKey('error') ||
+        uri.fragment.contains('access_token');
+
+    if (hasAuthCode) {
+      try {
+        await Supabase.instance.client.auth.getSessionFromUrl(uri);
+      } catch (e) {
+        debugPrint('Error procesando respuesta OAuth: $e');
+      }
+
+      if (Supabase.instance.client.auth.currentSession != null &&
+          mounted &&
+          _navigatorKey.currentState != null) {
+        await _routeAfterSignIn();
+      }
+      return;
+    }
+
+    if (normalizedHost == 'login-callback' ||
+        normalizedPath.contains('login-callback')) {
+      try {
+        if (Supabase.instance.client.auth.currentSession == null) {
+          await Supabase.instance.client.auth.getSessionFromUrl(uri);
+        }
+      } catch (e) {
+        debugPrint('Error procesando callback OAuth: $e');
+      }
+
+      if (!mounted || _navigatorKey.currentState == null) return;
+
+      if (Supabase.instance.client.auth.currentSession != null) {
+        await _routeAfterSignIn();
+      } else {
+        _navigatorKey.currentState?.pushNamedAndRemoveUntil(
+          '/login-callback',
+          (_) => false,
+        );
+      }
+      return;
+    }
+
+    if (normalizedPath.contains('reset-password') ||
+        normalizedPath.contains('forgot-password') ||
+        type == 'recovery') {
+      try {
+        if (Supabase.instance.client.auth.currentSession == null) {
+          await Supabase.instance.client.auth.getSessionFromUrl(uri);
+        }
+      } catch (e) {
+        debugPrint('Error procesando enlace de recuperación: $e');
+      }
+
+      if (!mounted || _navigatorKey.currentState == null) return;
+      _navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        '/reset-password',
+        (_) => false,
+      );
+    }
   }
 
   Future<void> _routeAfterSignIn() async {
-    final role = await AuthService().getCurrentUserRole();
     if (!mounted || _navigatorKey.currentState == null) return;
 
-    final route = switch (role) {
-      'admin' => '/admin',
-      'professional' => '/professional-home',
-      _ => '/home',
-    };
-
-    _navigatorKey.currentState?.pushNamedAndRemoveUntil(route, (_) => false);
+    _navigatorKey.currentState?.pushNamedAndRemoveUntil('/home', (_) => false);
   }
 
   Future<void> _openAppointmentDetailFromNotification(
@@ -202,5 +302,11 @@ class _MyAppState extends State<MyApp> {
         // Redirigir a home en lugar de mostrar "ruta no encontrada"
         return MaterialPageRoute(builder: (context) => const AppShell());
     }
+  }
+
+  @override
+  void dispose() {
+    _deepLinkSubscription?.cancel();
+    super.dispose();
   }
 }

@@ -1,6 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:pet_appointment/models/user_profile_model.dart';
 
 /// Maneja toda la comunicación con Supabase Auth.
@@ -9,6 +11,8 @@ import 'package:pet_appointment/models/user_profile_model.dart';
 class AuthService {
   // Acceso al cliente de Supabase (ya inicializado en main.dart)
   final _client = Supabase.instance.client;
+
+  static const String oauthRedirectUri = 'petappointment://login-callback/';
 
   // Almacenamiento seguro para tokens y datos de sesión
   static const _secureStorage = FlutterSecureStorage();
@@ -23,6 +27,7 @@ class AuthService {
     required String password,
     required String name,
     required String phone,
+    String? emailRedirectTo,
   }) async {
     // Crea el usuario en Auth. El trigger on_auth_user_created (migración 003)
     // inserta automáticamente la fila en public.users con los metadatos aquí
@@ -30,6 +35,7 @@ class AuthService {
     await _client.auth.signUp(
       email: email,
       password: password,
+      emailRedirectTo: emailRedirectTo ?? _getDefaultRedirectUri(),
       data: {'full_name': name, 'phone': phone, 'role': 'client'},
     );
   }
@@ -145,22 +151,18 @@ class AuthService {
     }
   }
 
-  /// Inicia sesión usando Google a través de Supabase OAuth.
-  /// En móviles usará el flujo de navegador/ deep link configurado en Supabase.
-  ///
-  /// Requiere:
-  /// - Google Cloud Console: OAuth 2.0 credentials configuradas
-  /// - Supabase: Google OAuth habilitado con Client ID y Secret
-  /// - Redirect URI: Debe coincidir en Google Cloud, Supabase y deeplink del código
-  ///
-  /// Lanza [AuthException] si hay problemas con:
-  /// - Configuración de OAuth (Client ID/Secret inválidos)
-  /// - Redirect URI mismatch
-  /// - Conectividad de red
-  /// - Usuario cancela el login
+  /// Inicia sesión usando Google.
+  /// - En web usa Supabase OAuth para mantener el flujo de navegador.
+  /// - En Android/iOS usa GoogleSignIn nativo con `GOOGLE_WEB_CLIENT_ID`.
   Future<void> signInWithGoogle({String? redirectTo}) async {
     try {
       debugPrint('🔐 Iniciando login con Google...');
+
+      if (!kIsWeb) {
+        await _signInWithGoogleNative();
+        debugPrint('✅ Login con Google completado exitosamente');
+        return;
+      }
 
       // Platform-specific redirect URI si no se proporciona.
       // En web debe ser la URL actual de la app; en móvil, el deep link.
@@ -187,9 +189,40 @@ class AuthService {
     }
   }
 
+  Future<void> _signInWithGoogleNative() async {
+    final serverClientId = dotenv.maybeGet('GOOGLE_WEB_CLIENT_ID');
+    if (serverClientId == null || serverClientId.isEmpty) {
+      throw const AuthException(
+        'Falta GOOGLE_WEB_CLIENT_ID en .env. Necesitas el client ID web de Google para iniciar sesión en Android/iOS.',
+      );
+    }
+
+    final googleSignIn = GoogleSignIn(
+      scopes: ['email', 'profile'],
+      serverClientId: serverClientId,
+    );
+    final googleUser = await googleSignIn.signIn();
+
+    if (googleUser == null) {
+      throw const AuthException('Inicio con Google cancelado.');
+    }
+
+    final googleAuth = await googleUser.authentication;
+    final idToken = googleAuth.idToken;
+
+    if (idToken == null || idToken.isEmpty) {
+      throw const AuthException('No se pudo obtener el token de Google.');
+    }
+
+    await _client.auth.signInWithIdToken(
+      provider: OAuthProvider.google,
+      idToken: idToken,
+    );
+  }
+
   /// Inicia sesión usando GitHub a través de Supabase OAuth.
   /// Requiere que GitHub OAuth esté habilitado en Supabase y que el redirect URI
-  /// esté registrado como petappointment://login-callback/ en GitHub y Supabase.
+  /// esté registrado como petappointment://login-callback en GitHub y Supabase.
   Future<void> signInWithGithub({String? redirectTo}) async {
     try {
       debugPrint('🔐 Iniciando login con GitHub...');
@@ -202,7 +235,6 @@ class AuthService {
         OAuthProvider.github,
         redirectTo: finalRedirectTo,
         authScreenLaunchMode: LaunchMode.externalApplication,
-        queryParams: {'prompt': 'consent'},
       );
 
       debugPrint('✅ Login con GitHub completado exitosamente');
@@ -252,9 +284,17 @@ class AuthService {
     // Android: AndroidManifest.xml
     // iOS: Info.plist CFBundleURLSchemes
     if (kIsWeb) {
-      return Uri.base.origin;
+      final host = Uri.base.host.toLowerCase();
+      final port = Uri.base.hasPort ? ':${Uri.base.port}' : '';
+
+      if (defaultTargetPlatform == TargetPlatform.android &&
+          host == 'localhost') {
+        return 'http://10.0.2.2$port/login-callback';
+      }
+
+      return '${Uri.base.origin}/login-callback';
     }
-    return 'petappointment://login-callback/';
+    return oauthRedirectUri;
   }
 
   /// Envía un correo de recuperación con un código OTP de 8 dígitos.

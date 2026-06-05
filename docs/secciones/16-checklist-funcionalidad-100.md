@@ -47,6 +47,7 @@
 
 - [x] Confirmación automática o manual de citas por el profesional.
 - [x] Validación fuerte de disponibilidad para evitar doble booking.
+- [x] El filtro de slots ocupados respeta el rango visible del calendario y la reprogramación.
 - [x] Cancelación con motivo.
 - [ ] Definir si aplica reembolso y cómo se registra.
 - [x] Historial de cambios de estado completamente trazable.

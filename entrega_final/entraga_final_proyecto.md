@@ -90,6 +90,7 @@ a fin de tener bases sólidas y datos reales sobre los cuales evaluar, debes sol
 - [x] **Código fuente completo y bien documentado.** El repositorio incluye la implementación principal y documentación de apoyo.
 - [x] **Arquitectura del sistema.** El proyecto cuenta con diagramas y descripción de arquitectura.
 - **Documentos de soporte:** [docs/PetAppointment_Documentacion_Tecnica.md](../docs/PetAppointment_Documentacion_Tecnica.md), [docs/DEVELOPER_GUIDE.md](../docs/DEVELOPER_GUIDE.md)
+ - **Diagrama de conexión móvil → APIs → BD:** [docs/desarrollo-movil-50.md](../docs/desarrollo-movil-50.md)
 
 ### 2. Evidencias de Pruebas (Testing)
 
@@ -125,3 +126,4 @@ La aplicación cumple con el flujo principal esperado para la entrega: autentica
 - Documento técnico principal: [docs/PetAppointment_Documentacion_Tecnica.md](../docs/PetAppointment_Documentacion_Tecnica.md)
 - Guía de desarrollador: [docs/DEVELOPER_GUIDE.md](../docs/DEVELOPER_GUIDE.md)
 - Guía visual: [docs/STYLE_GUIDE.md](../docs/STYLE_GUIDE.md)
+ - Diagrama de arquitectura y conexiones: [docs/DESARROLLO DE APLICACIONES PARA DISPOSITIVOS MÓVILES-50.md](../docs/DESARROLLO%20DE%20APLICACIONES%20PARA%20DISPOSITIVOS%20M%C3%93VILES-50.md)
