@@ -126,4 +126,4 @@ La aplicación cumple con el flujo principal esperado para la entrega: autentica
 - Documento técnico principal: [docs/PetAppointment_Documentacion_Tecnica.md](../docs/PetAppointment_Documentacion_Tecnica.md)
 - Guía de desarrollador: [docs/DEVELOPER_GUIDE.md](../docs/DEVELOPER_GUIDE.md)
 - Guía visual: [docs/STYLE_GUIDE.md](../docs/STYLE_GUIDE.md)
- - Diagrama de arquitectura y conexiones: [docs/DESARROLLO DE APLICACIONES PARA DISPOSITIVOS MÓVILES-50.md](../docs/DESARROLLO%20DE%20APLICACIONES%20PARA%20DISPOSITIVOS%20M%C3%93VILES-50.md)
+ - Diagrama de arquitectura y conexiones: [docs/DESARROLLO_DE_APLICACIONES_PARA_DISPOSITIVOS_MOVILES_50.md](../docs/DESARROLLO_DE_APLICACIONES_PARA_DISPOSITIVOS_MOVILES_50.md)
