@@ -36,7 +36,7 @@ flowchart LR
   F -->|analytics & crash logs| S
   note right of A: UI + local cache (Secure Storage)
   note right of P: Business data: users, appointments, slots, services
-```
+``` 
 
 ## Explicación breve
 
