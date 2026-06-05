@@ -6,36 +6,53 @@ El siguiente diagrama muestra a alto nivel cómo se conecta la aplicación móvi
 
 ```mermaid
 flowchart LR
-  subgraph Mobile
-    A[App Flutter (Android/iOS/Web)]
-  end
 
-  subgraph Identity
-    G[Google Sign-In / OAuth]
-    GH[GitHub OAuth]
-  end
+    classDef mobile fill:#E3F2FD,stroke:#1E88E5,color:#000
+    classDef auth fill:#FFF3E0,stroke:#FB8C00,color:#000
+    classDef backend fill:#E8F5E9,stroke:#43A047,color:#000
+    classDef note fill:#F5F5F5,stroke:#757575,color:#000
 
-  subgraph Gateway
-    S[Supabase Auth & API]
-    F[Firebase (Messaging/Analytics/Crashlytics)]
-  end
+    subgraph Mobile
+        A["Flutter App<br/>(Android / iOS / Web)"]
+    end
 
-  subgraph BackendDB
-    P[Postgres (Supabase)]
-    R[Realtime / Replication]
-    Storage[Storage (object files)]
-  end
+    subgraph Identity
+        G["Google OAuth"]
+        GH["GitHub OAuth"]
+    end
 
-  A -->|OAuth redirect / Id token| G
-  A -->|OAuth redirect / Id token| GH
-  A -->|Supabase client SDK (REST/Realtime)| S
-  A -->|Push tokens / events| F
-  S -->|SQL / RPC| P
-  S -->|Realtime subscriptions| R
-  S -->|Object uploads/downloads| Storage
-  F -->|analytics & crash logs| S
-  note right of A: UI + local cache (Secure Storage)
-  note right of P: Business data: users, appointments, slots, services
+    subgraph Services
+        S["Supabase<br/>Auth & API"]
+        F["Firebase<br/>Messaging / Analytics / Crashlytics"]
+    end
+
+    subgraph Data
+        P["PostgreSQL"]
+        R["Realtime"]
+        ST["Storage"]
+    end
+
+    A --> G
+    A --> GH
+    A --> S
+    A --> F
+
+    S --> P
+    S --> R
+    S --> ST
+
+    F --> S
+
+    N1["UI + Secure Storage"]
+    N2["Users, Services,<br/>Appointments, Slots"]
+
+    A -.-> N1
+    P -.-> N2
+
+    class A mobile
+    class G,GH auth
+    class S,F,P,R,ST backend
+    class N1,N2 note
 ``` 
 
 ## Explicación breve
