@@ -12,7 +12,12 @@
           "package_name": "com.example.pet_appointment"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "684983474208-qtmht8v1d5o9r7dqa2i4v85vfomiaa7f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCwiBWOIkqJ8npUdZwIJ187K2tMXnZROJc"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "684983474208-qtmht8v1d5o9r7dqa2i4v85vfomiaa7f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
